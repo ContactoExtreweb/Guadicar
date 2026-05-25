@@ -1,0 +1,149 @@
+---
+export const prerender = false;
+import Base from '../../layouts/Base.astro';
+import { getVehiculo, badgeDe, fmt } from '../../lib/coches.js';
+import Calculadora from '../../components/Calculadora.astro';
+
+const { slug } = Astro.params;
+const v = await getVehiculo(slug);
+
+// Si el coche no existe (o se vendió y se despublicó), 404 limpio
+if (!v) return Astro.redirect('/404');
+
+const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`;
+const desc = `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`;
+
+// Datos estructurados del coche para Google (rich results)
+const schemaCoche = {
+  '@context':'https://schema.org', '@type':'Car',
+  name:`${v.marca} ${v.modelo} ${v.version ?? ''}`.trim(),
+  brand:{ '@type':'Brand', name:v.marca },
+  model:v.modelo,
+  vehicleModelDate:String(v.anio),
+  mileageFromOdometer:{ '@type':'QuantitativeValue', value:v.km, unitCode:'KMT' },
+  fuelType:v.combustible,
+  vehicleTransmission:v.cambio,
+  image:v.fotos,
+  offers:{ '@type':'Offer', price:v.precio, priceCurrency:'EUR', availability:'https://schema.org/InStock',
+    seller:{ '@type':'AutoDealer', name:'GuadiCar Multimarcas' } },
+};
+---
+<Base title={titulo} description={desc} image={v.fotos[0]}>
+
+<section class="ficha">
+  <!-- Migas de pan (bueno para SEO y navegación) -->
+  <nav class="breadcrumb">
+    <a href="/">Inicio</a> › <a href="/vehiculos">Vehículos</a> › <span>{v.marca} {v.modelo}</span>
+  </nav>
+
+  <div class="ficha-grid">
+    <!-- Galería -->
+    <div class="ficha-galeria">
+      <div class="fg-main">
+        <img id="foto-principal" src={v.fotos[0]} alt={`${v.marca} ${v.modelo}`} />
+        {v.certificado && <div class="car-cert">✓ Revisado y certificado</div>}
+        <div class="car-badge">{badgeDe(v)}</div>
+      </div>
+      {v.fotos.length > 1 && (
+        <div class="fg-thumbs">
+          {v.fotos.map((f: string, i: number) => (
+            <img src={f} alt={`Foto ${i+1}`} class={i === 0 ? 'active' : ''} data-src={f} />
+          ))}
+        </div>
+      )}
+    </div>
+
+    <!-- Datos y precio -->
+    <div class="ficha-info">
+      <div class="car-brand">{v.marca}</div>
+      <h1 class="ficha-title">{v.modelo} <span>{v.version}</span></h1>
+
+      <div class="ficha-specs">
+        <div class="spec"><span>Año</span><strong>{v.anio}</strong></div>
+        <div class="spec"><span>Kilómetros</span><strong>{fmt(v.km)} km</strong></div>
+        <div class="spec"><span>Combustible</span><strong>{v.combustible}</strong></div>
+        <div class="spec"><span>Cambio</span><strong>{v.cambio}</strong></div>
+        <div class="spec"><span>Potencia</span><strong>{v.potencia} CV</strong></div>
+        <div class="spec"><span>Carrocería</span><strong>{v.carroceria}</strong></div>
+      </div>
+
+      <div class="ficha-precio">
+        <div class="price-main">
+          <span class="price-num">{fmt(v.precio)}</span><span class="price-cur">€</span>
+          {v.precioAnterior && <span class="price-old">{fmt(v.precioAnterior)}€</span>}
+        </div>
+        <div class="price-fin">Financiación desde <strong>{v.cuota}€/mes</strong></div>
+      </div>
+
+      <Calculadora precio={v.precio} />
+
+      <div class="ficha-ctas">
+        <a href={`/contacto?coche=${v.slug}`} class="hero-btn-main">Me interesa este coche</a>
+        <a href="tel:+34696352820" class="hero-btn-sec">Llamar: 696 352 820</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Descripción -->
+  {v.descripcion && (
+    <div class="ficha-desc">
+      <h2>Descripción</h2>
+      <p>{v.descripcion}</p>
+    </div>
+  )}
+
+  <!-- Equipamiento -->
+  {v.equipamiento?.length > 0 && (
+    <div class="ficha-equip">
+      <h2>Equipamiento</h2>
+      <ul>{v.equipamiento.map((e: string) => <li>{e}</li>)}</ul>
+    </div>
+  )}
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify(schemaCoche)} />
+
+<style>
+  .ficha { max-width:1150px; margin:0 auto; padding:7rem 1.5rem 4rem; }
+  .breadcrumb { font-size:.8rem; color:var(--muted); margin-bottom:1.5rem; }
+  .breadcrumb a { color:var(--muted); text-decoration:none; }
+  .breadcrumb a:hover { color:var(--red); }
+  .ficha-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:2.5rem; align-items:start; }
+  .fg-main { position:relative; border-radius:var(--radius-lg); overflow:hidden; aspect-ratio:4/3; box-shadow:var(--shadow-lg); }
+  .fg-main img { width:100%; height:100%; object-fit:cover; }
+  .fg-thumbs { display:flex; gap:.6rem; margin-top:.8rem; flex-wrap:wrap; }
+  .fg-thumbs img { width:90px; height:64px; object-fit:cover; border-radius:8px; cursor:pointer; opacity:.55; transition:opacity .2s; border:2px solid transparent; }
+  .fg-thumbs img.active, .fg-thumbs img:hover { opacity:1; border-color:var(--red); }
+  .ficha-title { font-family:var(--font-h); font-size:2rem; font-weight:800; letter-spacing:-1px; margin:.2rem 0 1.3rem; line-height:1.1; }
+  .ficha-title span { color:var(--muted); font-weight:600; font-size:1.3rem; }
+  .ficha-specs { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-bottom:1.8rem; }
+  .spec { background:var(--gray); border:1px solid var(--border); border-radius:10px; padding:.7rem .9rem; display:flex; flex-direction:column; }
+  .spec span { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .spec strong { font-size:1rem; margin-top:.15rem; }
+  .ficha-precio { background:var(--black); border-radius:var(--radius-lg); padding:1.6rem; margin-bottom:1.3rem; }
+  .ficha-precio .price-num, .ficha-precio .price-cur { color:#fff; font-size:2.4rem; }
+  .ficha-precio .price-cur { font-size:1.5rem; }
+  .ficha-precio .price-fin { color:rgba(255,255,255,.7); margin-top:.3rem; }
+  .ficha-ctas { display:flex; flex-direction:column; gap:.7rem; }
+  .ficha-desc, .ficha-equip { margin-top:3rem; max-width:760px; }
+  .ficha-desc h2, .ficha-equip h2 { font-family:var(--font-h); font-size:1.3rem; font-weight:800; margin-bottom:.8rem; }
+  .ficha-desc p { color:var(--text); line-height:1.8; }
+  .ficha-equip ul { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.5rem; list-style:none; padding:0; }
+  .ficha-equip li { padding-left:1.4rem; position:relative; color:var(--text); }
+  .ficha-equip li::before { content:'✓'; position:absolute; left:0; color:var(--red); font-weight:800; }
+  @media (max-width:820px){ .ficha-grid{ grid-template-columns:1fr; } }
+</style>
+
+<script>
+  // Cambiar foto principal al pulsar miniatura
+  const principal = document.getElementById('foto-principal') as HTMLImageElement;
+  document.querySelectorAll<HTMLImageElement>('.fg-thumbs img').forEach(t => {
+    t.addEventListener('click', () => {
+      if (principal) principal.src = t.dataset.src!;
+      document.querySelectorAll('.fg-thumbs img').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+</script>
+
+</Base>

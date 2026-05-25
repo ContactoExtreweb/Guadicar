@@ -1,0 +1,112 @@
+---
+export const prerender = false;
+import Base from '../../layouts/Base.astro';
+import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js';
+
+const vehiculos = await getVehiculos();
+const marcas = [...new Set(vehiculos.map(v => v.marca))].sort();
+---
+<Base title="Vehículos de Ocasión y Km0 en Villanueva de la Serena | GuadiCar"
+      description="Catálogo de coches de ocasión, Km0 y seminuevos en Villanueva de la Serena (Badajoz). Filtra por marca, precio y combustible. Vehículos revisados con garantía.">
+
+<header class="cat-hero">
+  <span class="tag" style="color:var(--red);">Nuestro stock</span>
+  <h1>Todos nuestros vehículos</h1>
+  <p>Coches revisados y certificados, listos para entregar. Usa los filtros para encontrar el tuyo.</p>
+</header>
+
+<section class="section section--gray" style="padding-top:2rem;">
+  <div class="filter-bar">
+    <select id="f-marca"><option value="">Todas las marcas</option>{marcas.map(m => <option value={m}>{m}</option>)}</select>
+    <select id="f-estado"><option value="">Estado</option><option value="ocasion">Ocasión</option><option value="km0">Km 0</option><option value="nuevo">Nuevo</option></select>
+    <select id="f-comb"><option value="">Combustible</option><option>Gasolina</option><option>Diésel</option><option>Híbrido</option><option>Eléctrico</option></select>
+    <select id="f-precio"><option value="">Precio</option><option value="20000">Hasta 20.000€</option><option value="30000">Hasta 30.000€</option><option value="40000">Hasta 40.000€</option></select>
+    <button id="f-reset" class="f-reset">Limpiar</button>
+  </div>
+
+  <div class="cat-count"><span id="count">{vehiculos.length}</span> vehículos disponibles</div>
+
+  <div class="cars-grid" id="grid">
+    {vehiculos.map((c) => (
+      <a href={`/vehiculos/${c.slug}`} class="car-card reveal"
+         data-marca={c.marca} data-estado={c.estado} data-comb={c.combustible} data-precio={c.precio}>
+        <div class="car-img">
+          <img src={c.fotos[0]} alt={`${c.marca} ${c.modelo}`} loading="lazy" />
+          <div class="car-img-overlay"></div>
+          <div class="car-badge">{badgeDe(c)}</div>
+          {c.certificado && <div class="car-cert">✓ Certificado</div>}
+        </div>
+        <div class="car-body">
+          <div class="car-brand">{c.marca}</div>
+          <div class="car-name">{c.modelo}</div>
+          <div class="car-tags">
+            <span class="car-tag">{c.anio}</span>
+            <span class="car-tag">{fmt(c.km)} km</span>
+            <span class="car-tag">{c.combustible}</span>
+            <span class="car-tag">{c.cambio}</span>
+          </div>
+          <div class="price-box">
+            <div class="price-main">
+              <span class="price-num">{fmt(c.precio)}</span><span class="price-cur">€</span>
+              {c.precioAnterior && <span class="price-old">{fmt(c.precioAnterior)}€</span>}
+            </div>
+            <div class="price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
+          </div>
+          <span class="btn-card">Ver ficha</span>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <div id="no-results" class="no-results" hidden>No hay vehículos que coincidan con tu búsqueda.</div>
+</section>
+
+<style>
+  .cat-hero { background:var(--black); color:#fff; text-align:center; padding:6.5rem 1.5rem 3rem; }
+  .cat-hero h1 { font-family:var(--font-h); font-size:clamp(2rem,4vw,3rem); font-weight:800; letter-spacing:-1px; margin:.5rem 0; }
+  .cat-hero p { color:rgba(255,255,255,.6); max-width:520px; margin:0 auto; }
+  .filter-bar { display:flex; flex-wrap:wrap; gap:.7rem; justify-content:center; margin-bottom:1.5rem; }
+  .filter-bar select, .f-reset { padding:.7rem 1rem; border:1px solid var(--border); border-radius:10px; background:#fff;
+    font-family:inherit; font-size:.85rem; font-weight:600; color:var(--text); cursor:pointer; }
+  .f-reset { background:var(--text); color:#fff; border:none; }
+  .cat-count { text-align:center; font-size:.85rem; color:var(--muted); margin-bottom:2rem; }
+  .cat-count #count { color:var(--red); font-weight:800; }
+  .car-card { text-decoration:none; color:inherit; display:block; }
+  .car-card.hide { display:none; }
+  .no-results { text-align:center; color:var(--muted); padding:3rem 0; font-weight:600; }
+</style>
+
+<script>
+  const sel = (id: string) => document.getElementById(id) as HTMLSelectElement;
+  const cards = [...document.querySelectorAll<HTMLElement>('#grid .car-card')];
+
+  const filtrar = () => {
+    const marca = sel('f-marca').value,
+          estado = sel('f-estado').value,
+          comb = sel('f-comb').value,
+          precio = Number(sel('f-precio').value || Infinity);
+    let visibles = 0;
+    cards.forEach(c => {
+      const ok = (!marca || c.dataset.marca === marca)
+        && (!estado || c.dataset.estado === estado)
+        && (!comb || c.dataset.comb === comb)
+        && (Number(c.dataset.precio) <= precio);
+      c.classList.toggle('hide', !ok);
+      if (ok) visibles++;
+    });
+    const count = sel('count');
+    if (count) count.textContent = String(visibles);
+    const noRes = sel('no-results');
+    if (noRes) noRes.hidden = visibles > 0;
+  };
+
+  ['f-marca','f-estado','f-comb','f-precio'].forEach(id =>
+    sel(id)?.addEventListener('change', filtrar));
+
+  sel('f-reset')?.addEventListener('click', () => {
+    ['f-marca','f-estado','f-comb','f-precio'].forEach(id => { sel(id).value = ''; });
+    filtrar();
+  });
+</script>
+
+</Base>

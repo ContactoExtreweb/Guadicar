@@ -1,0 +1,111 @@
+---
+import Admin from '../../layouts/Admin.astro';
+---
+<Admin title="Panel · GuadiCar">
+  <div id="gate" style="min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--muted);">
+    Comprobando acceso…
+  </div>
+
+  <div id="panel" hidden>
+    <header class="admin-header">
+      <img src="/logo_dark.png" alt="GuadiCar" />
+      <div class="admin-header-actions">
+        <a href="/admin/nuevo" class="btn-add">+ Añadir vehículo</a>
+        <button id="logout">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-titlebar">
+        <h1>Vehículos</h1>
+        <span id="total" class="admin-total"></span>
+      </div>
+
+      <p id="cargando" class="admin-msg">Cargando vehículos…</p>
+      <div id="lista" class="admin-lista"></div>
+      <p id="vacio" class="admin-msg" hidden>Todavía no hay vehículos. Pulsa "Añadir vehículo" para crear el primero.</p>
+    </main>
+  </div>
+  <script>
+    // @ts-nocheck
+    import { supabase } from '../../lib/supabaseBrowser.js';
+
+    const fmt = (n) => Number(n).toLocaleString('es-ES');
+
+    async function cargar() {
+      const lista = document.getElementById('lista');
+      const cargando = document.getElementById('cargando');
+      const vacio = document.getElementById('vacio');
+      const total = document.getElementById('total');
+
+      // En el panel mostramos TODOS, también los despublicados
+      const { data, error } = await supabase.from('vehiculos')
+        .select('id, slug, marca, modelo, version, precio, anio, km, fotos, publicado')
+        .order('created_at', { ascending: false });
+
+      cargando.hidden = true;
+      if (error) { cargando.hidden = false; cargando.textContent = 'Error al cargar: ' + error.message; return; }
+
+      total.textContent = `(${data.length})`;
+      if (data.length === 0) { vacio.hidden = false; return; }
+
+      lista.innerHTML = data.map(v => `
+        <div class="admin-row" data-id="${v.id}">
+          <img src="${v.fotos?.[0] ?? ''}" alt="" />
+          <div class="ar-info">
+            <div class="ar-marca">${v.marca}</div>
+            <div class="ar-modelo">${v.modelo} <span class="ar-estado ${v.publicado ? 'on' : 'off'}">${v.publicado ? 'Publicado' : 'Oculto'}</span></div>
+            <div class="ar-meta">${v.anio ?? ''} · ${fmt(v.km ?? 0)} km</div>
+          </div>
+          <div class="ar-precio">${fmt(v.precio)} €</div>
+          <div class="ar-actions">
+            <a class="ar-btn edit" href="/admin/editar/${v.slug}">Editar</a>
+            <button class="ar-btn ${v.publicado ? 'unpub' : 'pub'}" data-accion="toggle" data-pub="${v.publicado}">${v.publicado ? 'Ocultar' : 'Publicar'}</button>
+            <button class="ar-btn del" data-accion="borrar" data-nombre="${v.marca} ${v.modelo}">Borrar</button>
+          </div>
+        </div>
+      `).join('');
+
+      lista.querySelectorAll('[data-accion]').forEach(btn => {
+        btn.addEventListener('click', onAccion);
+      });
+    }
+
+    async function onAccion(e) {
+      const btn = e.currentTarget;
+      const row = btn.closest('.admin-row');
+      const id = row.dataset.id;
+      const accion = btn.dataset.accion;
+
+      if (accion === 'toggle') {
+        const nuevoEstado = btn.dataset.pub !== 'true';
+        const { error } = await supabase.from('vehiculos').update({ publicado: nuevoEstado }).eq('id', id);
+        if (error) return alert('Error: ' + error.message);
+        cargar();
+      }
+
+      if (accion === 'borrar') {
+        const nombre = btn.dataset.nombre;
+        if (!confirm(`¿Seguro que quieres BORRAR "${nombre}"?\n\nEsta acción es permanente. Si el coche solo se ha vendido, es mejor usar "Ocultar".`)) return;
+        const { error } = await supabase.from('vehiculos').delete().eq('id', id);
+        if (error) return alert('Error: ' + error.message);
+        cargar();
+      }
+    }
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = '/admin/login'; return; }
+
+      document.getElementById('gate').hidden = true;
+      document.getElementById('panel').hidden = false;
+
+      document.getElementById('logout').addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/admin/login';
+      });
+
+      cargar();
+    })();
+  </script>
+</Admin>
