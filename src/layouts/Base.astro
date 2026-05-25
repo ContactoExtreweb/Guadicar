@@ -7,6 +7,7 @@ const {
   description = 'Concesionario multimarca en Villanueva de la Serena (Badajoz). Vehículos de ocasión, Km0 y nuevos con garantía y financiación. 35 años de experiencia.',
   image = '/logo.png',
   heroNav = false,          // true en páginas con hero oscuro (inicio)
+  solidNav = true,         // true en páginas que siempre deben tener navbar sólido
 } = Astro.props;
 
 const SITE = Astro.site ?? new URL('https://pruebaguadicar.netlify.app');
@@ -60,7 +61,7 @@ const negocio = {
 <body>
 
 <!-- ══ NAVBAR ══ -->
-<nav class={`navbar${heroNav ? ' dark-mode' : ''}`}>
+<nav class={`navbar${heroNav ? ' dark-mode' : ''}${solidNav ? ' scrolled solid' : ''}`}>
   <a href="/" class="nav-logo"><img src={heroNav ? '/logo.png' : '/logo_dark.png'} alt="GuadiCar Multimarcas" /></a>
   <ul class="nav-center">
     <li><a href="/">Inicio</a></li>
@@ -128,6 +129,7 @@ const negocio = {
     const hero = document.getElementById('hero');
     const updateNav = () => {
       if (!navbar) return;
+      if (navbar.classList.contains('solid')) return;
       navbar.classList.toggle('scrolled', window.scrollY > 20);
       if (hero) navbar.classList.toggle('dark-mode', hero.getBoundingClientRect().bottom > 0);
     };

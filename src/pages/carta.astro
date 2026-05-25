@@ -1,0 +1,189 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base solidNav={true}
+      title="Tu coche a la carta · GuadiCar Multimarcas (Badajoz)"
+      description="¿No encuentras tu coche? Dinos qué buscas y lo localizamos por ti en menos de 48h, sin compromiso. Servicio exclusivo de GuadiCar en Villanueva de la Serena."
+>
+
+<header class="cat-hero" style="padding-bottom:3.5rem;">
+  <span class="tag" style="color:var(--red);">Servicio exclusivo</span>
+  <h1>Tu coche <em>a la carta</em></h1>
+  <p>¿No encuentras lo que buscas? Dinos exactamente qué quieres y nosotros lo localizamos. Sin compromiso, en menos de 48 horas.</p>
+</header>
+
+<!-- Cómo funciona -->
+<section class="section section--white">
+  <div class="s-header" style="text-align:center;max-width:580px;margin:0 auto 2.5rem;">
+    <span class="tag">Cómo funciona</span>
+    <h2 class="s-title">Así de fácil</h2>
+  </div>
+  <div class="carta-pasos">
+    <div class="carta-paso"><span class="cp-num">01</span><div class="cp-ico">📝</div><h3>Cuéntanos qué quieres</h3><p>Rellena el formulario con las características del coche que buscas. Cuanto más detallado, mejor.</p></div>
+    <div class="carta-paso"><span class="cp-num">02</span><div class="cp-ico">🔍</div><h3>Nosotros lo buscamos</h3><p>Nuestro equipo rastrea el mercado y nuestros proveedores para encontrar la mejor opción.</p></div>
+    <div class="carta-paso"><span class="cp-num">03</span><div class="cp-ico">🚗</div><h3>Te lo presentamos</h3><p>En menos de 48h te contactamos con la propuesta. Tú decides, sin ningún compromiso.</p></div>
+  </div>
+</section>
+
+<!-- Formulario -->
+<section class="section section--gray">
+  <div class="carta-form-box">
+    <div class="carta-form-head"><span class="cf-ico">🎯</span><h2>Configura tu coche ideal</h2><p>Rellena los campos que conozcas — no hace falta completar todos</p></div>
+
+    <form id="form-carta" class="carta-form">
+      <div class="carta-grid">
+        <label>Tipo de vehículo
+          <select name="tipo_v"><option value="">Me da igual</option>{['Berlina','SUV / 4x4','Familiar / Monovolumen','Coupé','Cabrio','Furgoneta','Pickup'].map(o => <option>{o}</option>)}</select>
+        </label>
+        <label>Combustible
+          <select name="combustible"><option value="">Me da igual</option>{['Gasolina','Diésel','Híbrido','Eléctrico'].map(o => <option>{o}</option>)}</select>
+        </label>
+        <label>Transmisión
+          <select name="cambio"><option value="">Me da igual</option><option>Manual</option><option>Automático</option></select>
+        </label>
+        <label>Marca preferida
+          <select name="marca"><option value="">Sin preferencia</option>{['Volkswagen','BMW','Seat','Audi','Toyota','Ford','Hyundai','Opel','Mercedes','Renault','Kia','Peugeot','Otra'].map(o => <option>{o}</option>)}</select>
+        </label>
+        <label>Modelo concreto (opcional)<input name="modelo" placeholder="Ej. Golf, Serie 3…" /></label>
+        <label>Presupuesto máximo (€)<input type="number" name="presupuesto" placeholder="25000" min="0" step="500" /></label>
+        <label>Año mínimo
+          <select name="anio_min"><option value="">Sin preferencia</option>{[2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024].map(o => <option>{o}</option>)}</select>
+        </label>
+        <label>Km máximos
+          <select name="km_max"><option value="">Sin preferencia</option>{['Km 0','Hasta 20.000 km','Hasta 50.000 km','Hasta 100.000 km','Más de 100.000 km','Menos de 150.000 km','Menos de 200.000 km','Menos de 250.000 km'].map(o => <option>{o}</option>)}</select>
+        </label>
+        <label>Color preferido
+          <select name="color"><option value="">Me da igual</option>{['Blanco','Negro','Gris / Plata','Azul','Rojo'].map(o => <option>{o}</option>)}</select>
+        </label>
+      </div>
+
+      <fieldset class="carta-equip">
+        <legend>Equipamiento deseado</legend>
+        <div class="equip-chips">
+          {['Navegador GPS','Techo panorámico','Cámara trasera','Sensores parking','Asientos calefactados','Apple CarPlay','Tracción 4x4','7 plazas','Enganche remolque'].map(e => (
+            <label class="chip"><input type="checkbox" name="equip" value={e} /> {e}</label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div class="carta-datos">
+        <h3>Tus datos de contacto</h3>
+        <div class="carta-grid">
+          <label>Nombre *<input name="nombre" required /></label>
+          <label>Teléfono *<input name="telefono" type="tel" required /></label>
+          <label>Email<input name="email" type="email" /></label>
+        </div>
+        <label class="cf-full">Cuéntanos algo más (opcional)<textarea name="extra" rows="3"></textarea></label>
+        <label class="cf-check"><input type="checkbox" required /> He leído y acepto la política de privacidad</label>
+      </div>
+
+      <button type="submit" id="carta-btn">Enviar mi solicitud</button>
+      <p id="carta-msg" class="cf-msg" hidden></p>
+    </form>
+  </div>
+</section>
+
+<style>
+  .carta-pasos { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1000px; margin:0 auto; }
+  .carta-paso { background:#fff; border:1px solid var(--border); border-radius:14px; padding:1.8rem; position:relative; }
+  .cp-num { font-family:var(--font-h); font-size:.9rem; font-weight:800; color:var(--red); }
+  .cp-ico { font-size:2rem; margin:.5rem 0; }
+  .carta-paso h3 { font-size:1.05rem; font-weight:800; margin:.3rem 0 .5rem; }
+  .carta-paso p { color:var(--muted); font-size:.88rem; line-height:1.6; }
+  .carta-form-box { max-width:820px; margin:0 auto; background:#fff; border:1px solid var(--border); border-radius:18px; padding:2.5rem; box-shadow:var(--shadow-lg); }
+  .carta-form-head { text-align:center; margin-bottom:2rem; }
+  .carta-form-head .cf-ico { font-size:2rem; }
+  .carta-form-head h2 { font-family:var(--font-h); font-size:1.5rem; font-weight:800; margin:.4rem 0 .3rem; }
+  .carta-form-head p { color:var(--muted); font-size:.88rem; }
+  .carta-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; }
+  .carta-form label { display:flex; flex-direction:column; font-size:.78rem; font-weight:700; gap:.4rem; }
+  .carta-form input, .carta-form select, .carta-form textarea { border:1px solid var(--border); border-radius:9px; padding:.65rem .8rem; font-family:inherit; font-size:.9rem; }
+  .carta-form input:focus, .carta-form select:focus, .carta-form textarea:focus { outline:none; border-color:var(--red); }
+  .carta-equip { border:1px solid var(--border); border-radius:12px; padding:1.2rem; margin:1.5rem 0; }
+  .carta-equip legend { font-size:.78rem; font-weight:800; padding:0 .5rem; }
+  .equip-chips { display:flex; flex-wrap:wrap; gap:.6rem; }
+  .chip { flex-direction:row !important; align-items:center; gap:.4rem !important; background:var(--gray); border:1px solid var(--border); border-radius:20px; padding:.45rem .9rem; font-size:.82rem; font-weight:600 !important; cursor:pointer; }
+  .chip input { width:auto; }
+  .chip:has(input:checked) { background:var(--red); color:#fff; border-color:var(--red); }
+  .carta-datos { margin-top:1.5rem; }
+  .carta-datos h3 { font-size:1rem; font-weight:800; margin-bottom:1rem; }
+  .cf-full { margin-top:1rem; }
+  .cf-check { flex-direction:row !important; align-items:center; gap:.5rem !important; font-weight:500 !important; font-size:.82rem; margin-top:1rem; }
+  .cf-check input { width:auto; }
+  #carta-btn { width:100%; background:var(--red); color:#fff; border:none; border-radius:10px; padding:1rem; font-family:inherit; font-size:1rem; font-weight:700; cursor:pointer; margin-top:1.5rem; }
+  #carta-btn:disabled { opacity:.6; }
+  .cf-msg { padding:.9rem; border-radius:9px; text-align:center; font-weight:600; font-size:.9rem; margin-top:1rem; }
+  .cf-msg.ok { background:#dcfce7; color:#0a7d33; }
+  .cf-msg.error { background:#fee2e2; color:#b91c1c; }
+  @media (max-width:760px){ .carta-pasos, .carta-grid { grid-template-columns:1fr; } }
+</style>
+
+<script>
+  // @ts-nocheck
+  const form = document.getElementById('form-carta');
+  const btn = document.getElementById('carta-btn');
+  const msg = document.getElementById('carta-msg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    msg.hidden = true;
+
+    const equipamiento = [...form.querySelectorAll('input[name=equip]:checked')].map(c => c.value);
+
+    // Resumen legible para el email y el panel
+    const linea = (etq, val) => val ? `${etq}: ${val}` : null;
+    const resumen = [
+      linea('Tipo', form.tipo_v.value),
+      linea('Combustible', form.combustible.value),
+      linea('Transmisión', form.cambio.value),
+      linea('Marca', form.marca.value),
+      linea('Modelo', form.modelo.value),
+      form.presupuesto.value ? `Presupuesto máx: ${Number(form.presupuesto.value).toLocaleString('es-ES')}€` : null,
+      linea('Año mínimo', form.anio_min.value),
+      linea('Km máximos', form.km_max.value),
+      linea('Color', form.color.value),
+      equipamiento.length ? `Equipamiento: ${equipamiento.join(', ')}` : null,
+      form.extra.value ? `Comentario: ${form.extra.value}` : null,
+    ].filter(Boolean).join('\n');
+
+    const payload = {
+      tipo: 'carta',
+      nombre: form.nombre.value,
+      telefono: form.telefono.value,
+      email: form.email.value,
+      mensaje: '🔍 BÚSQUEDA A LA CARTA\n' + resumen,
+      carta_tipo: form.tipo_v.value || null,
+      carta_combustible: form.combustible.value || null,
+      carta_cambio: form.cambio.value || null,
+      carta_marca: form.marca.value || null,
+      carta_modelo: form.modelo.value || null,
+      carta_presupuesto: form.presupuesto.value ? Number(form.presupuesto.value) : null,
+      carta_anio_min: form.anio_min.value ? Number(form.anio_min.value) : null,
+      carta_km_max: form.km_max.value || null,
+      carta_equipamiento: equipamiento.length ? equipamiento : null,
+      carta_color: form.color.value || null,
+    };
+
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error();
+      msg.className = 'cf-msg ok';
+      msg.textContent = '¡Solicitud enviada! Te contactaremos en menos de 48h con opciones.';
+      msg.hidden = false;
+      form.reset();
+    } catch {
+      msg.className = 'cf-msg error';
+      msg.textContent = 'Hubo un problema. Llámanos al 696 352 820 o inténtalo de nuevo.';
+      msg.hidden = false;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar mi solicitud';
+    }
+  });
+</script>
+
+</Base>
