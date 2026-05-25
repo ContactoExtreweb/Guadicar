@@ -2169,3 +2169,250 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* ───── FORMULARIO VEHÍCULO ───── */
+.fv-title {
+  font-family: var(--font-h);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 1.5rem;
+}
+.fv-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.fv-step {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.6rem 1rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fv-step.on {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+.fv-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+.fv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.fv-panel label,
+.fv-full {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.4rem;
+}
+.fv-full {
+  margin-top: 1rem;
+}
+.fv-panel input,
+.fv-panel select,
+.fv-panel textarea {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.65rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.fv-panel input:focus,
+.fv-panel select:focus,
+.fv-panel textarea:focus {
+  outline: none;
+  border-color: var(--red);
+}
+.fv-panel small {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.fv-privado {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin: 1.2rem 0;
+}
+.fv-privado-head {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #9a3412;
+  margin-bottom: 1rem;
+}
+.fv-flags {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+.fv-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.6rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+.fv-check input {
+  width: auto;
+}
+.fv-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.fv-cancel {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.fv-nav {
+  display: flex;
+  gap: 0.7rem;
+}
+.fv-nav button {
+  border-radius: 9px;
+  padding: 0.7rem 1.4rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+#fv-next,
+#fv-save {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+.fv-msg {
+  margin-top: 1rem;
+  padding: 0.8rem;
+  border-radius: 9px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.fv-msg.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+@media (max-width: 760px) {
+  .fv-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* ───── SUBIDA DE FOTOS ───── */
+.fotos-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  background: var(--gray);
+}
+.dropzone:hover,
+.dropzone.drag {
+  border-color: var(--red);
+  background: #fff5f5;
+}
+.dropzone-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+.dropzone-text strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+.dropzone-text span {
+  font-size: 0.82rem;
+}
+.fotos-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+.foto-item {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  cursor: grab;
+  background: var(--gray);
+}
+.foto-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.foto-item.cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.foto-spinner {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.foto-principal {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+}
+.foto-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(13, 13, 13, 0.7);
+  color: #fff;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.foto-del:hover {
+  background: var(--red);
+}

@@ -1,0 +1,37 @@
+---
+export const prerender = false;
+import Admin from '../../../layouts/Admin.astro';
+import AdminNav from '../../../components/AdminNav.astro';
+import FormVehiculo from '../../../components/FormVehiculo.astro';
+import { supabase } from '../../../lib/supabase.js';
+
+const { slug } = Astro.params;
+// Cargamos datos públicos + privados juntos (el privado solo lo verá el admin por RLS)
+const { data: pub } = await supabase.from('vehiculos').select('*').eq('slug', slug).maybeSingle();
+const { data: priv } = pub ? await supabase.from('vehiculos_privado').select('*').eq('vehiculo_id', pub.id).maybeSingle() : { data: null };
+const vehiculo = pub ? { ...pub, ...(priv ?? {}) } : null;
+---
+<Admin title="Editar vehículo · GuadiCar">
+  <div id="gate" class="admin-gate">Comprobando acceso…</div>
+  <div id="panel" hidden>
+    <AdminNav activo="vehiculos" />
+    <main class="admin-main">
+      {vehiculo ? (
+        <>
+          <h1 class="fv-title">Editar: {vehiculo.marca} {vehiculo.modelo}</h1>
+          <FormVehiculo vehiculo={vehiculo} />
+        </>
+      ) : <p class="admin-msg">No se encontró el vehículo.</p>}
+    </main>
+  </div>
+  <script>
+    // @ts-nocheck
+    import { supabase } from '../../../lib/supabaseBrowser.js';
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = '/admin/login'; return; }
+      document.getElementById('gate').hidden = true;
+      document.getElementById('panel').hidden = false;
+    })();
+  </script>
+</Admin>

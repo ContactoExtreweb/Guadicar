@@ -1,0 +1,25 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import FormVehiculo from '../../components/FormVehiculo.astro';
+---
+<Admin title="Nuevo vehículo · GuadiCar">
+  <div id="gate" class="admin-gate">Comprobando acceso…</div>
+  <div id="panel" hidden>
+    <AdminNav activo="nuevo" />
+    <main class="admin-main">
+      <h1 class="fv-title">Añadir vehículo</h1>
+      <FormVehiculo />
+    </main>
+  </div>
+  <script>
+    // @ts-nocheck
+    import { supabase } from '../../lib/supabaseBrowser.js';
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = '/admin/login'; return; }
+      document.getElementById('gate').hidden = true;
+      document.getElementById('panel').hidden = false;
+    })();
+  </script>
+</Admin>
