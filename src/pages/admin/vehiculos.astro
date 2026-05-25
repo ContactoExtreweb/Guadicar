@@ -1,0 +1,141 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import AdminNav from '../../components/AdminNav.astro';
+---
+<Admin title="Vehículos · GuadiCar">
+  <div id="gate" class="admin-gate">Comprobando acceso…</div>
+
+  <div id="panel" hidden>
+    <AdminNav activo="vehiculos" />
+    <main class="admin-main">
+      <div class="admin-titlebar">
+        <h1>Vehículos <span id="total" class="admin-total"></span></h1>
+      </div>
+
+      <div class="admin-filtros">
+        <input type="search" id="buscar" placeholder="Buscar por marca o modelo…" />
+        <select id="f-marca"><option value="">Todas las marcas</option></select>
+        <select id="f-comb">
+          <option value="">Combustible</option>
+          <option>Gasolina</option><option>Diésel</option><option>Híbrido</option><option>Eléctrico</option>
+        </select>
+        <select id="f-estado-coche">
+          <option value="">Estado</option>
+          <option value="ocasion">Ocasión</option><option value="km0">Km 0</option><option value="nuevo">Nuevo</option>
+        </select>
+        <select id="f-pub">
+          <option value="">Publicación</option>
+          <option value="pub">Publicados</option><option value="oculto">Ocultos</option>
+        </select>
+        <select id="f-orden">
+          <option value="reciente">Más recientes</option>
+          <option value="precio-asc">Precio ↑</option>
+          <option value="precio-desc">Precio ↓</option>
+          <option value="km-asc">Menos km</option>
+        </select>
+      </div>
+
+      <p id="cargando" class="admin-msg">Cargando vehículos…</p>
+      <div id="lista" class="admin-lista"></div>
+      <p id="vacio" class="admin-msg" hidden>No hay vehículos que coincidan.</p>
+    </main>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    import { supabase } from '../../lib/supabaseBrowser.js';
+
+    const fmt = (n) => Number(n).toLocaleString('es-ES');
+    let TODOS = [];
+
+    function render(filtrados) {
+      const lista = document.getElementById('lista');
+      const vacio = document.getElementById('vacio');
+      document.getElementById('total').textContent = `(${filtrados.length})`;
+      vacio.hidden = filtrados.length > 0;
+
+      lista.innerHTML = filtrados.map(v => `
+        <div class="admin-row" data-id="${v.id}">
+          <img src="${v.fotos?.[0] ?? ''}" alt="" />
+          <div class="ar-info">
+            <div class="ar-marca">${v.marca}</div>
+            <div class="ar-modelo">${v.modelo} <span class="ar-estado ${v.publicado ? 'on' : 'off'}">${v.publicado ? 'Publicado' : 'Oculto'}</span></div>
+            <div class="ar-meta">${v.anio ?? ''} · ${fmt(v.km ?? 0)} km</div>
+          </div>
+          <div class="ar-precio">${fmt(v.precio)} €</div>
+          <div class="ar-actions">
+            <a class="ar-btn edit" href="/admin/editar/${v.slug}">Editar</a>
+            <button class="ar-btn ${v.publicado ? 'unpub' : 'pub'}" data-accion="toggle" data-pub="${v.publicado}">${v.publicado ? 'Ocultar' : 'Publicar'}</button>
+            <button class="ar-btn del" data-accion="borrar" data-nombre="${v.marca} ${v.modelo}">Borrar</button>
+          </div>
+        </div>`).join('');
+
+      lista.querySelectorAll('[data-accion]').forEach(b => b.addEventListener('click', onAccion));
+    }
+
+    function aplicarFiltros() {
+      const q = document.getElementById('buscar').value.toLowerCase().trim();
+      const marca = document.getElementById('f-marca').value;
+      const comb = document.getElementById('f-comb').value;
+      const est = document.getElementById('f-estado-coche').value;
+      const pub = document.getElementById('f-pub').value;
+      const orden = document.getElementById('f-orden').value;
+
+      let r = TODOS.slice();
+      if (q) r = r.filter(v => `${v.marca} ${v.modelo}`.toLowerCase().includes(q));
+      if (marca) r = r.filter(v => v.marca === marca);
+      if (comb) r = r.filter(v => v.combustible === comb);
+      if (est) r = r.filter(v => v.estado === est);
+      if (pub === 'pub') r = r.filter(v => v.publicado);
+      if (pub === 'oculto') r = r.filter(v => !v.publicado);
+
+      if (orden === 'precio-asc') r.sort((a,b) => a.precio - b.precio);
+      else if (orden === 'precio-desc') r.sort((a,b) => b.precio - a.precio);
+      else if (orden === 'km-asc') r.sort((a,b) => (a.km||0) - (b.km||0));
+
+      render(r);
+    }
+
+    async function cargar() {
+      const { data, error } = await supabase.from('vehiculos')
+        .select('id, slug, marca, modelo, precio, anio, km, fotos, publicado, estado, combustible')
+        .order('created_at', { ascending: false });
+      document.getElementById('cargando').hidden = true;
+      if (error) { document.getElementById('cargando').hidden = false; document.getElementById('cargando').textContent = 'Error: ' + error.message; return; }
+      TODOS = data;
+      const marcasUnicas = [...new Set(data.map(v => v.marca))].sort();
+      document.getElementById('f-marca').innerHTML =
+        '<option value="">Todas las marcas</option>' + marcasUnicas.map(m => `<option>${m}</option>`).join('');
+      aplicarFiltros();
+    }
+
+    async function onAccion(e) {
+      const btn = e.currentTarget;
+      const id = btn.closest('.admin-row').dataset.id;
+      if (btn.dataset.accion === 'toggle') {
+        const nuevo = btn.dataset.pub !== 'true';
+        const { error } = await supabase.from('vehiculos').update({ publicado: nuevo }).eq('id', id);
+        if (error) return alert('Error: ' + error.message);
+        cargar();
+      }
+      if (btn.dataset.accion === 'borrar') {
+        if (!confirm(`¿Seguro que quieres BORRAR "${btn.dataset.nombre}"?\n\nEs permanente. Si solo se ha vendido, usa "Ocultar".`)) return;
+        const { error } = await supabase.from('vehiculos').delete().eq('id', id);
+        if (error) return alert('Error: ' + error.message);
+        cargar();
+      }
+    }
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = '/admin/login'; return; }
+      document.getElementById('gate').hidden = true;
+      document.getElementById('panel').hidden = false;
+      ['buscar','f-marca','f-comb','f-estado-coche','f-pub','f-orden'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener(id === 'buscar' ? 'input' : 'change', aplicarFiltros);
+      });
+      cargar();
+    })();
+  </script>
+</Admin>

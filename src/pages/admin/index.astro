@@ -1,111 +1,267 @@
 ---
 import Admin from '../../layouts/Admin.astro';
+import AdminNav from '../../components/AdminNav.astro';
 ---
-<Admin title="Panel · GuadiCar">
-  <div id="gate" style="min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--muted);">
-    Comprobando acceso…
-  </div>
+<Admin title="Resumen · GuadiCar">
+  <div id="gate" class="admin-gate">Comprobando acceso…</div>
 
   <div id="panel" hidden>
-    <header class="admin-header">
-      <img src="/logo_dark.png" alt="GuadiCar" />
-      <div class="admin-header-actions">
-        <a href="/admin/nuevo" class="btn-add">+ Añadir vehículo</a>
-        <button id="logout">Cerrar sesión</button>
-      </div>
-    </header>
-
+    <AdminNav activo="dashboard" />
     <main class="admin-main">
-      <div class="admin-titlebar">
-        <h1>Vehículos</h1>
-        <span id="total" class="admin-total"></span>
+      <div class="dash-hello">
+        <h1 id="saludo">Hola</h1>
+        <p id="subsaludo" class="dash-sub"></p>
       </div>
 
-      <p id="cargando" class="admin-msg">Cargando vehículos…</p>
-      <div id="lista" class="admin-lista"></div>
-      <p id="vacio" class="admin-msg" hidden>Todavía no hay vehículos. Pulsa "Añadir vehículo" para crear el primero.</p>
+      <div class="dash-cards" id="cards"></div>
+
+      <div class="dash-charts">
+        <div class="dash-chart-box">
+          <h3>Stock por marca</h3>
+          <canvas id="chartMarca"></canvas>
+        </div>
+        <div class="dash-chart-box">
+          <h3>Por combustible</h3>
+          <canvas id="chartComb"></canvas>
+        </div>
+        <div class="dash-chart-box">
+          <h3>Por estado</h3>
+          <canvas id="chartEstado"></canvas>
+        </div>
+      </div>
+      <section class="dash-trabajo">
+        <!-- TAREAS -->
+        <div class="trabajo-col">
+          <div class="trabajo-head"><h3>📋 Tareas</h3></div>
+          <form id="form-tarea" class="trabajo-form">
+            <input type="text" id="tarea-texto" placeholder="Nueva tarea…" required />
+            <div class="trabajo-form-row">
+              <select id="tarea-prioridad">
+                <option value="normal">Normal</option>
+                <option value="alta">Alta</option>
+                <option value="baja">Baja</option>
+              </select>
+              <input type="date" id="tarea-fecha" />
+              <button type="submit">Añadir</button>
+            </div>
+          </form>
+          <ul id="lista-tareas" class="trabajo-lista"></ul>
+        </div>
+
+        <!-- NOTAS -->
+        <div class="trabajo-col">
+          <div class="trabajo-head"><h3>📝 Notas</h3></div>
+          <form id="form-nota" class="trabajo-form">
+            <textarea id="nota-texto" rows="2" placeholder="Escribe una nota rápida…" required></textarea>
+            <button type="submit">Guardar nota</button>
+          </form>
+          <ul id="lista-notas" class="trabajo-lista"></ul>
+        </div>
+
+        <!-- CLIENTES INTERESADOS -->
+        <div class="trabajo-col trabajo-col--ancha">
+          <div class="trabajo-head"><h3>👥 Clientes interesados</h3></div>
+          <form id="form-contacto" class="trabajo-form">
+            <div class="contacto-grid">
+              <input type="text" id="c-nombre" placeholder="Nombre *" required />
+              <input type="tel" id="c-telefono" placeholder="Teléfono" />
+              <input type="text" id="c-coche" placeholder="Coche de interés" />
+            </div>
+            <textarea id="c-notas" rows="2" placeholder="Notas (qué busca, presupuesto…)"></textarea>
+            <button type="submit">Guardar cliente</button>
+          </form>
+          <div id="lista-contactos" class="contactos-lista"></div>
+        </div>
+      </section>
     </main>
   </div>
+
   <script>
     // @ts-nocheck
     import { supabase } from '../../lib/supabaseBrowser.js';
+    import Chart from 'chart.js/auto';
+
+    const NOMBRE_ADMIN = ''; // ← pon aquí el nombre de tu cliente, o déjalo vacío
 
     const fmt = (n) => Number(n).toLocaleString('es-ES');
+    const ROJO = '#e11d2a';
+    const PALETA = ['#e11d2a','#0d0d0d','#6b7280','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316'];
 
-    async function cargar() {
-      const lista = document.getElementById('lista');
-      const cargando = document.getElementById('cargando');
-      const vacio = document.getElementById('vacio');
-      const total = document.getElementById('total');
+    function saludoHora() {
+      const h = new Date().getHours();
+      if (h < 12) return 'Buenos días';
+      if (h < 20) return 'Buenas tardes';
+      return 'Buenas noches';
+    }
 
-      // En el panel mostramos TODOS, también los despublicados
-      const { data, error } = await supabase.from('vehiculos')
-        .select('id, slug, marca, modelo, version, precio, anio, km, fotos, publicado')
-        .order('created_at', { ascending: false });
+    function tarjeta(valor, etiqueta, color = '') {
+      return `<div class="dash-card">
+        <div class="dc-num" style="${color ? `color:${color}` : ''}">${valor}</div>
+        <div class="dc-label">${etiqueta}</div>
+      </div>`;
+    }
 
-      cargando.hidden = true;
-      if (error) { cargando.hidden = false; cargando.textContent = 'Error al cargar: ' + error.message; return; }
+    function agrupar(arr, campo) {
+      const m = {};
+      arr.forEach(v => { const k = v[campo] || 'Sin definir'; m[k] = (m[k] || 0) + 1; });
+      return m;
+    }
 
-      total.textContent = `(${data.length})`;
-      if (data.length === 0) { vacio.hidden = false; return; }
-
-      lista.innerHTML = data.map(v => `
-        <div class="admin-row" data-id="${v.id}">
-          <img src="${v.fotos?.[0] ?? ''}" alt="" />
-          <div class="ar-info">
-            <div class="ar-marca">${v.marca}</div>
-            <div class="ar-modelo">${v.modelo} <span class="ar-estado ${v.publicado ? 'on' : 'off'}">${v.publicado ? 'Publicado' : 'Oculto'}</span></div>
-            <div class="ar-meta">${v.anio ?? ''} · ${fmt(v.km ?? 0)} km</div>
-          </div>
-          <div class="ar-precio">${fmt(v.precio)} €</div>
-          <div class="ar-actions">
-            <a class="ar-btn edit" href="/admin/editar/${v.slug}">Editar</a>
-            <button class="ar-btn ${v.publicado ? 'unpub' : 'pub'}" data-accion="toggle" data-pub="${v.publicado}">${v.publicado ? 'Ocultar' : 'Publicar'}</button>
-            <button class="ar-btn del" data-accion="borrar" data-nombre="${v.marca} ${v.modelo}">Borrar</button>
-          </div>
-        </div>
-      `).join('');
-
-      lista.querySelectorAll('[data-accion]').forEach(btn => {
-        btn.addEventListener('click', onAccion);
+    function pintarChart(id, tipo, labels, valores, colores) {
+      new Chart(document.getElementById(id), {
+        type: tipo,
+        data: { labels, datasets: [{ data: valores, backgroundColor: colores, borderWidth: 0 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: tipo !== 'bar', position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+          scales: tipo === 'bar' ? { y: { beginAtZero: true, ticks: { precision: 0 } } } : {}
+        }
       });
     }
 
-    async function onAccion(e) {
-      const btn = e.currentTarget;
-      const row = btn.closest('.admin-row');
-      const id = row.dataset.id;
-      const accion = btn.dataset.accion;
+    async function init() {
+      const nombre = NOMBRE_ADMIN || 'equipo GuadiCar';
+      document.getElementById('saludo').textContent = `${saludoHora()}, ${nombre} 👋`;
 
-      if (accion === 'toggle') {
-        const nuevoEstado = btn.dataset.pub !== 'true';
-        const { error } = await supabase.from('vehiculos').update({ publicado: nuevoEstado }).eq('id', id);
-        if (error) return alert('Error: ' + error.message);
-        cargar();
-      }
+      const { data: v, error } = await supabase.from('vehiculos').select('*');
+      if (error) { document.getElementById('subsaludo').textContent = 'Error al cargar datos: ' + error.message; return; }
 
-      if (accion === 'borrar') {
-        const nombre = btn.dataset.nombre;
-        if (!confirm(`¿Seguro que quieres BORRAR "${nombre}"?\n\nEsta acción es permanente. Si el coche solo se ha vendido, es mejor usar "Ocultar".`)) return;
-        const { error } = await supabase.from('vehiculos').delete().eq('id', id);
-        if (error) return alert('Error: ' + error.message);
-        cargar();
-      }
+      const total = v.length;
+      const publicados = v.filter(x => x.publicado).length;
+      const ocultos = total - publicados;
+      const valorStock = v.reduce((s, x) => s + (x.precio || 0), 0);
+      const precioMedio = total ? Math.round(valorStock / total) : 0;
+      const anioMedio = total ? Math.round(v.reduce((s, x) => s + (x.anio || 0), 0) / total) : 0;
+
+      document.getElementById('subsaludo').textContent =
+        `Tienes ${total} ${total === 1 ? 'vehículo' : 'vehículos'} en tu inventario. ¡Vamos a vender algún coche hoy!`;
+
+      document.getElementById('cards').innerHTML =
+        tarjeta(total, 'Vehículos totales') +
+        tarjeta(publicados, 'Publicados', '#0a7d33') +
+        tarjeta(ocultos, 'Ocultos', '#9a6700') +
+        tarjeta(fmt(valorStock) + ' €', 'Valor del stock', ROJO) +
+        tarjeta(fmt(precioMedio) + ' €', 'Precio medio') +
+        tarjeta(anioMedio || '—', 'Año medio');
+
+      const marcas = agrupar(v, 'marca');
+      pintarChart('chartMarca', 'bar', Object.keys(marcas), Object.values(marcas), ROJO);
+
+      const comb = agrupar(v, 'combustible');
+      pintarChart('chartComb', 'doughnut', Object.keys(comb), Object.values(comb), PALETA);
+
+      const est = agrupar(v, 'estado');
+      const mapEst = { ocasion: 'Ocasión', km0: 'Km 0', nuevo: 'Nuevo' };
+      pintarChart('chartEstado', 'doughnut', Object.keys(est).map(k => mapEst[k] || k), Object.values(est), PALETA);
     }
 
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) { window.location.href = '/admin/login'; return; }
-
       document.getElementById('gate').hidden = true;
       document.getElementById('panel').hidden = false;
+      init();
+      // ───── CENTRO DE TRABAJO ─────
+    function escapar(s) {
+      return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
 
-      document.getElementById('logout').addEventListener('click', async () => {
-        await supabase.auth.signOut();
-        window.location.href = '/admin/login';
+    async function cargarTareas() {
+      const { data } = await supabase.from('tareas').select('*').order('hecha').order('created_at', { ascending:false });
+      const ul = document.getElementById('lista-tareas');
+      ul.innerHTML = (data || []).map(t => `
+        <li class="tarea ${t.hecha ? 'hecha' : ''} prio-${t.prioridad}" data-id="${t.id}">
+          <label><input type="checkbox" ${t.hecha ? 'checked' : ''} data-accion="check"> <span>${escapar(t.texto)}</span></label>
+          <div class="tarea-meta">
+            ${t.fecha_limite ? `<span>📅 ${new Date(t.fecha_limite).toLocaleDateString('es-ES')}</span>` : ''}
+            <button data-accion="borrar" title="Borrar">✕</button>
+          </div>
+        </li>`).join('') || '<li class="trabajo-vacio">Sin tareas pendientes 🎉</li>';
+      ul.querySelectorAll('[data-accion]').forEach(el => el.addEventListener('change', accionTarea));
+      ul.querySelectorAll('[data-accion="borrar"]').forEach(el => el.addEventListener('click', accionTarea));
+    }
+
+    async function accionTarea(e) {
+      const li = e.currentTarget.closest('.tarea');
+      const id = li.dataset.id;
+      if (e.currentTarget.dataset.accion === 'check') {
+        await supabase.from('tareas').update({ hecha: e.currentTarget.checked }).eq('id', id);
+      } else {
+        await supabase.from('tareas').delete().eq('id', id);
+      }
+      cargarTareas();
+    }
+
+    async function cargarNotas() {
+      const { data } = await supabase.from('notas').select('*').order('created_at', { ascending:false });
+      const ul = document.getElementById('lista-notas');
+      ul.innerHTML = (data || []).map(n => `
+        <li class="nota" data-id="${n.id}">
+          <span>${escapar(n.contenido)}</span>
+          <button data-accion="borrar" title="Borrar">✕</button>
+        </li>`).join('') || '<li class="trabajo-vacio">Sin notas.</li>';
+      ul.querySelectorAll('[data-accion="borrar"]').forEach(el => el.addEventListener('click', async (ev) => {
+        await supabase.from('notas').delete().eq('id', ev.currentTarget.closest('.nota').dataset.id);
+        cargarNotas();
+      }));
+    }
+
+    async function cargarContactos() {
+      const { data } = await supabase.from('contactos').select('*').order('created_at', { ascending:false });
+      const cont = document.getElementById('lista-contactos');
+      cont.innerHTML = (data || []).map(c => `
+        <div class="contacto-card" data-id="${c.id}">
+          <div class="contacto-top">
+            <strong>${escapar(c.nombre)}</strong>
+            <button data-accion="borrar" title="Borrar">✕</button>
+          </div>
+          ${c.telefono ? `<a href="tel:${escapar(c.telefono)}" class="contacto-tel">📞 ${escapar(c.telefono)}</a>` : ''}
+          ${c.coche_interes ? `<div class="contacto-coche">🚗 ${escapar(c.coche_interes)}</div>` : ''}
+          ${c.notas ? `<p class="contacto-notas">${escapar(c.notas)}</p>` : ''}
+        </div>`).join('') || '<p class="trabajo-vacio">Aún no has guardado ningún cliente.</p>';
+      cont.querySelectorAll('[data-accion="borrar"]').forEach(el => el.addEventListener('click', async (ev) => {
+        if (!confirm('¿Borrar este cliente?')) return;
+        await supabase.from('contactos').delete().eq('id', ev.currentTarget.closest('.contacto-card').dataset.id);
+        cargarContactos();
+      }));
+    }
+
+    function initTrabajo() {
+      document.getElementById('form-tarea').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await supabase.from('tareas').insert({
+          texto: document.getElementById('tarea-texto').value,
+          prioridad: document.getElementById('tarea-prioridad').value,
+          fecha_limite: document.getElementById('tarea-fecha').value || null,
+        });
+        e.target.reset();
+        cargarTareas();
       });
 
-      cargar();
+      document.getElementById('form-nota').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await supabase.from('notas').insert({ contenido: document.getElementById('nota-texto').value });
+        e.target.reset();
+        cargarNotas();
+      });
+
+      document.getElementById('form-contacto').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await supabase.from('contactos').insert({
+          nombre: document.getElementById('c-nombre').value,
+          telefono: document.getElementById('c-telefono').value || null,
+          coche_interes: document.getElementById('c-coche').value || null,
+          notas: document.getElementById('c-notas').value || null,
+        });
+        e.target.reset();
+        cargarContactos();
+      });
+
+      cargarTareas();
+      cargarNotas();
+      cargarContactos();
+    }
+      initTrabajo();
     })();
   </script>
 </Admin>

@@ -1,0 +1,21 @@
+---
+const { activo = 'dashboard' } = Astro.props;
+---
+<header class="admin-header">
+  <a href="/admin" class="admin-logo"><img src="/logo_dark.png" alt="GuadiCar" /></a>
+  <nav class="admin-nav">
+    <a href="/admin" class={activo === 'dashboard' ? 'on' : ''}>Resumen</a>
+    <a href="/admin/vehiculos" class={activo === 'vehiculos' ? 'on' : ''}>Vehículos</a>
+    <a href="/admin/nuevo" class="nav-add">+ Añadir</a>
+  </nav>
+  <button id="logout" class="admin-logout">Salir</button>
+</header>
+
+<script>
+  // @ts-nocheck
+  import { supabase } from '../lib/supabaseBrowser.js';
+  document.getElementById('logout')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/admin/login';
+  });
+</script>
