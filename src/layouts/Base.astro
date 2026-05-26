@@ -1,7 +1,7 @@
 ---
 // Layout base: lo usan todas las páginas
 import '../styles/styles.css';
-
+// @ts-check
 const {
   title = 'GuadiCar Multimarcas — Vehículos de Ocasión y Km0 en Villanueva de la Serena',
   description = 'Concesionario multimarca en Villanueva de la Serena (Badajoz). Vehículos de ocasión, Km0 y nuevos con garantía y financiación. 35 años de experiencia.',
@@ -61,33 +61,46 @@ const negocio = {
 <body>
 
 <!-- ══ NAVBAR ══ -->
-<nav class={`navbar${heroNav ? ' dark-mode' : ''}${solidNav ? ' scrolled solid' : ''}`}>
-  <a href="/" class="nav-logo"><img src={heroNav ? '/logo.png' : '/logo_dark.png'} alt="GuadiCar Multimarcas" /></a>
-  <ul class="nav-center">
-    <li><a href="/">Inicio</a></li>
-    <li><a href="/vehiculos">Vehículos</a></li>
-    <li><a href="/carta">A la carta</a></li>
-    <li><a href="/servicios">Servicios</a></li>
-    <li><a href="/nosotros">Nosotros</a></li>
-    <li><a href="/contacto">Contacto</a></li>
-  </ul>
-  <div class="nav-right">
-    <div class="nav-phone">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      696 352 820
-    </div>
-    <a href="/contacto" class="btn-nav">Contactar</a>
+<!-- ══ NAVBAR PÍLDORA ══ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-pill">
+    <a href="/" class="nav-logo"><img src="/logo.png" alt="GuadiCar Multimarcas" /></a>
+
+    <ul class="nav-links">
+      <li><a href="/">Inicio</a></li>
+      <li><a href="/vehiculos">Vehículos</a></li>
+      <li><a href="/carta">A la carta</a></li>
+      <li><a href="/servicios">Servicios</a></li>
+      <li><a href="/nosotros">Nosotros</a></li>
+      <li><a href="/contacto">Contacto</a></li>
+    </ul>
+
+    <a href="/contacto" class="nav-cta">Contactar</a>
+
+    <button class="nav-burger" id="nav-burger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-  <button class="nav-burger" aria-label="Menú"><span></span><span></span><span></span></button>
 </nav>
-<nav class="nav-mobile">
-  <a href="/">Inicio</a>
-  <a href="/vehiculos">Vehículos</a>
-  <a href="/carta">A la carta</a>
-  <a href="/servicios">Servicios</a>
-  <a href="/nosotros">Nosotros</a>
-  <a href="/contacto">Contacto</a>
-</nav>
+
+<!-- Menú a pantalla completa -->
+<div class="nav-overlay" id="nav-overlay">
+  <button class="nav-close" id="nav-close" aria-label="Cerrar menú">✕</button>
+  <img src="/logo.png" alt="GuadiCar" class="nav-overlay-logo" />
+  <nav class="nav-overlay-links">
+    <a href="/">Inicio</a>
+    <a href="/vehiculos">Vehículos</a>
+    <a href="/carta">A la carta</a>
+    <a href="/servicios">Servicios</a>
+    <a href="/nosotros">Nosotros</a>
+    <a href="/contacto">Contacto</a>
+  </nav>
+  <div class="nav-overlay-contacto">
+    <span>CONTÁCTANOS</span>
+    <a href="tel:+34696352820">696 352 820</a>
+    <a href="mailto:ventas@guadicar.es">ventas@guadicar.es</a>
+  </div>
+</div>
 
 <!-- Contenido de cada página -->
 <slot />
@@ -125,29 +138,37 @@ const negocio = {
 <!-- Comportamientos (navbar, menú móvil, animaciones) -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const navbar = document.querySelector('.navbar');
+    const navbar = document.getElementById('navbar');
+    const burger = document.getElementById('nav-burger');
+    const overlay = document.getElementById('nav-overlay');
+    const close = document.getElementById('nav-close');
     const hero = document.getElementById('hero');
+
+    // Píldora: transparente sobre hero, sólida al hacer scroll
     const updateNav = () => {
       if (!navbar) return;
-      if (navbar.classList.contains('solid')) return;
-      navbar.classList.toggle('scrolled', window.scrollY > 20);
-      if (hero) navbar.classList.toggle('dark-mode', hero.getBoundingClientRect().bottom > 0);
+      const sobreHero = hero ? hero.getBoundingClientRect().bottom > 70 : false;
+      navbar.classList.toggle('solid', !sobreHero);
     };
     window.addEventListener('scroll', updateNav, { passive: true });
     updateNav();
 
+    // Marcar enlace activo
     const page = window.location.pathname;
-    document.querySelectorAll('.nav-center a, .nav-mobile a').forEach(a => {
-      if (a.getAttribute('href') === page) a.classList.add('active');
+    document.querySelectorAll('.nav-links a, .nav-overlay-links a').forEach(a => {
+      const href = a.getAttribute('href');
+      if (!href) return;
+      if (href === page || (href !== '/' && page.startsWith(href))) a.classList.add('active');
     });
 
-    const burger = document.querySelector('.nav-burger');
-    const mobileNav = document.querySelector('.nav-mobile');
-    if (burger && mobileNav) {
-      burger.addEventListener('click', () => { burger.classList.toggle('open'); mobileNav.classList.toggle('open'); });
-      mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { burger.classList.remove('open'); mobileNav.classList.remove('open'); }));
-    }
+    // Abrir / cerrar menú a pantalla completa
+    const abrir = () => { if (!overlay) return; overlay.classList.add('open'); document.body.style.overflow = 'hidden'; };
+    const cerrar = () => { if (!overlay) return; overlay.classList.remove('open'); document.body.style.overflow = ''; };
+    burger?.addEventListener('click', abrir);
+    close?.addEventListener('click', cerrar);
+    overlay?.querySelectorAll('a').forEach(a => a.addEventListener('click', cerrar));
 
+    // Animaciones de aparición al hacer scroll (.reveal → .visible)
     const ro = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
     }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
