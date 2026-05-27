@@ -99,6 +99,50 @@ const schemaCoche = {
       <ul>{v.equipamiento.map((e: string) => <li>{e}</li>)}</ul>
     </div>
   )}
+
+  <!-- Ficha técnica completa (estilo HR Motor) -->
+  <div class="ficha-tecnica">
+    <h2>Ficha técnica</h2>
+    <div class="ft-grupos">
+      <div class="ft-grupo">
+        <h3>General</h3>
+        <ul>
+          {v.matriculacion && <li><span>Matriculación</span><strong>{new Date(v.matriculacion).toLocaleDateString('es-ES')}</strong></li>}
+          <li><span>Año</span><strong>{v.anio}</strong></li>
+          <li><span>Kilómetros</span><strong>{fmt(v.km)} km</strong></li>
+          <li><span>Combustible</span><strong>{v.combustible}</strong></li>
+          <li><span>Cambio</span><strong>{v.cambio}</strong></li>
+          {v.traccion && <li><span>Tracción</span><strong>{v.traccion}</strong></li>}
+          {v.carroceria && <li><span>Carrocería</span><strong>{v.carroceria}</strong></li>}
+          {v.puertas && <li><span>Puertas</span><strong>{v.puertas}</strong></li>}
+          {v.plazas && <li><span>Plazas</span><strong>{v.plazas}</strong></li>}
+        </ul>
+      </div>
+
+      <div class="ft-grupo">
+        <h3>Motor y prestaciones</h3>
+        <ul>
+          {v.potencia && <li><span>Potencia</span><strong>{v.potencia} CV</strong></li>}
+          {v.velMaxima && <li><span>Velocidad máxima</span><strong>{v.velMaxima} km/h</strong></li>}
+          {v.aceleracion && <li><span>0-100 km/h</span><strong>{v.aceleracion} s</strong></li>}
+          {v.consumo && <li><span>Consumo mixto</span><strong>{v.consumo} l/100km</strong></li>}
+          {v.emisionesCo2 && <li><span>Emisiones CO₂</span><strong>{v.emisionesCo2} g/km</strong></li>}
+        </ul>
+      </div>
+
+      <div class="ft-grupo">
+        <h3>Dimensiones y capacidad</h3>
+        <ul>
+          {v.largoM && <li><span>Largo</span><strong>{v.largoM} m</strong></li>}
+          {v.anchoM && <li><span>Ancho</span><strong>{v.anchoM} m</strong></li>}
+          {v.altoM && <li><span>Alto</span><strong>{v.altoM} m</strong></li>}
+          {v.pesoKg && <li><span>Peso</span><strong>{fmt(v.pesoKg)} kg</strong></li>}
+          {v.maleteroL && <li><span>Maletero</span><strong>{v.maleteroL} l</strong></li>}
+          {v.depositoL && <li><span>Depósito</span><strong>{v.depositoL} l</strong></li>}
+        </ul>
+      </div>
+    </div>
+  </div>
 </section>
 
 <script type="application/ld+json" set:html={JSON.stringify(schemaCoche)} />
@@ -127,11 +171,21 @@ const schemaCoche = {
   .ficha-ctas { display:flex; flex-direction:column; gap:.7rem; }
   .ficha-desc, .ficha-equip { margin-top:3rem; max-width:760px; }
   .ficha-desc h2, .ficha-equip h2 { font-family:var(--font-h); font-size:1.3rem; font-weight:800; margin-bottom:.8rem; }
-  .ficha-desc p { color:var(--text); line-height:1.8; }
+  .ficha-desc p { color:var(--text); line-height:1.8; white-space:pre-line; }
   .ficha-equip ul { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.5rem; list-style:none; padding:0; }
   .ficha-equip li { padding-left:1.4rem; position:relative; color:var(--text); }
   .ficha-equip li::before { content:'✓'; position:absolute; left:0; color:var(--red); font-weight:800; }
   @media (max-width:820px){ .ficha-grid{ grid-template-columns:1fr; } }
+  .ficha-tecnica { margin-top: 3rem; }
+  .ficha-tecnica h2 { font-family: var(--font-h); font-size: 1.3rem; font-weight: 800; margin-bottom: 1.5rem; }
+  .ft-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .ft-grupo { background: var(--gray); border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem; }
+  .ft-grupo h3 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--red); margin: 0 0 1rem; }
+  .ft-grupo ul { list-style: none; padding: 0; margin: 0; }
+  .ft-grupo li { display: flex; justify-content: space-between; align-items: center; padding: .6rem 0; border-bottom: 1px solid var(--border); font-size: .88rem; }
+  .ft-grupo li:last-child { border-bottom: none; }
+  .ft-grupo li span { color: var(--muted); }
+  .ft-grupo li strong { font-weight: 700; color: var(--text); text-align: right; }
 </style>
 
 <script>

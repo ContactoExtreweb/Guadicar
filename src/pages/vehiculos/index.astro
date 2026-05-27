@@ -33,8 +33,8 @@ const marcas = [...new Set(vehiculos.map(v => v.marca))].sort();
         <div class="car-img">
           <img src={c.fotos[0]} alt={`${c.marca} ${c.modelo}`} loading="lazy" />
           <div class="car-img-overlay"></div>
+          {c.certificado && <div class="car-cinta">CERTIFICADO</div>}
           <div class="car-badge">{badgeDe(c)}</div>
-          {c.certificado && <div class="car-cert">✓ Certificado</div>}
         </div>
         <div class="car-body">
           <div class="car-brand">{c.marca}</div>
@@ -45,12 +45,12 @@ const marcas = [...new Set(vehiculos.map(v => v.marca))].sort();
             <span class="car-tag">{c.combustible}</span>
             <span class="car-tag">{c.cambio}</span>
           </div>
-          <div class="price-box">
-            <div class="price-main">
-              <span class="price-num">{fmt(c.precio)}</span><span class="price-cur">€</span>
-              {c.precioAnterior && <span class="price-old">{fmt(c.precioAnterior)}€</span>}
+          <div class="car-price-row">
+            <div class="car-price-main">
+              <span class="car-price">{fmt(c.precio)}<span style="font-size:1rem;">€</span></span>
+              {c.precioAnterior && <span class="car-price-old">{fmt(c.precioAnterior)}€</span>}
             </div>
-            <div class="price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
+            <div class="car-price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
           </div>
           <span class="btn-card">Ver ficha</span>
         </div>
