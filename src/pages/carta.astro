@@ -34,13 +34,13 @@ import Base from '../layouts/Base.astro';
     <form id="form-carta" class="carta-form">
       <div class="carta-grid">
         <label>Tipo de vehículo
-          <select name="tipo_v"><option value="">Me da igual</option>{['Berlina','SUV / 4x4','Familiar / Monovolumen','Coupé','Cabrio','Furgoneta','Pickup'].map(o => <option>{o}</option>)}</select>
+          <select name="tipo_v"><option value="">Cualquiera</option>{['Berlina','SUV / 4x4','Familiar / Monovolumen','Coupé','Cabrio','Furgoneta','Pickup'].map(o => <option>{o}</option>)}</select>
         </label>
         <label>Combustible
-          <select name="combustible"><option value="">Me da igual</option>{['Gasolina','Diésel','Híbrido','Eléctrico'].map(o => <option>{o}</option>)}</select>
+          <select name="combustible"><option value="">Cualquiera</option>{['Gasolina','Diésel','Híbrido','Eléctrico'].map(o => <option>{o}</option>)}</select>
         </label>
         <label>Transmisión
-          <select name="cambio"><option value="">Me da igual</option><option>Manual</option><option>Automático</option></select>
+          <select name="cambio"><option value="">Cualquiera</option><option>Manual</option><option>Automático</option></select>
         </label>
         <label>Marca preferida
           <select name="marca"><option value="">Sin preferencia</option>{['Volkswagen','BMW','Seat','Audi','Toyota','Ford','Hyundai','Opel','Mercedes','Renault','Kia','Peugeot','Otra'].map(o => <option>{o}</option>)}</select>
@@ -54,7 +54,7 @@ import Base from '../layouts/Base.astro';
           <select name="km_max"><option value="">Sin preferencia</option>{['Km 0','Hasta 20.000 km','Hasta 50.000 km','Hasta 100.000 km','Más de 100.000 km','Menos de 150.000 km','Menos de 200.000 km','Menos de 250.000 km'].map(o => <option>{o}</option>)}</select>
         </label>
         <label>Color preferido
-          <select name="color"><option value="">Me da igual</option>{['Blanco','Negro','Gris / Plata','Azul','Rojo'].map(o => <option>{o}</option>)}</select>
+          <select name="color"><option value="">Cualquiera</option>{['Blanco','Negro','Gris / Plata','Azul','Rojo'].map(o => <option>{o}</option>)}</select>
         </label>
       </div>
 
