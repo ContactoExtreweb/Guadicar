@@ -46,7 +46,7 @@ import Base from '../layouts/Base.astro';
           <select name="marca"><option value="">Sin preferencia</option>{['Volkswagen','BMW','Seat','Audi','Toyota','Ford','Hyundai','Opel','Mercedes','Renault','Kia','Peugeot','Otra'].map(o => <option>{o}</option>)}</select>
         </label>
         <label>Modelo concreto (opcional)<input name="modelo" placeholder="Ej. Golf, Serie 3…" /></label>
-        <label>Presupuesto máximo (€)<input type="number" name="presupuesto" placeholder="25000" min="0" step="500" /></label>
+        <label>Presupuesto máximo<input type="number" name="presupuesto" placeholder="25000" min="0" step="500" /></label>
         <label>Año mínimo
           <select name="anio_min"><option value="">Sin preferencia</option>{[2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024].map(o => <option>{o}</option>)}</select>
         </label>

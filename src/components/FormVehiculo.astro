@@ -13,6 +13,8 @@ const esEdicion = !!vehiculo;
 
   <!-- PASO 1: GENERAL -->
   <section class="fv-panel" data-panel="1">
+    <small>Añadir solo los datos, no rellenar con € o L para litros, o KM/H, se rellena solo automaticamente. <b><em>NO PONER €, KM, L, etc</em></b></small>
+    <br><br>
     <div class="fv-grid">
       <label>Marca *<input name="marca" value={v.marca ?? ''} required /></label>
       <label>Modelo *<input name="modelo" value={v.modelo ?? ''} required /></label>
@@ -99,15 +101,15 @@ const esEdicion = !!vehiculo;
   <!-- PASO 3: PRECIO Y PUBLICAR -->
   <section class="fv-panel" data-panel="3" hidden>
     <div class="fv-grid">
-      <label>Precio de venta (€) *<input type="number" name="precio" value={v.precio ?? ''} required min="0" /></label>
-      <label>Precio anterior (€) <small>tachado, para ofertas</small><input type="number" name="precio_anterior" value={v.precio_anterior ?? ''} min="0" /></label>
+      <label>Precio de venta<input type="number" name="precio" value={v.precio ?? ''} required min="0" placeholder="12000"></label>
+      <label>Precio anterior<small>tachado, para ofertas</small><input type="number" name="precio_anterior" value={v.precio_anterior ?? ''} min="0" placeholder="16000"></label>
     </div>
 
     <div class="fv-privado">
       <div class="fv-privado-head">🔒 Privado — solo visible para ti (no aparece en la web)</div>
       <div class="fv-grid">
-        <label>Precio de compra (€)<input type="number" name="precio_compra" value={v.precio_compra ?? ''} min="0" /></label>
-        <label>Gastos (€) <small>reparación, transporte…</small><input type="number" name="gastos" value={v.gastos ?? ''} min="0" /></label>
+        <label>Precio de compra<input type="number" name="precio_compra" value={v.precio_compra ?? ''} min="0" placeholder="15000" /></label>
+        <label>Gastos<small>reparación, transporte…</small><input type="number" name="gastos" value={v.gastos ?? ''} min="0" placeholder="1000" /></label>
       </div>
       <label class="fv-full">Notas internas<textarea name="notas_internas" rows="2">{v.notas_internas ?? ''}</textarea></label>
     </div>
