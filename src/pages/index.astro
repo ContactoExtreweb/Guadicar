@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import Newsletter from '../components/Newsletter.astro';
+import Resenas from '../components/Resenas.astro';
 
 // Coches de ejemplo (en Fase 2 vendrán de Supabase)
 const destacados = [
@@ -99,6 +101,11 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
   </div>
 </section>
 
+<!-- ══ RESEÑAS ══ -->
+<section class="section section--white">
+  <Resenas />
+</section>
+
 <!-- ══ VÍDEO INSTALACIONES ══ -->
 <section class="section section--dark video-section">
   <div class="video-inner">
@@ -108,11 +115,15 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
       <p class="video-desc">[Frase de empresa pendiente de que me la pases] — aquí irá el lema de GuadiCar que acompaña al vídeo de presentación.</p>
     </div>
     <div class="video-wrap reveal">
-      <video controls poster="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80">
-        <source src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4" type="video/mp4" />
+      <video controls>
+        <source src="/instalaciones_guadicar.mp4" type="video/mp4" />
       </video>
     </div>
   </div>
+</section>
+
+<section class="section section--gray">
+  <Newsletter variant="section" />
 </section>
 
 <!-- ══ CTA ══ -->

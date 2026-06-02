@@ -1,0 +1,259 @@
+---
+---
+<div id="gc-chat">
+  <button id="gc-toggle" class="gc-toggle" aria-label="Abrir chat">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
+  </button>
+
+  <div id="gc-panel" class="gc-panel" hidden>
+    <div class="gc-head">
+      <div><strong>GuadiCar</strong><span>Asistente · te responde al momento</span></div>
+      <button id="gc-close" class="gc-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="gc-msgs" class="gc-msgs"></div>
+
+    <button id="gc-lead-btn" class="gc-lead-btn" type="button">📞 Quiero que me llamen</button>
+    <form id="gc-lead-form" class="gc-lead-form" hidden>
+      <input id="gc-lead-nombre" type="text" placeholder="Tu nombre" maxlength="80" required />
+      <input id="gc-lead-tel" type="tel" placeholder="Tu teléfono" maxlength="20" required />
+      <textarea id="gc-lead-msg" placeholder="¿Qué coche te interesa? (opcional)" maxlength="300" rows="2"></textarea>
+      <div class="gc-lead-acciones">
+        <button type="button" id="gc-lead-cancel" class="gc-lead-cancel">Cancelar</button>
+        <button type="submit" class="gc-lead-enviar">Enviar</button>
+      </div>
+    </form>
+
+    <form id="gc-form" class="gc-form">
+      <input id="gc-input" type="text" autocomplete="off" placeholder="Escribe tu pregunta…" maxlength="500" required />
+      <button type="submit" aria-label="Enviar">➤</button>
+    </form>
+  </div>
+</div>
+
+<style is:global>
+  :root {
+    --red: #d32f2f;
+    --text: #1f2433;
+    --font: system-ui, -apple-system, sans-serif;
+  }
+
+  .gc-toggle {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    width: 58px; height: 58px; border-radius: 50%; border: none;
+    background: var(--red); color: #fff; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .gc-toggle:hover { transform: scale(1.05); }
+
+  .gc-panel {
+    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+    width: 370px; max-width: calc(100vw - 32px);
+    height: 540px; max-height: calc(100vh - 40px);
+    background: #fff; border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.2);
+    display: flex; flex-direction: column; overflow: hidden;
+    font-family: var(--font);
+  }
+
+  .gc-head {
+    background: var(--text); color: #fff; padding: 1rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gc-head strong { display: block; font-size: 1.05rem; letter-spacing: 0.3px; }
+  .gc-head span { font-size: .75rem; opacity: .8; font-weight: 300; margin-top: 2px; display: block; }
+  .gc-close {
+    background: none; border: none; color: #fff; font-size: 1.2rem;
+    cursor: pointer; opacity: .7; transition: opacity 0.2s;
+  }
+  .gc-close:hover { opacity: 1; }
+
+  .gc-msgs {
+    flex: 1; overflow-y: auto; padding: 1.2rem;
+    display: flex; flex-direction: column; gap: 0.8rem;
+    background: #e5ddd5;
+  }
+
+  .gc-msg {
+    max-width: 80%; padding: 0.6rem 0.9rem;
+    border-radius: 16px; font-size: 0.95rem; line-height: 1.4;
+    white-space: pre-wrap; word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .gc-msg.bot {
+    background: #ffffff; color: #333;
+    align-self: flex-start; border-bottom-left-radius: 4px;
+  }
+  .gc-msg.bot a { color: var(--red); font-weight: 600; text-decoration: none; }
+  .gc-msg.bot a:hover { text-decoration: underline; }
+  .gc-msg.user {
+    background: var(--red); color: #ffffff;
+    align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+
+  .gc-typing {
+    font-size: .8rem; color: #555; align-self: flex-start;
+    background: transparent; padding-left: 0.5rem; font-style: italic;
+  }
+
+  /* CTA y formulario de lead */
+  .gc-lead-btn {
+    border: none; cursor: pointer; background: var(--text); color: #fff;
+    font-family: var(--font); font-size: .9rem; font-weight: 600;
+    padding: .7rem; text-align: center; transition: filter 0.2s;
+  }
+  .gc-lead-btn:hover { filter: brightness(1.15); }
+  .gc-lead-form {
+    display: flex; flex-direction: column; gap: .5rem;
+    padding: .8rem; background: #fff; border-top: 1px solid #ddd;
+  }
+  .gc-lead-form input, .gc-lead-form textarea {
+    border: 1px solid #ccc; border-radius: 10px; padding: .6rem .8rem;
+    font-family: inherit; font-size: .9rem; outline: none; resize: none;
+  }
+  .gc-lead-form input:focus, .gc-lead-form textarea:focus { border-color: var(--red); }
+  .gc-lead-acciones { display: flex; gap: .5rem; }
+  .gc-lead-acciones button { flex: 1; border: none; border-radius: 10px; padding: .6rem; font-family: inherit; font-weight: 600; cursor: pointer; }
+  .gc-lead-cancel { background: #eee; color: #333; }
+  .gc-lead-enviar { background: var(--red); color: #fff; }
+  .gc-lead-enviar:disabled { opacity: .6; cursor: default; }
+
+  .gc-form {
+    display: flex; gap: .6rem; padding: 0.8rem;
+    border-top: 1px solid #ddd; background: #fff; align-items: center;
+  }
+  .gc-form input {
+    flex: 1; border: 1px solid #ccc; border-radius: 24px;
+    padding: 0.7rem 1rem; font-family: inherit; font-size: 0.95rem;
+    outline: none; transition: border-color 0.2s; background: #f9f9f9;
+  }
+  .gc-form input:focus { border-color: var(--red); background: #fff; }
+  .gc-form button {
+    width: 44px; height: 44px; flex: 0 0 auto; border: none;
+    border-radius: 50%; background: var(--red); color: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .gc-form button:hover { transform: scale(1.05); }
+
+  @media (max-width: 600px) {
+    .gc-toggle { bottom: 16px; right: 16px; }
+    .gc-panel {
+      top: auto; left: 12px; right: 12px; bottom: 12px;
+      width: auto; max-width: none;
+      height: 78dvh; max-height: calc(100dvh - 24px);
+      border-radius: 16px;
+    }
+  }
+</style>
+
+<script>
+  // @ts-nocheck
+  const panel = document.getElementById('gc-panel');
+  const toggle = document.getElementById('gc-toggle');
+  const msgs = document.getElementById('gc-msgs');
+  const form = document.getElementById('gc-form');
+  const input = document.getElementById('gc-input');
+  const leadBtn = document.getElementById('gc-lead-btn');
+  const leadForm = document.getElementById('gc-lead-form');
+
+  const SS_HIST = 'gc_historial', SS_OPEN = 'gc_abierto', SS_LEAD = 'gc_lead';
+  let historial = [];
+  try { historial = JSON.parse(sessionStorage.getItem(SS_HIST) || '[]'); } catch { historial = []; }
+  let saludado = historial.length > 0;
+  let leadEnviado = sessionStorage.getItem(SS_LEAD) === '1';
+
+  const guardar = () => { try { sessionStorage.setItem(SS_HIST, JSON.stringify(historial)); } catch {} };
+  const escapar = (s) => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const enlazar = (s) => escapar(s).replace(/(\/vehiculos\/[a-z0-9\-]+)/gi, '<a href="$1">$1</a>');
+
+  function pintar(texto, rol) {
+    const div = document.createElement('div');
+    div.className = 'gc-msg ' + (rol === 'user' ? 'user' : 'bot');
+    div.innerHTML = rol === 'user' ? escapar(texto) : enlazar(texto);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function refrescarLeadBtn() { leadBtn.style.display = leadEnviado ? 'none' : 'block'; }
+
+  // Restaurar conversación previa (persistencia entre páginas)
+  historial.forEach(m => pintar(m.texto, m.rol === 'user' ? 'user' : 'bot'));
+  refrescarLeadBtn();
+  if (sessionStorage.getItem(SS_OPEN) === '1') { panel.hidden = false; toggle.style.display = 'none'; }
+
+  toggle.addEventListener('click', () => {
+    panel.hidden = false; toggle.style.display = 'none';
+    sessionStorage.setItem(SS_OPEN, '1');
+    if (!saludado) {
+      saludado = true;
+      const g = '¡Hola! Soy el asistente de GuadiCar. ¿Buscas algún coche en concreto o tienes alguna duda?';
+      pintar(g, 'bot'); historial.push({ rol: 'model', texto: g }); guardar();
+    }
+    input.focus();
+  });
+  document.getElementById('gc-close').addEventListener('click', () => {
+    panel.hidden = true; toggle.style.display = 'flex'; sessionStorage.setItem(SS_OPEN, '0');
+  });
+
+  // Chat
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texto = input.value.trim();
+    if (!texto) return;
+    pintar(texto, 'user');
+    historial.push({ rol: 'user', texto }); guardar();
+    input.value = '';
+
+    const typing = document.createElement('div');
+    typing.className = 'gc-typing'; typing.textContent = 'Escribiendo…';
+    msgs.appendChild(typing); msgs.scrollTop = msgs.scrollHeight;
+
+    try {
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ historial }) });
+      const data = await r.json();
+      typing.remove();
+      const resp = data.respuesta || 'Perdona, ahora mismo no puedo responder.';
+      pintar(resp, 'bot');
+      historial.push({ rol: 'model', texto: resp }); guardar();
+    } catch {
+      typing.remove();
+      pintar('Ahora mismo no puedo responder. Inténtalo en un momento.', 'bot');
+    }
+  });
+
+  // Lead
+  leadBtn.addEventListener('click', () => {
+    leadForm.hidden = false; leadBtn.style.display = 'none'; form.style.display = 'none';
+    document.getElementById('gc-lead-nombre').focus();
+  });
+  document.getElementById('gc-lead-cancel').addEventListener('click', () => {
+    leadForm.hidden = true; form.style.display = 'flex'; refrescarLeadBtn();
+  });
+  leadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById('gc-lead-nombre').value.trim();
+    const telefono = document.getElementById('gc-lead-tel').value.trim();
+    const mensaje = document.getElementById('gc-lead-msg').value.trim();
+    const enviar = leadForm.querySelector('.gc-lead-enviar');
+    enviar.disabled = true; enviar.textContent = 'Enviando…';
+    try {
+      const r = await fetch('/api/lead-chatbot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, telefono, mensaje }) });
+      const data = await r.json();
+      if (data.ok) {
+        leadForm.hidden = true; form.style.display = 'flex';
+        leadEnviado = true; sessionStorage.setItem(SS_LEAD, '1'); refrescarLeadBtn();
+        const m = `¡Gracias, ${nombre}! Hemos recibido tus datos y un comercial te llamará pronto.`;
+        pintar(m, 'bot'); historial.push({ rol: 'model', texto: m }); guardar();
+      } else {
+        pintar(data.error || 'No se pudo enviar. Inténtalo de nuevo.', 'bot');
+        if (data.detalle) console.warn('Lead error:', data.detalle);
+      }
+    } catch {
+      pintar('No se pudo enviar ahora mismo. Inténtalo en un momento.', 'bot');
+    } finally {
+      enviar.disabled = false; enviar.textContent = 'Enviar';
+    }
+  });
+</script>

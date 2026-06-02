@@ -67,6 +67,7 @@ import AdminNav from '../../components/AdminNav.astro';
             <a class="ar-btn edit" href="/admin/editar/${v.slug}">Editar</a>
             <button class="ar-btn ${v.publicado ? 'unpub' : 'pub'}" data-accion="toggle" data-pub="${v.publicado}">${v.publicado ? 'Ocultar' : 'Publicar'}</button>
             <button class="ar-btn del" data-accion="borrar" data-nombre="${v.marca} ${v.modelo}">Borrar</button>
+            <button class="ar-btn avisar" data-accion="avisar" data-id="${v.id}" data-nombre="${v.marca} ${v.modelo}">📣 Avisar</button>
           </div>
         </div>`).join('');
 
@@ -123,6 +124,27 @@ import AdminNav from '../../components/AdminNav.astro';
         const { error } = await supabase.from('vehiculos').delete().eq('id', id);
         if (error) return alert('Error: ' + error.message);
         cargar();
+      }
+      if (btn.dataset.accion === 'avisar') {
+        const id = btn.dataset.id;
+        const nombre = btn.dataset.nombre;
+        const tipo = confirm(`Vas a avisar a los suscriptores sobre "${nombre}".\n\nAceptar = BAJADA DE PRECIO 📉\nCancelar = lo dejo`)
+          ? 'bajada' : null;
+        if (!tipo) return;
+        btn.disabled = true; btn.textContent = 'Enviando…';
+        try {
+          const res = await fetch('/api/notificar', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vehiculoId: id, tipo }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          alert(data.aviso || `✅ Aviso enviado a ${data.enviados} suscriptor(es).`);
+        } catch (err) {
+          alert('Error al enviar: ' + err.message);
+        } finally {
+          btn.disabled = false; btn.textContent = '📣 Avisar';
+        }
       }
     }
 

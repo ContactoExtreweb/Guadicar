@@ -124,6 +124,7 @@ const esEdicion = !!vehiculo;
       <label class="fv-check"><input type="checkbox" name="destacado" checked={!!v.destacado} /> Mostrar en destacados (portada)</label>
       <label class="fv-check"><input type="checkbox" name="ocasion_semana" checked={!!v.ocasion_semana} /> Ocasión de la semana</label>
       <label class="fv-check"><input type="checkbox" name="publicado" checked={v.publicado !== false} /> Publicado (visible en la web)</label>
+      <label class="fv-check fv-check--avisar"><input type="checkbox" name="avisar" /> 📣 Avisar a los suscriptores de este vehículo</label>
     </div>
   </section>
 
@@ -289,6 +290,19 @@ const esEdicion = !!vehiculo;
       await supabase.from('vehiculos_privado').upsert(priv);
     }
 
+    // Si se marcó "avisar" y el coche está publicado, notificar a los suscriptores
+    if (form.avisar?.checked && datos.publicado && vehiculoId) {
+      try {
+        const res = await fetch('/api/notificar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vehiculoId, tipo: esEdicion ? 'bajada' : 'nuevo' }),
+        });
+        const r = await res.json();
+        console.log('Aviso:', r);
+      } catch (err) {
+        console.error('No se pudo enviar el aviso:', err);
+      }
+    }
     window.location.href = '/admin/vehiculos';
   });
 </script>

@@ -3,18 +3,65 @@ const { activo = 'dashboard' } = Astro.props;
 ---
 <header class="admin-header">
   <a href="/admin" class="admin-logo"><img src="/logo_dark.png" alt="GuadiCar" /></a>
-  <nav class="admin-nav">
-    <a href="/admin" class={activo === 'dashboard' ? 'on' : ''}>Resumen</a>
-    <a href="/admin/vehiculos" class={activo === 'vehiculos' ? 'on' : ''}>Vehículos</a>
-    <a href="/admin/estadisticas" class={activo === 'estadisticas' ? 'on' : ''}>Estadísticas</a>
-    <a href="/admin/nuevo" class="nav-add">+ Añadir</a>
-  </nav>
-  <button id="logout" class="admin-logout">Salir</button>
+  <button id="navToggle" class="admin-burger" type="button" aria-label="Abrir menú" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="admin-menu">
+    <nav class="admin-nav">
+      <a href="/admin/estadisticas" class={activo === 'estadisticas' ? 'on' : ''}>Estadísticas</a>
+      <a href="/admin" class={activo === 'dashboard' ? 'on' : ''}>Resumen</a>
+      <a href="/admin/leads" class={activo === 'leads' ? 'on' : ''}>Notificaciones</a>
+      <a href="/admin/vehiculos" class={activo === 'vehiculos' ? 'on' : ''}>Gestión Vehículos</a>
+      <a href="/admin/nuevo" class="nav-add">+ Añadir Coche</a>
+      <button id="logout" class="admin-logout">Salir</button>
+    </nav>
+  </div>
 </header>
+
+<style>
+  .admin-menu { display: contents; }
+  .admin-burger { display: none; }
+
+  @media (max-width: 768px) {
+    header.admin-header { position: relative; }
+    header.admin-header .admin-burger {
+      display: flex; flex-direction: column; justify-content: center; gap: 5px;
+      width: 44px; height: 40px; padding: 0 11px; margin-left: auto;
+      background: none; border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+    }
+    header.admin-header .admin-burger span {
+      display: block; width: 100%; height: 2px; background: var(--text); border-radius: 2px;
+      transition: transform .25s ease, opacity .2s ease;
+    }
+    header.admin-header.abierto .admin-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    header.admin-header.abierto .admin-burger span:nth-child(2) { opacity: 0; }
+    header.admin-header.abierto .admin-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    header.admin-header .admin-menu {
+      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50;
+      flex-direction: column; gap: .35rem;
+      background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      padding: .6rem; box-shadow: 0 12px 30px rgba(0,0,0,.14);
+    }
+    header.admin-header.abierto .admin-menu { display: flex; }
+    header.admin-header .admin-menu .admin-nav { display: flex; flex-direction: column; gap: .3rem; }
+    header.admin-header .admin-menu .admin-nav a { text-align: left; padding: .75rem .9rem; border-radius: 10px; }
+    header.admin-header .admin-menu .admin-logout { width: 100%; }
+  }
+</style>
 
 <script>
   // @ts-nocheck
   import { supabase } from '../lib/supabaseBrowser.js';
+
+  const header = document.querySelector('.admin-header');
+  const toggle = document.getElementById('navToggle');
+  toggle?.addEventListener('click', () => {
+    const abierto = header.classList.toggle('abierto');
+    toggle.setAttribute('aria-expanded', String(abierto));
+  });
+
   document.getElementById('logout')?.addEventListener('click', async () => {
     await supabase.auth.signOut();
     window.location.href = '/admin/login';

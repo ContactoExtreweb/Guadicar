@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Resenas from '../components/Resenas.astro';
 
 const valores = [
   { ico:'🤝', titulo:'Transparencia', texto:'Cada vehículo con su historial real y su estado verdadero. Sin sorpresas ni letra pequeña.' },
@@ -69,6 +70,11 @@ const stats = [
       </div>
     ))}
   </div>
+</section>
+
+<!-- ══ RESEÑAS ══ -->
+<section class="section section--gray">
+  <Resenas />
 </section>
 
 <div class="cta-strip">

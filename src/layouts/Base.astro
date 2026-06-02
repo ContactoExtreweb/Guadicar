@@ -1,6 +1,8 @@
 ---
 // Layout base: lo usan todas las páginas
+import ChatBot from '../components/ChatBot.astro';
 import '../styles/styles.css';
+import Newsletter from '../components/Newsletter.astro';
 // @ts-check
 const {
   title = 'GuadiCar Multimarcas — Vehículos de Ocasión y Km0 en Villanueva de la Serena',
@@ -105,6 +107,8 @@ const negocio = {
 <!-- Contenido de cada página -->
 <slot />
 
+<ChatBot />
+
 <!-- ══ FOOTER ══ -->
 <footer class="footer">
   <div class="footer-top">
@@ -113,6 +117,7 @@ const negocio = {
       <p class="footer-tagline" style="max-width:340px;line-height:1.7;margin-top:1rem;">
         35 años en el sector ayudando a nuestros clientes a encontrar el coche perfecto, garantizando transparencia, seguridad y vehículos de calidad.
       </p>
+      <Newsletter variant="footer" />
     </div>
     <div class="footer-links">
       <div class="footer-col"><h4>Vehículos</h4><ul><li><a href="/vehiculos">Ocasión</a></li><li><a href="/vehiculos">Km 0</a></li><li><a href="/vehiculos">Eléctricos</a></li><li><a href="/vehiculos">SUVs</a></li></ul></div>
@@ -134,7 +139,7 @@ const negocio = {
     </div>
   </div>
 </footer>
-
+<Newsletter variant="popup" />
 <!-- Comportamientos (navbar, menú móvil, animaciones) -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
