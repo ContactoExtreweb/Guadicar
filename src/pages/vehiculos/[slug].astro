@@ -409,16 +409,22 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : [];
 
 <script>
   import { supabase } from '../../lib/supabaseBrowser.js';
+
   const el = document.querySelector('[data-vehiculo-id]');
   const id = el?.getAttribute('data-vehiculo-id');
+
   if (id) {
-    const clave = 'vista_' + id;
-    if (!sessionStorage.getItem(clave)) {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) return; // eres tú (admin): no contamos la visita
+
+      const clave = 'vista_' + id;
+      if (sessionStorage.getItem(clave)) return;
       sessionStorage.setItem(clave, '1');
-      supabase.from('vistas').insert({ vehiculo_id: id }).then(({ error }) => {
-        if (error) console.warn('No se pudo registrar la vista:', error.message);
-      });
-    }
+
+      const { error } = await supabase.from('vistas').insert({ vehiculo_id: id });
+      if (error) console.warn('No se pudo registrar la vista:', error.message);
+    })();
   }
 </script>
 
