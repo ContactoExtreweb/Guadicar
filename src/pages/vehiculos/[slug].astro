@@ -46,6 +46,7 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : [];
 <Base title={titulo} description={desc} image={v.fotos[0]}>
 
 <section class="ficha">
+  <div class="ficha" data-vehiculo-id={v.id}></div>
   <!-- Migas de pan (bueno para SEO y navegación) -->
   <nav class="breadcrumb">
     <a href="/">Inicio</a> › <a href="/vehiculos">Vehículos</a> › <span>{v.marca} {v.modelo}</span>
@@ -404,6 +405,21 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : [];
       x0 = null;
     }, { passive: true });
   });
+</script>
+
+<script>
+  import { supabase } from '../../lib/supabaseBrowser.js';
+  const el = document.querySelector('[data-vehiculo-id]');
+  const id = el?.getAttribute('data-vehiculo-id');
+  if (id) {
+    const clave = 'vista_' + id;
+    if (!sessionStorage.getItem(clave)) {
+      sessionStorage.setItem(clave, '1');
+      supabase.from('vistas').insert({ vehiculo_id: id }).then(({ error }) => {
+        if (error) console.warn('No se pudo registrar la vista:', error.message);
+      });
+    }
+  }
 </script>
 
 </Base>

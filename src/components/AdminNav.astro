@@ -6,6 +6,7 @@ const { activo = 'dashboard' } = Astro.props;
   <nav class="admin-nav">
     <a href="/admin" class={activo === 'dashboard' ? 'on' : ''}>Resumen</a>
     <a href="/admin/vehiculos" class={activo === 'vehiculos' ? 'on' : ''}>Vehículos</a>
+    <a href="/admin/estadisticas" class={activo === 'estadisticas' ? 'on' : ''}>Estadísticas</a>
     <a href="/admin/nuevo" class="nav-add">+ Añadir</a>
   </nav>
   <button id="logout" class="admin-logout">Salir</button>

@@ -1,0 +1,124 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import AdminNav from '../../components/AdminNav.astro';
+---
+<Admin title="Estadísticas · GuadiCar">
+  <div id="gate" class="admin-gate">Comprobando acceso…</div>
+
+  <div id="panel" hidden>
+    <AdminNav activo="estadisticas" />
+    <main class="admin-main">
+      <div class="admin-titlebar"><h1>Estadísticas</h1></div>
+
+      <div class="dash-cards" id="cards"></div>
+
+      <div class="dash-chart-box" style="margin:1.5rem 0;">
+        <h3>Visitas por día (últimos 30 días)</h3>
+        <div class="stats-chart"><canvas id="chartVistas"></canvas></div>
+      </div>
+
+      <h3 class="stats-h">Coches más vistos</h3>
+      <div id="ranking" class="stats-ranking"></div>
+    </main>
+  </div>
+
+  <style>
+    .stats-chart { position: relative; height: 280px; }
+    .stats-h { margin: 1.5rem 0 .3rem; font-family: var(--font-h); }
+    .stats-ranking { display: flex; flex-direction: column; gap: .6rem; }
+    .stat-row { display: flex; align-items: center; gap: .9rem; background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: .6rem .8rem; }
+    .stat-pos { flex: 0 0 auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: var(--red); color: #fff; font-weight: 800; font-size: .85rem; border-radius: 8px; }
+    .stat-row img { width: 64px; height: 46px; object-fit: cover; border-radius: 8px; background: var(--gray); }
+    .stat-info { flex: 1 1 auto; min-width: 0; }
+    .stat-marca { font-weight: 700; color: var(--text); }
+    .stat-precio { font-size: .82rem; color: var(--muted); }
+    .stat-vistas { font-size: .9rem; color: var(--text); white-space: nowrap; }
+    .stat-vistas strong { font-size: 1.1rem; color: var(--red); }
+    .stat-link { flex: 0 0 auto; background: var(--gray); color: var(--text); text-decoration: none; font-weight: 700; font-size: .82rem; padding: .45rem .7rem; border-radius: 8px; }
+    @media (max-width: 640px) { .stat-link { display: none; } .stat-row img { width: 54px; height: 40px; } }
+  </style>
+
+  <script>
+    // @ts-nocheck
+    import { supabase } from '../../lib/supabaseBrowser.js';
+    import Chart from 'chart.js/auto';
+
+    const fmt = (n) => Number(n).toLocaleString('es-ES');
+    const ROJO = '#e11d2a';
+    const DIA = 86400000;
+
+    function tarjeta(valor, etiqueta, color = '') {
+      return `<div class="dash-card">
+        <div class="dc-num" style="${color ? `color:${color}` : ''}">${valor}</div>
+        <div class="dc-label">${etiqueta}</div>
+      </div>`;
+    }
+
+    async function init() {
+      const [{ data: vistas, error: e1 }, { data: coches, error: e2 }] = await Promise.all([
+        supabase.from('vistas').select('vehiculo_id, created_at'),
+        supabase.from('vehiculos').select('id, slug, marca, modelo, fotos, precio'),
+      ]);
+      if (e1 || e2) {
+        document.getElementById('cards').innerHTML = 'Error al cargar: ' + ((e1 || e2).message);
+        return;
+      }
+
+      const cocheById = {};
+      coches.forEach(c => { cocheById[String(c.id)] = c; });
+      const limpias = (vistas || []).filter(v => cocheById[String(v.vehiculo_id)]);
+
+      const ahora = Date.now();
+      const total = limpias.length;
+      const u7 = limpias.filter(v => ahora - new Date(v.created_at).getTime() < 7 * DIA).length;
+      const u30 = limpias.filter(v => ahora - new Date(v.created_at).getTime() < 30 * DIA).length;
+
+      const porCoche = {};
+      limpias.forEach(v => { const k = String(v.vehiculo_id); porCoche[k] = (porCoche[k] || 0) + 1; });
+      const ranking = Object.entries(porCoche)
+        .map(([id, n]) => ({ coche: cocheById[id], n }))
+        .sort((a, b) => b.n - a.n);
+      const top = ranking[0];
+
+      document.getElementById('cards').innerHTML =
+        tarjeta(fmt(total), 'Visitas totales', ROJO) +
+        tarjeta(fmt(u7), 'Últimos 7 días') +
+        tarjeta(fmt(u30), 'Últimos 30 días') +
+        tarjeta(top ? `${top.coche.marca} ${top.coche.modelo}` : '—', 'Coche más visto');
+
+      const porDia = {};
+      limpias.forEach(v => { const k = v.created_at.slice(0, 10); porDia[k] = (porDia[k] || 0) + 1; });
+      const labels = [], valores = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(ahora - i * DIA);
+        labels.push(d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
+        valores.push(porDia[d.toISOString().slice(0, 10)] || 0);
+      }
+      new Chart(document.getElementById('chartVistas'), {
+        type: 'bar',
+        data: { labels, datasets: [{ data: valores, backgroundColor: ROJO, borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+      });
+
+      document.getElementById('ranking').innerHTML = ranking.length ? ranking.map((r, i) => `
+        <div class="stat-row">
+          <span class="stat-pos">${i + 1}</span>
+          <img src="${r.coche.fotos?.[0] ?? ''}" alt="" />
+          <div class="stat-info">
+            <div class="stat-marca">${r.coche.marca} ${r.coche.modelo}</div>
+            <div class="stat-precio">${fmt(r.coche.precio)} €</div>
+          </div>
+          <div class="stat-vistas"><strong>${fmt(r.n)}</strong> visitas</div>
+          <a class="stat-link" href="/vehiculos/${r.coche.slug}" target="_blank" rel="noopener">Ver</a>
+        </div>`).join('') : '<p class="admin-msg">Aún no hay visitas registradas. En cuanto la web reciba tráfico, irán apareciendo aquí.</p>';
+    }
+
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = '/admin/login'; return; }
+      document.getElementById('gate').hidden = true;
+      document.getElementById('panel').hidden = false;
+      init();
+    })();
+  </script>
+</Admin>
