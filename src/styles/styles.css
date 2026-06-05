@@ -336,154 +336,6 @@ button {
   margin-inline: auto;
 }
 
-/* ── SEARCH BOX ── */
-.search-box {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border-radius: var(--radius-lg);
-  padding: 1.6rem 1.8rem 1.4rem;
-  width: 100%;
-  max-width: 820px;
-  animation: heroIn 0.9s ease 0.15s both;
-}
-.search-title {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 1.2rem;
-  text-align: left;
-}
-.search-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
-  gap: 0.6rem;
-  align-items: end;
-}
-.search-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.search-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-}
-.search-select,
-.search-input {
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #fff;
-  padding: 0.72rem 1rem;
-  font-family: var(--font);
-  font-size: 0.88rem;
-  font-weight: 500;
-  border-radius: var(--radius);
-  outline: none;
-  transition: all var(--tr);
-  width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.search-select option {
-  background: #1a1a1a;
-  color: #fff;
-}
-.search-select:focus,
-.search-input:focus {
-  border-color: var(--red);
-  background: rgba(255, 255, 255, 0.13);
-}
-.search-select::placeholder,
-.search-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-.btn-search {
-  background: var(--red);
-  color: #fff;
-  border: none;
-  padding: 0.72rem 1.8rem;
-  border-radius: var(--radius);
-  font-family: var(--font);
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all var(--tr);
-}
-.btn-search:hover {
-  background: var(--red-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--red-glow);
-}
-.search-quick {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.search-quick-label {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.3);
-  font-weight: 500;
-}
-.quick-tag {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.22rem 0.7rem;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all var(--tr);
-}
-.quick-tag:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Hero stats */
-.hero-stats {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  gap: 0;
-  margin-top: 3rem;
-  width: 100%;
-  max-width: 820px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  padding-top: 1.8rem;
-}
-.hero-stat {
-  flex: 1;
-  text-align: center;
-}
-.hero-stat-num {
-  font-family: var(--font-h);
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--red);
-  line-height: 1;
-}
-.hero-stat-lbl {
-  font-size: 0.66rem;
-  color: rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 0.3rem;
-}
-
 /* ── SHARED SECTION ── */
 .section {
   padding: 5.5rem 4%;
@@ -1461,12 +1313,6 @@ button {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
-  .search-fields {
-    grid-template-columns: 1fr 1fr;
-  }
-  .btn-search {
-    grid-column: 1/-1;
-  }
   .layout-2col {
     grid-template-columns: 1fr;
   }
@@ -1498,13 +1344,6 @@ button {
   }
 }
 @media (max-width: 768px) {
-  .nav-center,
-  .nav-phone {
-    display: none;
-  }
-  .nav-burger {
-    display: flex;
-  }
   .contact-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -1533,9 +1372,6 @@ button {
   }
 }
 @media (max-width: 480px) {
-  .search-fields {
-    grid-template-columns: 1fr;
-  }
   .f-row {
     grid-template-columns: 1fr;
   }
@@ -2572,6 +2408,31 @@ button {
 }
 
 /* ─── NEWSLETTER ─── */
+
+/* Clave anti-desbordamiento: permite que los campos se encojan */
+.nl-form input {
+  min-width: 0;
+}
+.nl-section-inner > * {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .nl-section {
+    padding: 1.8rem 1.4rem;
+  }
+  .nl-section-inner {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  .nl-form {
+    flex-direction: column;
+  }
+  .nl-form input,
+  .nl-form button {
+    width: 100%;
+  }
+}
 .nl-form {
   display: flex;
   gap: 0.5rem;

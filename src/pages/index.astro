@@ -2,17 +2,13 @@
 import Base from '../layouts/Base.astro';
 import Newsletter from '../components/Newsletter.astro';
 import Resenas from '../components/Resenas.astro';
+import { getDestacados, getOcasionSemana, getVehiculos, fmt, badgeDe } from '../lib/coches.js';
 
-// Coches de ejemplo (en Fase 2 vendrán de Supabase)
-const destacados = [
-  { marca:'Volkswagen', modelo:'Golf 8 Style', anio:2023, motor:'1.0 TSI 110cv', km:'4.500 km', cambio:'Manual', precio:'22.900', cuota:'299', badge:'Km 0', img:'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=700&q=80' },
-  { marca:'BMW', modelo:'Serie 3 320d', anio:2021, motor:'190cv Diésel', km:'38.000 km', cambio:'Auto', precio:'31.500', cuota:'419', badge:'Ocasión', img:'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=700&q=80' },
-  { marca:'Hyundai', modelo:'IONIQ 6', anio:2023, motor:'EV 228cv', km:'12.000 km', cambio:'Auto', precio:'34.900', cuota:'459', badge:'Eléctrico', img:'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=700&q=80' },
-  { marca:'Seat', modelo:'Ateca FR', anio:2024, motor:'190cv', km:'1.200 km', cambio:'DSG', precio:'28.700', cuota:'379', badge:'Km 0', img:'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=700&q=80' },
-];
+export const prerender = false; // para mostrar los coches reales y que se actualice al añadirlos
 
-// La "Ocasión de la semana" (en Fase 2: el coche marcado como destacado por el admin)
-const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'204cv', km:'27.000 km', cambio:'Automático', precio:'35.400', cuota:'469', img:'https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&w=900&q=80' };
+const destacados = await getDestacados();   // coches marcados como "destacado" en el panel
+const ocasion = await getOcasionSemana();    // coche marcado como "ocasión de la semana"
+const publicados = (await getVehiculos()).filter(c => !c.destacado).slice(0, 4); // mostramos 4 coches publicados sin marcar.
 ---
 <Base heroNav={true} title="GuadiCar Multimarcas — Coches de Ocasión y Km0 en Villanueva de la Serena (Badajoz)">
 
@@ -42,6 +38,7 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
 </section>
 
 <!-- ══ OCASIÓN DE LA SEMANA ══ -->
+{ocasion && (
 <section class="section section--white">
   <div class="s-header" style="text-align:center;max-width:580px;margin:0 auto 2.5rem;">
     <span class="tag">Oferta destacada</span>
@@ -49,8 +46,8 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
   </div>
   <div class="ocasion-card reveal">
     <div class="ocasion-img">
-      <img src={ocasion.img} alt={`${ocasion.marca} ${ocasion.modelo}`} />
-      <div class="car-cert">✓ Revisado y certificado</div>
+      <img src={ocasion.fotos?.[0] || '/placeholder-coche.jpg'} alt={`${ocasion.marca} ${ocasion.modelo}`} />
+      {ocasion.certificado && <div class="car-cert">✓ Revisado y certificado</div>}
     </div>
     <div class="ocasion-body">
       <div class="ocasion-flag">★ Ocasión de la semana</div>
@@ -58,20 +55,22 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
       <div class="ocasion-model">{ocasion.modelo}</div>
       <div class="car-tags">
         <span class="car-tag">{ocasion.anio}</span>
-        <span class="car-tag">{ocasion.motor}</span>
-        <span class="car-tag">{ocasion.km}</span>
+        <span class="car-tag">{fmt(ocasion.km)} km</span>
+        <span class="car-tag">{ocasion.combustible}</span>
         <span class="car-tag">{ocasion.cambio}</span>
       </div>
       <div class="price-box price-box--lg">
-        <div class="price-main"><span class="price-num">{ocasion.precio}</span><span class="price-cur">€</span></div>
+        <div class="price-main"><span class="price-num">{fmt(ocasion.precio)}</span><span class="price-cur">€</span></div>
         <div class="price-fin">Financiación desde <strong>{ocasion.cuota}€/mes</strong></div>
       </div>
-      <a href="/vehiculos" class="hero-btn-main" style="align-self:flex-start;">Ver ficha completa</a>
+      <a href={`/vehiculos/${ocasion.slug}`} class="hero-btn-main" style="align-self:flex-start;">Ver ficha completa</a>
     </div>
   </div>
 </section>
+)}
 
 <!-- ══ VEHÍCULOS DESTACADOS ══ -->
+{destacados.length > 0 && (
 <section class="section section--gray">
   <div class="s-header--row">
     <div><span class="tag">Stock destacado</span><h2 class="s-title">Vehículos destacados</h2></div>
@@ -79,27 +78,66 @@ const ocasion = { marca:'Audi', modelo:'A4 40 TFSI S-Tronic', anio:2022, motor:'
   </div>
   <div class="cars-grid">
     {destacados.map((c) => (
-      <div class="car-card reveal">
+      <a href={`/vehiculos/${c.slug}`} class="car-card reveal">
         <div class="car-img">
-          <img src={c.img} alt={`${c.marca} ${c.modelo}`} />
+          <img src={c.fotos?.[0] || '/placeholder-coche.jpg'} alt={`${c.marca} ${c.modelo}`} />
           <div class="car-img-overlay"></div>
-          <div class="car-badge">{c.badge}</div>
-          <div class="car-cert">✓ Certificado</div>
+          {badgeDe(c.estado) && <div class="car-badge">{badgeDe(c.estado)}</div>}
+          {c.certificado && <div class="car-cinta">Certificado</div>}
         </div>
         <div class="car-body">
           <div class="car-brand">{c.marca}</div>
           <div class="car-name">{c.modelo}</div>
-          <div class="car-tags"><span class="car-tag">{c.anio}</span><span class="car-tag">{c.motor}</span><span class="car-tag">{c.km}</span></div>
-          <div class="price-box">
-            <div class="price-main"><span class="price-num">{c.precio}</span><span class="price-cur">€</span></div>
-            <div class="price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
+          <div class="car-tags"><span class="car-tag">{c.anio}</span><span class="car-tag">{fmt(c.km)} km</span><span class="car-tag">{c.combustible}</span></div>
+          <div class="car-price-row">
+            <div class="car-price-main">
+              <span class="car-price">{fmt(c.precio)}<span style="font-size:1rem;">€</span></span>
+              {c.precioAnterior && <span class="car-price-old">{fmt(c.precioAnterior)}€</span>}
+            </div>
+            <div class="car-price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
           </div>
-          <a href="/vehiculos" class="btn-card">Ver ficha</a>
+          <span class="btn-card">Ver ficha</span>
         </div>
-      </div>
+      </a>
     ))}
   </div>
 </section>
+)}
+
+<!-- ══ ÚLTIMAS INCORPORACIONES ══ -->
+{publicados.length > 0 && (
+<section class="section section--white">
+  <div class="s-header--row">
+    <div><span class="tag">Recién llegados</span><h2 class="s-title">Últimas incorporaciones</h2></div>
+    <a href="/vehiculos" style="font-size:0.82rem;font-weight:700;color:var(--red);display:flex;align-items:center;gap:0.3rem;">Ver todos los coches →</a>
+  </div>
+  <div class="cars-grid">
+    {publicados.map((c) => (
+      <a href={`/vehiculos/${c.slug}`} class="car-card reveal">
+        <div class="car-img">
+          <img src={c.fotos?.[0] || '/placeholder-coche.jpg'} alt={`${c.marca} ${c.modelo}`} />
+          <div class="car-img-overlay"></div>
+          {badgeDe(c.estado) && <div class="car-badge">{badgeDe(c.estado)}</div>}
+          {c.certificado && <div class="car-cinta">Certificado</div>}
+        </div>
+        <div class="car-body">
+          <div class="car-brand">{c.marca}</div>
+          <div class="car-name">{c.modelo}</div>
+          <div class="car-tags"><span class="car-tag">{c.anio}</span><span class="car-tag">{fmt(c.km)} km</span><span class="car-tag">{c.combustible}</span></div>
+          <div class="car-price-row">
+            <div class="car-price-main">
+              <span class="car-price">{fmt(c.precio)}<span style="font-size:1rem;">€</span></span>
+              {c.precioAnterior && <span class="car-price-old">{fmt(c.precioAnterior)}€</span>}
+            </div>
+            <div class="car-price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
+          </div>
+          <span class="btn-card">Ver ficha</span>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
+)}
 
 <!-- ══ RESEÑAS ══ -->
 <section class="section section--white">
