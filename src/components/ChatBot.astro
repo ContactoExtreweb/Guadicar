@@ -31,8 +31,7 @@
 </div>
 
 <style is:global>
-  /* Variables PROPIAS del chat (heredan las del sitio). Ya NO tocamos :root global,
-     así dejamos de pisar el rojo y la fuente de toda la web. */
+  /* Variables propias del chat (heredan las del sitio). No tocamos :root global. */
   #gc-chat {
     --gc-red: var(--red, #cc1c1c);
     --gc-text: var(--text, #1b2235);
@@ -128,15 +127,15 @@
   }
   .gc-form button:hover { transform: scale(1.05); }
 
-  /* MÓVIL: flotante con márgenes. El JS fija el alto y la posición reales
-     según el área visible y el teclado (esto es lo que arregla el desbordar). */
+  /* MÓVIL: tarjeta flotante de tamaño FIJO. Solo se desliza (no se redimensiona). */
   @media (max-width: 600px) {
     .gc-toggle { bottom: 16px; right: 16px; }
     .gc-panel {
       top: auto; left: 12px; right: 12px; bottom: 12px;
       width: auto; max-width: none;
-      height: 82dvh; max-height: calc(100dvh - 24px);
+      height: 70dvh; max-height: calc(100dvh - 24px);
       border-radius: 16px;
+      transition: transform 0.25s ease;
     }
   }
 </style>
@@ -162,22 +161,6 @@
   const enlazar = (s) => escapar(s).replace(/(\/vehiculos\/[a-z0-9\-]+)/gi, '<a href="$1">$1</a>');
   const esMovil = () => window.matchMedia('(max-width: 600px)').matches;
   const vv = window.visualViewport;
-  const MARGEN = 12;
-
-  // Ajusta el panel al área realmente visible (y por encima del teclado)
-  function ajustar() {
-    if (panel.hidden || !esMovil() || !vv) { panel.style.height = ''; panel.style.bottom = ''; return; }
-    const teclado = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    const abierto = teclado > 120;
-    const visible = vv.height - MARGEN * 2;
-    // Sin teclado: tarjeta flotante (~82% del alto visible, tope 620px). Con teclado: todo el hueco visible.
-    const alto = abierto ? visible : Math.min(visible, Math.round(vv.height * 0.82), 620);
-    panel.style.bottom = (teclado + MARGEN) + 'px';
-    panel.style.height = alto + 'px';
-    if (abierto) msgs.scrollTop = msgs.scrollHeight;
-  }
-  if (vv) { vv.addEventListener('resize', ajustar); vv.addEventListener('scroll', ajustar); }
-  window.addEventListener('orientationchange', () => setTimeout(ajustar, 250));
 
   // Bloqueo del scroll del body en móvil (como el menú del nav)
   let scrollY = 0, bloqueado = false;
@@ -196,6 +179,22 @@
     window.scrollTo(0, scrollY); bloqueado = false;
   }
 
+  // Deslizar el panel UNA vez por encima del teclado (sin cambiar su tamaño)
+  function subirPorTeclado() {
+    if (!vv || !esMovil() || panel.hidden) return;
+    const teclado = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    panel.style.transform = teclado > 80 ? `translateY(-${teclado}px)` : '';
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function bajarPanel() { panel.style.transform = ''; }
+
+  // Solo en foco/desenfoque (NADA de listeners continuos de resize/scroll)
+  panel.addEventListener('focusin', () => setTimeout(subirPorTeclado, 350));
+  panel.addEventListener('focusout', () => setTimeout(() => {
+    if (!panel.contains(document.activeElement)) bajarPanel();
+  }, 120));
+  window.addEventListener('orientationchange', () => setTimeout(bajarPanel, 250));
+
   function pintar(texto, rol) {
     const div = document.createElement('div');
     div.className = 'gc-msg ' + (rol === 'user' ? 'user' : 'bot');
@@ -207,17 +206,13 @@
   function abrir() {
     panel.hidden = false; toggle.style.display = 'none';
     sessionStorage.setItem(SS_OPEN, '1');
-    bloquearScroll(); ajustar();
+    bloquearScroll();
   }
   function cerrar() {
     panel.hidden = true; toggle.style.display = 'flex';
     sessionStorage.setItem(SS_OPEN, '0');
-    panel.style.height = ''; panel.style.bottom = ''; desbloquearScroll();
+    bajarPanel(); desbloquearScroll();
   }
-
-  // Reajustar al enfocar inputs (iOS abre el teclado)
-  [input, document.getElementById('gc-lead-nombre'), document.getElementById('gc-lead-tel'), document.getElementById('gc-lead-msg')]
-    .forEach(el => el && el.addEventListener('focus', () => setTimeout(ajustar, 60)));
 
   // Restaurar conversación previa (persistencia entre páginas)
   historial.forEach(m => pintar(m.texto, m.rol === 'user' ? 'user' : 'bot'));
@@ -228,10 +223,10 @@
     abrir();
     if (!saludado) {
       saludado = true;
-      const g = '¡Hola! Soy el asistente de GuadiCar. ¿En qué puedo ayudarte?';
+      const g = '¡Hola! Soy el asistente de GuadiCar. ¿Buscas algún coche en concreto o tienes alguna duda?';
       pintar(g, 'bot'); historial.push({ rol: 'model', texto: g }); guardar();
     }
-    input.focus();
+    // Sin input.focus(): el teclado NO se abre solo
   });
   document.getElementById('gc-close').addEventListener('click', cerrar);
 
@@ -262,7 +257,7 @@
   // Lead
   leadBtn.addEventListener('click', () => {
     leadForm.hidden = false; leadBtn.style.display = 'none'; form.style.display = 'none';
-    document.getElementById('gc-lead-nombre').focus();
+    // Sin focus automático: el usuario toca el campo cuando quiera
   });
   document.getElementById('gc-lead-cancel').addEventListener('click', () => {
     leadForm.hidden = true; form.style.display = 'flex'; refrescarLeadBtn();

@@ -48,6 +48,7 @@ const publicados = (await getVehiculos()).filter(c => !c.destacado).slice(0, 4);
     <div class="ocasion-img">
       <img src={ocasion.fotos?.[0] || '/placeholder-coche.jpg'} alt={`${ocasion.marca} ${ocasion.modelo}`} />
       {ocasion.certificado && <div class="car-cert">✓ Revisado y certificado</div>}
+      {ocasion.reservado && <div class="car-reservado">Reservado</div>}
     </div>
     <div class="ocasion-body">
       <div class="ocasion-flag">★ Ocasión de la semana</div>
@@ -84,6 +85,7 @@ const publicados = (await getVehiculos()).filter(c => !c.destacado).slice(0, 4);
           <div class="car-img-overlay"></div>
           {badgeDe(c.estado) && <div class="car-badge">{badgeDe(c.estado)}</div>}
           {c.certificado && <div class="car-cinta">Certificado</div>}
+          {c.reservado && <div class="car-reservado">Reservado</div>}
         </div>
         <div class="car-body">
           <div class="car-brand">{c.marca}</div>
@@ -119,6 +121,7 @@ const publicados = (await getVehiculos()).filter(c => !c.destacado).slice(0, 4);
           <div class="car-img-overlay"></div>
           {badgeDe(c.estado) && <div class="car-badge">{badgeDe(c.estado)}</div>}
           {c.certificado && <div class="car-cinta">Certificado</div>}
+          {c.reservado && <div class="car-reservado">Reservado</div>}
         </div>
         <div class="car-body">
           <div class="car-brand">{c.marca}</div>

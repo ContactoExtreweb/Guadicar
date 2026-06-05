@@ -124,6 +124,7 @@ const esEdicion = !!vehiculo;
       <label class="fv-check"><input type="checkbox" name="destacado" checked={!!v.destacado} /> Mostrar en destacados (portada)</label>
       <label class="fv-check"><input type="checkbox" name="ocasion_semana" checked={!!v.ocasion_semana} /> Ocasión de la semana</label>
       <label class="fv-check"><input type="checkbox" name="publicado" checked={v.publicado !== false} /> Publicado (visible en la web)</label>
+      <label class="fv-check"><input type="checkbox" name="reservado" /> 🔒 Reservado</label>
       <label class="fv-check fv-check--avisar"><input type="checkbox" name="avisar" /> 📣 Avisar a los suscriptores de este vehículo</label>
     </div>
   </section>
@@ -213,18 +214,52 @@ const esEdicion = !!vehiculo;
     });
   }
 
+// Comprime y redimensiona una imagen antes de subirla
+  async function comprimirImagen(file, maxLado = 1600, calidad = 0.82) {
+    // Si no es algo que el canvas pueda procesar bien, la dejamos tal cual
+    if (!file.type.startsWith('image/')) return file;
+    try {
+      const bitmap = await createImageBitmap(file);
+      let { width, height } = bitmap;
+
+      // Reescalar manteniendo proporción si excede el máximo
+      if (width > maxLado || height > maxLado) {
+        if (width >= height) { height = Math.round(height * maxLado / width); width = maxLado; }
+        else { width = Math.round(width * maxLado / height); height = maxLado; }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+      bitmap.close?.();
+
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/webp', calidad));
+      if (!blob) return file; // si algo falla, subimos la original
+
+      // Si por lo que sea la "comprimida" pesa más que la original, nos quedamos la original
+      if (blob.size >= file.size) return file;
+
+      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' });
+    } catch (e) {
+      console.warn('No se pudo comprimir, se sube original:', e);
+      return file;
+    }
+  }
+
   async function subirArchivos(files) {
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue;
       const tmp = document.createElement('div');
       tmp.className = 'foto-item cargando';
-      tmp.innerHTML = '<span class="foto-spinner">Subiendo…</span>';
+      tmp.innerHTML = '<span class="foto-spinner">Optimizando…</span>';
       preview.appendChild(tmp);
 
-      const ext = file.name.split('.').pop();
-      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+      // 1) Comprimir antes de subir
+      const optimizada = await comprimirImagen(file);
 
-      const { error } = await supabase.storage.from('coches').upload(nombre, file, { cacheControl: '3600', upsert: false });
+      // 2) Subir la versión optimizada (siempre como .jpg)
+      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
+      const { error } = await supabase.storage.from('coches').upload(nombre, optimizada, { cacheControl: '3600', upsert: false, contentType: 'image/webp' });
       tmp.remove();
       if (error) { alert('Error subiendo ' + file.name + ': ' + error.message); continue; }
 
@@ -265,6 +300,7 @@ const esEdicion = !!vehiculo;
       precio: num('precio'), precio_anterior: num('precio_anterior'), slug: form.slug.value.trim(),
       certificado: form.certificado.checked, destacado: form.destacado.checked,
       ocasion_semana: form.ocasion_semana.checked, publicado: form.publicado.checked,
+      reservado: form.reservado?.checked ?? false,
     };
 
     let vehiculoId = idEdicion;

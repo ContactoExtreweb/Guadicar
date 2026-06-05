@@ -34,6 +34,7 @@ const marcas = [...new Set(vehiculos.map(v => v.marca))].sort();
           <img src={c.fotos[0]} alt={`${c.marca} ${c.modelo}`} loading="lazy" />
           <div class="car-img-overlay"></div>
           {c.certificado && <div class="car-cinta">CERTIFICADO</div>}
+          {c.reservado && <div class="car-reservado">Reservado</div>}
           <div class="car-badge">{badgeDe(c)}</div>
         </div>
         <div class="car-body">
