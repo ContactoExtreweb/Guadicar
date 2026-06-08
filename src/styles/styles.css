@@ -2622,3 +2622,30 @@ button {
 .ficha-reservado-banner strong {
   font-weight: 800;
 }
+
+/* ===== Dashboard responsive ===== */
+.dash-card,
+.dash-chart-box {
+  min-width: 0;
+} /* dejan de reventar la rejilla */
+
+@media (max-width: 520px) {
+  .dash-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin: 1.4rem 0;
+  }
+  .dash-card {
+    padding: 1rem;
+  }
+  .dc-num {
+    font-size: 1.4rem;
+  }
+  .dash-chart-box {
+    height: 250px;
+    padding: 1rem;
+  }
+  .dash-hello h1 {
+    font-size: 1.5rem;
+  }
+}
