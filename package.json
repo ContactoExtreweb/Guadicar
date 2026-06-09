@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@astrojs/netlify": "^7.0.10",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/montserrat": "^5.2.8",
     "@supabase/supabase-js": "^2.106.2",
     "astro": "^6.3.7",
     "chart.js": "^4.5.1",

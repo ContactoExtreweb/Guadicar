@@ -1,32 +1,42 @@
 ---
-export const prerender = false;
-import Base from '../../layouts/Base.astro';
-import { getVehiculo, badgeDe, fmt } from '../../lib/coches.js';
-import Calculadora from '../../components/Calculadora.astro';
+export const prerender = false
+import Base from '../../layouts/Base.astro'
+import { getVehiculo, badgeDe, fmt } from '../../lib/coches.js'
+import Calculadora from '../../components/Calculadora.astro'
 
-const { slug } = Astro.params;
-const v = await getVehiculo(slug);
+const { slug } = Astro.params
+const v = await getVehiculo(slug)
 
 // Si el coche no existe (o se vendió y se despublicó), 404 limpio
-if (!v) return Astro.redirect('/404');
+if (!v) return Astro.redirect('/404')
 
-const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`;
-const desc = `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`;
+const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`
+const desc = `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
 
 // Datos estructurados del coche para Google (rich results)
 const schemaCoche = {
-  '@context':'https://schema.org', '@type':'Car',
-  name:`${v.marca} ${v.modelo} ${v.version ?? ''}`.trim(),
-  brand:{ '@type':'Brand', name:v.marca },
-  model:v.modelo,
-  vehicleModelDate:String(v.anio),
-  mileageFromOdometer:{ '@type':'QuantitativeValue', value:v.km, unitCode:'KMT' },
-  fuelType:v.combustible,
-  vehicleTransmission:v.cambio,
-  image:v.fotos,
-  offers:{ '@type':'Offer', price:v.precio, priceCurrency:'EUR', availability:'https://schema.org/InStock',
-    seller:{ '@type':'AutoDealer', name:'GuadiCar Multimarcas' } },
-};
+  '@context': 'https://schema.org',
+  '@type': 'Car',
+  name: `${v.marca} ${v.modelo} ${v.version ?? ''}`.trim(),
+  brand: { '@type': 'Brand', name: v.marca },
+  model: v.modelo,
+  vehicleModelDate: String(v.anio),
+  mileageFromOdometer: {
+    '@type': 'QuantitativeValue',
+    value: v.km,
+    unitCode: 'KMT',
+  },
+  fuelType: v.combustible,
+  vehicleTransmission: v.cambio,
+  image: v.fotos,
+  offers: {
+    '@type': 'Offer',
+    price: v.precio,
+    priceCurrency: 'EUR',
+    availability: 'https://schema.org/InStock',
+    seller: { '@type': 'AutoDealer', name: 'GuadiCar Multimarcas' },
+  },
+}
 
 const ic = {
   matricula: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 10v4M12 10v4M16 10v4"/></svg>`,
@@ -39,536 +49,1549 @@ const ic = {
   plazas: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M4 20a5 5 0 0 1 10 0"/><circle cx="17" cy="9" r="2.2"/><path d="M15.5 20a4 4 0 0 1 5.5-3.2"/></svg>`,
   anio: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>`,
   carroceria: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5"/><path d="M3 13h18v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="16.5" cy="16.5" r="1.2" fill="currentColor" stroke="none"/></svg>`,
-};
+}
 
-const fotos = Array.isArray(v.fotos) ? v.fotos : [];
+const fotos = Array.isArray(v.fotos) ? v.fotos : []
 ---
+
 <Base title={titulo} description={desc} image={v.fotos[0]}>
+  <section class='ficha'>
+    <div data-vehiculo-id={v.id}></div>
+    <!-- Migas de pan (bueno para SEO y navegación) -->
+    <nav class='breadcrumb'>
+      <a href='/'>Inicio</a> › <a href='/vehiculos'>Vehículos</a> › <span
+        >{v.marca} {v.modelo}</span
+      >
+    </nav>
 
-<section class="ficha">
-  <div data-vehiculo-id={v.id}></div>
-  <!-- Migas de pan (bueno para SEO y navegación) -->
-  <nav class="breadcrumb">
-    <a href="/">Inicio</a> › <a href="/vehiculos">Vehículos</a> › <span>{v.marca} {v.modelo}</span>
-  </nav>
-
-  <div class="ficha-grid">
-    <!-- Galería -->
-    <div class="ficha-galeria" data-galeria>
-  <div class="fg-main">
-    {v.fotos.map((f: string, i: number) => (
-      <img src={f} alt={`${v.marca} ${v.modelo} — foto ${i + 1}`} class:list={["fg-img", { activa: i === 0 }]} loading={i === 0 ? "eager" : "lazy"} />
-    ))}
-    {v.certificado && <div class="car-cert">✓ Revisado y certificado</div>}
-    <div class="car-badge">{badgeDe(v)}</div>
-    {v.fotos.length > 1 && <button class="fg-flecha fg-prev" type="button" aria-label="Foto anterior">‹</button>}
-    {v.fotos.length > 1 && <button class="fg-flecha fg-next" type="button" aria-label="Foto siguiente">›</button>}
-    <div class="fg-contador"><span data-actual>1</span> / {v.fotos.length}</div>
-    {v.fotos.length > 1 && (
-      <div class="fg-puntos">
-        {v.fotos.map((_: string, i: number) => <span class:list={["fg-punto", { activa: i === 0 }]}></span>)}
-      </div>
-    )}
-  </div>
-  {v.fotos.length > 1 && (
-    <div class="fg-thumbs">
-      {v.fotos.map((f: string, i: number) => (
-        <img src={f} alt={`Foto ${i + 1}`} class:list={["fg-thumb", { activa: i === 0 }]} loading="lazy" />
-      ))}
-    </div>
-  )}
-
-  {v.fotos.length > 0 && (
-    <div class="fg-lightbox" data-lightbox hidden>
-      <button class="flb-cerrar" type="button" aria-label="Cerrar">✕</button>
-      {v.fotos.length > 1 && <button class="flb-flecha flb-prev" type="button" aria-label="Anterior">‹</button>}
-      <img class="flb-img" src={v.fotos[0]} alt={`${v.marca} ${v.modelo}`} loading="lazy" />
-      {v.fotos.length > 1 && <button class="flb-flecha flb-next" type="button" aria-label="Siguiente">›</button>}
-      <div class="flb-contador"><span data-flb-actual>1</span> / {v.fotos.length}</div>
-    </div>
-  )}
-</div>
-
-    <!-- Datos y precio -->
-    <div class="ficha-info">
-      {v.reservado && (
-        <div class="ficha-reservado-banner">
-          🔒 Este vehículo está <strong>reservado</strong> actualmente. Consúltanos por disponibilidad o coches similares.
+    <div class='ficha-grid'>
+      <!-- Galería -->
+      <div class='ficha-galeria' data-galeria>
+        <div class='fg-main'>
+          {
+            v.fotos.map((f: string, i: number) => (
+              <img
+                src={f}
+                alt={`${v.marca} ${v.modelo} — foto ${i + 1}`}
+                class:list={['fg-img', { activa: i === 0 }]}
+                loading={i === 0 ? 'eager' : 'lazy'}
+              />
+            ))
+          }
+          {
+            v.certificado && (
+              <div class='car-cert'>✓ Revisado y certificado</div>
+            )
+          }
+          <div class='car-badge'>{badgeDe(v)}</div>
+          {
+            v.fotos.length > 1 && (
+              <button
+                class='fg-flecha fg-prev'
+                type='button'
+                aria-label='Foto anterior'
+              >
+                ‹
+              </button>
+            )
+          }
+          {
+            v.fotos.length > 1 && (
+              <button
+                class='fg-flecha fg-next'
+                type='button'
+                aria-label='Foto siguiente'
+              >
+                ›
+              </button>
+            )
+          }
+          <div class='fg-contador'>
+            <span data-actual>1</span> / {v.fotos.length}
+          </div>
+          {
+            v.fotos.length > 1 && (
+              <div class='fg-puntos'>
+                {v.fotos.map((_: string, i: number) => (
+                  <span class:list={['fg-punto', { activa: i === 0 }]} />
+                ))}
+              </div>
+            )
+          }
         </div>
-      )}
-      <div class="car-brand">{v.marca}</div>
-      <h1 class="ficha-title">{v.modelo} <span>{v.version}</span></h1>
+        {
+          v.fotos.length > 1 && (
+            <div class='fg-thumbs'>
+              {v.fotos.map((f: string, i: number) => (
+                <img
+                  src={f}
+                  alt={`Foto ${i + 1}`}
+                  class:list={['fg-thumb', { activa: i === 0 }]}
+                  loading='lazy'
+                />
+              ))}
+            </div>
+          )
+        }
 
-      <div class="ficha-specs">
-        <div class="spec"><span>Año</span><strong>{v.anio}</strong></div>
-        <div class="spec"><span>Kilómetros</span><strong>{fmt(v.km)} km</strong></div>
-        <div class="spec"><span>Combustible</span><strong>{v.combustible}</strong></div>
-        <div class="spec"><span>Cambio</span><strong>{v.cambio}</strong></div>
-        <div class="spec"><span>Potencia</span><strong>{v.potencia} CV</strong></div>
-        <div class="spec"><span>Carrocería</span><strong>{v.carroceria}</strong></div>
+        {
+          v.fotos.length > 0 && (
+            <div class='fg-lightbox' data-lightbox hidden>
+              <button class='flb-cerrar' type='button' aria-label='Cerrar'>
+                ✕
+              </button>
+              {v.fotos.length > 1 && (
+                <button
+                  class='flb-flecha flb-prev'
+                  type='button'
+                  aria-label='Anterior'
+                >
+                  ‹
+                </button>
+              )}
+              <img
+                class='flb-img'
+                src={v.fotos[0]}
+                alt={`${v.marca} ${v.modelo}`}
+                loading='lazy'
+              />
+              {v.fotos.length > 1 && (
+                <button
+                  class='flb-flecha flb-next'
+                  type='button'
+                  aria-label='Siguiente'
+                >
+                  ›
+                </button>
+              )}
+              <div class='flb-contador'>
+                <span data-flb-actual>1</span> / {v.fotos.length}
+              </div>
+            </div>
+          )
+        }
       </div>
 
-      <div class="ficha-precio">
-        <div class="price-main">
-          <span class="price-num">{fmt(v.precio)}</span><span class="price-cur">€</span>
-          {v.precioAnterior && <span class="price-old">{fmt(v.precioAnterior)}€</span>}
+      <!-- Datos y precio -->
+      <div class='ficha-info'>
+        {
+          v.reservado && (
+            <div class='ficha-reservado-banner'>
+              🔒 Este vehículo está <strong>reservado</strong> actualmente.
+              Consúltanos por disponibilidad o coches similares.
+            </div>
+          )
+        }
+        <div class='car-brand'>{v.marca}</div>
+        <h1 class='ficha-title'>{v.modelo} <span>{v.version}</span></h1>
+
+        <div class='ficha-specs'>
+          <div class='spec'><span>Año</span><strong>{v.anio}</strong></div>
+          <div class='spec'>
+            <span>Kilómetros</span><strong>{fmt(v.km)} km</strong>
+          </div>
+          <div class='spec'>
+            <span>Combustible</span><strong>{v.combustible}</strong>
+          </div>
+          <div class='spec'><span>Cambio</span><strong>{v.cambio}</strong></div>
+          <div class='spec'>
+            <span>Potencia</span><strong>{v.potencia} CV</strong>
+          </div>
+          <div class='spec'>
+            <span>Carrocería</span><strong>{v.carroceria}</strong>
+          </div>
         </div>
-        <div class="price-fin">Financiación desde <strong>{v.cuota}€/mes</strong></div>
-      </div>
 
-      <Calculadora precio={v.precio} />
-
-      <div class="ficha-ctas">
-        <a href={`/contacto?coche=${v.slug}`} class="hero-btn-main">Me interesa este coche</a>
-        <a href="tel:+34722496124" class="hero-btn-sec"> 📞 Llamar: 722 49 61 24</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Descripción -->
-{v.descripcion && (
-    <div class="ficha-desc">
-      <img src="/logo_dark.png" class="ficha-marca" alt="" aria-hidden="true" loading="lazy" />
-      <h2>Descripción</h2>
-      <p>{v.descripcion}</p>
-    </div>
-  )}
-
- <!-- Equipamiento -->
-  {v.equipamiento?.length > 0 && (
-    <div class="ficha-equip">
-      <img src="/logo.png" class="ficha-marca" alt="" aria-hidden="true" loading="lazy" />
-      <h2>Equipamiento</h2>
-      <ul>{v.equipamiento.map((e: string) => <li>{e}</li>)}</ul>
-    </div>
-  )}
-
- <!-- Ficha técnica visual -->
-  <div class="ficha-tecnica">
-    <h2>Datos básicos</h2>
-
-    <!-- Azulejos -->
-<div class="ft-azulejos">
-  {v.matriculacion && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.matricula}></span><div class="ft-dato"><span>Matriculación</span><strong>{new Date(v.matriculacion).toLocaleDateString('es-ES')}</strong></div></div>}
-  <div class="ft-azulejo"><span class="ft-ico" set:html={ic.km}></span><div class="ft-dato"><span>Kilometraje</span><strong>{fmt(v.km)} km</strong></div></div>
-  <div class="ft-azulejo"><span class="ft-ico" set:html={ic.combustible}></span><div class="ft-dato"><span>Combustible</span><strong>{v.combustible}</strong></div></div>
-  <div class="ft-azulejo"><span class="ft-ico" set:html={ic.transmision}></span><div class="ft-dato"><span>Transmisión</span><strong>{v.cambio}</strong></div></div>
-  <div class="ft-azulejo"><span class="ft-ico" set:html={ic.potencia}></span><div class="ft-dato"><span>Potencia</span><strong>{v.potencia} CV</strong></div></div>
-  {v.traccion && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.traccion}></span><div class="ft-dato"><span>Tracción</span><strong>{v.traccion}</strong></div></div>}
-  {v.puertas && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.puertas}></span><div class="ft-dato"><span>Puertas</span><strong>{v.puertas}</strong></div></div>}
-  {v.plazas && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.plazas}></span><div class="ft-dato"><span>Plazas</span><strong>{v.plazas}</strong></div></div>}
-  {v.anio && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.anio}></span><div class="ft-dato"><span>Año</span><strong>{v.anio}</strong></div></div>}
-  {v.carroceria && <div class="ft-azulejo"><span class="ft-ico" set:html={ic.carroceria}></span><div class="ft-dato"><span>Carrocería</span><strong>{v.carroceria}</strong></div></div>}
-</div>
-
-    <!-- Dimensiones con siluetas acotadas + capacidades -->
-    {(v.largoM || v.anchoM || v.altoM || v.pesoKg || v.depositoL || v.maleteroL) && (
-      <div class="ft-dimensiones">
-        <div class="ft-diagrama">
-<svg viewBox="0 0 560 205" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--font);">
-  <defs>
-    <linearGradient id="ftBody" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2a3450"/>
-      <stop offset="1" stop-color="#1b2235"/>
-    </linearGradient>
-  </defs>
-
-  <g transform="translate(16,10)">
-    <path d="M14,118 L14,98 C14,89 21,85 33,83 L66,77 C76,57 94,48 116,48 L150,48 C172,48 187,57 199,76 L222,82 C234,84 240,89 240,99 L240,118 Z" fill="url(#ftBody)"/>
-    
-    <path d="M 44 118 A 22 22 0 0 1 88 118 Z" fill="#11161f"/>
-    <path d="M 168 118 A 22 22 0 0 1 212 118 Z" fill="#11161f"/>
-    
-    <path d="M74,76 C82,61 96,55 114,54 L132,54 L132,76 Z" fill="#8fa0c4" opacity="0.55"/>
-    <path d="M140,54 L150,54 C168,55 181,61 191,75 L140,76 Z" fill="#8fa0c4" opacity="0.55"/>
-    
-    <path d="M 185 70 L 195 70 L 193 76 L 185 76 Z" fill="#1b2235"/>
-    
-    <circle cx="66" cy="122" r="17" fill="#161c2b"/>
-    <circle cx="66" cy="122" r="10" fill="#8fa0c4"/>
-    <circle cx="66" cy="122" r="4" fill="#161c2b"/>
-    <circle cx="190" cy="122" r="17" fill="#161c2b"/>
-    <circle cx="190" cy="122" r="10" fill="#8fa0c4"/>
-    <circle cx="190" cy="122" r="4" fill="#161c2b"/>
-    
-    <line x1="14" y1="150" x2="14" y2="166" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="240" y1="150" x2="240" y2="166" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="22" y1="158" x2="232" y2="158" stroke="var(--red)" stroke-width="1.6"/>
-    <path d="M14,158 L22,154 L22,162 Z" fill="var(--red)"/>
-    <path d="M240,158 L232,154 L232,162 Z" fill="var(--red)"/>
-    <rect x="100" y="148" width="54" height="20" rx="5" fill="#ffffff"/>
-    <text x="127" y="162.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">{v.largoM ?? '—'} m</text>
-  </g>
-
-  <g transform="translate(304,10)">
-    <rect x="2" y="68" width="16" height="10" rx="3" fill="#1b2235"/>
-    <rect x="182" y="68" width="16" height="10" rx="3" fill="#1b2235"/>
-    
-    <rect x="22" y="112" width="26" height="28" rx="4" fill="#161c2b"/>
-    <rect x="152" y="112" width="26" height="28" rx="4" fill="#161c2b"/>
-    
-    <path d="M 16 118 L 16 85 Q 16 75 24 75 L 42 75 L 56 52 Q 62 48 70 48 L 130 48 Q 138 48 144 52 L 158 75 L 176 75 Q 184 75 184 85 L 184 118 Z" fill="url(#ftBody)"/>
-    
-    <path d="M 48 75 L 60 54 Q 64 51 70 51 L 130 51 Q 136 51 140 54 L 152 75 Z" fill="#8fa0c4" opacity="0.55"/>
-    <path d="M 60 54 L 80 54 L 60 75 L 48 75 Z" fill="#ffffff" opacity="0.15"/>
-    
-    <rect x="65" y="85" width="70" height="14" rx="4" fill="#11161f"/>
-    <path d="M 45 106 L 155 106 L 145 116 L 55 116 Z" fill="#11161f"/>
-    
-    <path d="M 20 80 L 55 85 L 55 92 L 20 86 Z" fill="#cfd7e6"/>
-    <path d="M 180 80 L 145 85 L 145 92 L 180 86 Z" fill="#cfd7e6"/>
-    <circle cx="45" cy="88" r="3" fill="#ffffff"/>
-    <circle cx="155" cy="88" r="3" fill="#ffffff"/>
-    
-    <line x1="16" y1="150" x2="16" y2="166" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="184" y1="150" x2="184" y2="166" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="24" y1="158" x2="176" y2="158" stroke="var(--red)" stroke-width="1.6"/>
-    <path d="M16,158 L24,154 L24,162 Z" fill="var(--red)"/>
-    <path d="M184,158 L176,154 L176,162 Z" fill="var(--red)"/>
-    <rect x="73" y="148" width="54" height="20" rx="5" fill="#ffffff"/>
-    <text x="100" y="162.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">{v.anchoM ?? '—'} m</text>
-    
-    <line x1="194" y1="48" x2="210" y2="48" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="194" y1="140" x2="210" y2="140" stroke="var(--red)" stroke-width="1.4"/>
-    <line x1="202" y1="56" x2="202" y2="132" stroke="var(--red)" stroke-width="1.6"/>
-    <path d="M202,48 L198,56 L206,56 Z" fill="var(--red)"/>
-    <path d="M202,140 L198,132 L206,132 Z" fill="var(--red)"/>
-    
-    <g transform="rotate(-90 202 94)">
-      <rect x="175" y="84" width="54" height="20" rx="5" fill="#ffffff"/>
-      <text x="202" y="98.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">{v.altoM ?? '—'} m</text>
-    </g>
-  </g>
-</svg>
-
+        <div class='ficha-precio'>
+          <div class='price-main'>
+            <span class='price-num'>{fmt(v.precio)}</span><span
+              class='price-cur'>€</span
+            >
+            {
+              v.precioAnterior && (
+                <span class='price-old'>{fmt(v.precioAnterior)}€</span>
+              )
+            }
+          </div>
+          <div class='price-fin'>
+            Financiación desde <strong>{v.cuota}€/mes</strong>
+          </div>
         </div>
-        <div class="ft-capacidades">
-          {v.pesoKg && <div><span>Peso</span><strong>{fmt(v.pesoKg)} kg</strong></div>}
-          {v.depositoL && <div><span>Depósito</span><strong>{v.depositoL} l</strong></div>}
-          {v.maleteroL && <div><span>Maletero</span><strong>{v.maleteroL} l</strong></div>}
+
+        <Calculadora precio={v.precio} />
+
+        <div class='ficha-ctas'>
+          <a href={`/contacto?coche=${v.slug}`} class='hero-btn-main'
+            >Me interesa este coche</a
+          >
         </div>
       </div>
-    )}
+    </div>
 
-    <!-- Prestaciones con iconos rojos -->
-    {(v.aceleracion || v.velMaxima || v.consumo || v.emisionesCo2) && (
-      <div class="ft-prestaciones">
-        {v.aceleracion && (
-          <div class="ft-presta">
-            <div class="ft-presta-ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="18" r="11"/><path d="M16 12v6l4 3"/><path d="M12 3h8"/><path d="M16 3v3"/></svg></div>
-            <div class="ft-presta-label">0 a 100 km/h</div>
-            <div class="ft-presta-num">{v.aceleracion}<small>segundos</small></div>
-          </div>
-        )}
-        {v.velMaxima && (
-          <div class="ft-presta">
-            <div class="ft-presta-ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 24a13 13 0 1 1 22 0"/><path d="M16 18l5-5"/><circle cx="16" cy="18" r="2" fill="currentColor" stroke="none"/></svg></div>
-            <div class="ft-presta-label">Velocidad máxima</div>
-            <div class="ft-presta-num">{v.velMaxima}<small>km/h</small></div>
-          </div>
-        )}
-        {v.consumo && (
-          <div class="ft-presta">
-            <div class="ft-presta-ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 31V6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v25"/><path d="M3 31h16"/><path d="M5 14h13"/><path d="M22 10l3 3v11a1.5 1.5 0 0 1-3 0v-5"/></svg></div>
-            <div class="ft-presta-label">Consumo mixto</div>
-            <div class="ft-presta-num">{v.consumo}<small>l/100km</small></div>
-          </div>
-        )}
-        {v.emisionesCo2 && (
-          <div class="ft-presta">
-            <div class="ft-presta-ico"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 28A7 7 0 0 1 9.8 8.1C15.5 7 17 6.48 19 4c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 29c0-3 1.85-5.36 5.08-6"/></svg></div>
-            <div class="ft-presta-label">Emisiones</div>
-            <div class="ft-presta-num">{v.emisionesCo2}<small>g/km CO₂</small></div>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-</section>
-
-<script type="application/ld+json" set:html={JSON.stringify(schemaCoche)} />
-
-<style>
-  .ficha { max-width:1150px; margin:0 auto; padding:7rem 1.5rem 4rem; }
-  .breadcrumb { font-size:.8rem; color:var(--muted); margin-bottom:1.5rem; }
-  .breadcrumb a { color:var(--muted); text-decoration:none; }
-  .breadcrumb a:hover { color:var(--red); }
-  .ficha-grid { display:grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap:2.5rem; align-items:start; }
-  .ficha-galeria { min-width: 0; }
-  .ficha-title { font-family:var(--font-h); font-size:2rem; font-weight:800; letter-spacing:-1px; margin:.2rem 0 1.3rem; line-height:1.1; }
-  .ficha-title span { color:var(--muted); font-weight:600; font-size:1.3rem; }
-  .ficha-specs { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-bottom:1.8rem; }
-  .spec { background:var(--gray); border:1px solid var(--border); border-radius:10px; padding:.7rem .9rem; display:flex; flex-direction:column; }
-  .spec span { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
-  .spec strong { font-size:1rem; margin-top:.15rem; }
-  .ficha-precio { background:var(--black); border-radius:var(--radius-lg); padding:1.6rem; margin-bottom:1.3rem; }
-  .ficha-precio .price-num, .ficha-precio .price-cur { color:#fff; font-size:2.4rem; }
-  .ficha-precio .price-cur { font-size:1.5rem; }
-  .ficha-precio .price-fin { color:rgba(255,255,255,.7); margin-top:.3rem; }
-  .ficha-ctas { display:flex; flex-direction:column; gap:.7rem; }
-                @property --aura-ang {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
-
-  .ficha-desc, .ficha-equip {
-    position: relative;
-    isolation: isolate;
-    margin: 2rem auto 0;
-    max-width: 820px;
-    border-radius: 14px;
-    padding: 1.5rem 1.7rem;
-  }
-  /* Aura roja girando en sentido horario */
-  .ficha-desc::before, .ficha-equip::before {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: 18px;
-    background: conic-gradient(from var(--aura-ang),
-        rgba(204,28,28,0) 0deg,
-        rgba(204,28,28,0) 210deg,
-        rgba(204,28,28,.5) 290deg,
-        rgba(255,95,95,1) 325deg,
-        rgba(204,28,28,.5) 358deg,
-        rgba(204,28,28,0) 360deg);
-    filter: blur(7px);
-    z-index: 0;
-    animation: ficha-aura 11s linear infinite;
-  }
-  /* Fondo gris por encima del aura */
-  .ficha-desc::after, .ficha-equip::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--gray);
-    border: 1px solid var(--border);
-    z-index: 1;
-  }
-  /* Solo el texto va por encima del fondo (el logo NO se toca aquí) */
-  .ficha-desc > h2, .ficha-equip > h2,
-  .ficha-desc > p, .ficha-equip > ul { position: relative; z-index: 2; }
-
-  /* Logo: marca de agua fija arriba a la derecha */
-  .ficha-desc .ficha-marca,
-  .ficha-equip .ficha-marca {
-    position: absolute;
-    top: .9rem;
-    right: 1.1rem;
-    width: 90px;
-    height: auto;
-    margin: 0;
-    opacity: .76;
-    filter: brightness(0);
-    z-index: 2;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  .ficha-desc h2, .ficha-equip h2 {
-    font-family: var(--font-h); font-size: 1.2rem; font-weight: 800;
-    margin: 0 0 1rem; padding-right: 100px;
-    display: flex; align-items: center; gap: .55rem;
-  }
-  .ficha-desc h2::before, .ficha-equip h2::before {
-    content: ''; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--red); flex: 0 0 auto;
-  }
-  .ficha-desc p { color: var(--text); line-height: 1.8; white-space: pre-line; margin: 0; }
-  .ficha-equip ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .7rem 1.6rem; list-style: none; padding: 0; margin: 0; }
-  .ficha-equip li { padding-left: 1.6rem; position: relative; color: var(--text); }
-  .ficha-equip li::before { content: '✓'; position: absolute; left: 0; color: var(--red); font-weight: 800; }
-
-  @keyframes ficha-aura { to { --aura-ang: 360deg; } }
-  @media (prefers-reduced-motion: reduce) {
-    .ficha-desc::before, .ficha-equip::before { animation: none; }
-  }
-  @media (max-width:820px){ .ficha-grid{ grid-template-columns:1fr; } }
-  @media (min-width: 821px) {
-    .ficha-grid { align-items: stretch; }
-    .ficha-galeria { display: flex; flex-direction: column; }
-    .fg-main { flex: 1 1 auto; aspect-ratio: auto; min-height: 360px; }
-  }
-.ficha-tecnica { margin-top: 3rem; }
-  .ficha-tecnica h2 { font-family: var(--font-h); font-size: 1.4rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; }
-
-  /* Azulejos de datos */
-  .ft-azulejos { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: .7rem; margin-bottom: 2rem; }
-  .ft-azulejo { display: flex; align-items: center; gap: .75rem; background: var(--gray); border: 1px solid var(--border); border-radius: 14px; padding: .8rem .9rem; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
-  .ft-azulejo:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: rgba(204,28,28,.35); }
-  .ft-ico { flex: 0 0 auto; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(204,28,28,.09); color: var(--red); }
-  .ft-dato { display: flex; flex-direction: column; min-width: 0; }
-  .ft-dato span { font-size: .72rem; font-weight: 700; color: var(--muted); margin-bottom: .12rem; }
-  .ft-dato strong { font-size: 1rem; font-weight: 800; color: var(--text); line-height: 1.15; }
-
-  /* Dimensiones */
-  .ft-dimensiones { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.2rem; margin-bottom: 2rem; }
-  .ft-silueta { background: var(--gray); border-radius: 14px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-  .ft-silueta svg { width: 70%; max-width: 280px; }
-  .ft-medidas { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
-  .ft-medidas span { font-size: .85rem; color: var(--muted); }
-  .ft-medidas strong { color: var(--text); }
-  .ft-capacidades { background: var(--gray); border-radius: 14px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; gap: 1rem; }
-  .ft-capacidades div { display: flex; justify-content: space-between; align-items: center; }
-  .ft-capacidades span { color: var(--muted); font-size: .9rem; }
-  .ft-capacidades strong { font-weight: 800; }
-
-  /* Prestaciones con iconos */
-  .ft-prestaciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
-  .ft-presta { background: var(--gray); border-radius: 14px; padding: 1.5rem 1rem; text-align: center; }
-  .ft-presta-ico { width: 52px; height: 52px; margin: 0 auto .8rem; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow); }
-  .ft-presta-label { font-size: .8rem; font-weight: 700; color: var(--text); margin-bottom: .5rem; }
-  .ft-presta-num { font-family: var(--font-h); font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1; }
-  .ft-presta-num small { display: block; font-family: var(--font); font-size: .72rem; font-weight: 500; color: var(--muted); margin-top: .25rem; }
-@media (max-width: 640px) {
-    .ft-azulejos { grid-template-columns: 1fr 1fr; gap: .6rem; }
-    .ft-azulejo { flex-direction: column; align-items: center; text-align: center; gap: .5rem; padding: 1rem .6rem; }
-    .ft-azulejo:last-child:nth-child(odd) { grid-column: 1 / -1; }
-    .ft-dato { align-items: center; }
-    .ft-dimensiones { grid-template-columns: 1fr; }
-    .ft-prestaciones { grid-template-columns: 1fr 1fr; }
-    .ft-prestaciones .ft-presta:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  }
-  .fg-main { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--gray); border-radius: 16px; overflow: hidden; cursor: zoom-in; touch-action: pan-y; user-select: none;box-shadow: var(--shadow-lg); }
-  .fg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s ease; }
-  .fg-img.activa { opacity: 1; }
-  .fg-main .car-cert, .fg-main .car-badge { z-index: 4; }
-  .fg-flecha { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 42px; height: 42px; border: none; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; font-size: 1.6rem; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .2s ease, background .2s ease; }
-  .fg-main:hover .fg-flecha { opacity: 1; }
-  .fg-flecha:hover { background: var(--red); }
-  .fg-prev { left: .8rem; }
-  .fg-next { right: .8rem; }
-  .fg-contador { position: absolute; bottom: .8rem; right: .8rem; z-index: 3; background: rgba(0,0,0,.55); color: #fff; font-size: .8rem; font-weight: 700; padding: .25rem .6rem; border-radius: 999px; }
-  .fg-puntos { position: absolute; bottom: .9rem; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; gap: .35rem; }
-  .fg-punto { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer; transition: background .2s ease, transform .2s ease; }
-  .fg-punto.activa { background: #fff; transform: scale(1.35); }
-  .fg-thumbs { display: flex; gap: .5rem; margin-top: .6rem; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; padding: 2px 0; }
-  .fg-thumbs::-webkit-scrollbar { display: none; }
-  .fg-thumb { flex: 0 0 auto; width: 84px; height: 60px; object-fit: cover; border: 2px solid transparent; border-radius: 10px; cursor: pointer; opacity: .55; transition: border-color .15s ease, opacity .15s ease; }
-  .fg-thumb.activa { border-color: var(--red); opacity: 1; }
-  .fg-thumb:hover { opacity: 1; }
-  @media (max-width: 640px) {
-    .fg-main { aspect-ratio: 4 / 3; cursor: default; }
-    .fg-flecha { opacity: 1; background: rgba(0,0,0,.4); }
-    .fg-thumb { width: 70px; height: 50px; }
-  }
-  .fg-lightbox { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.92); display: flex; align-items: center; justify-content: center; padding: 1rem; }
-  .fg-lightbox[hidden] { display: none; }
-  .flb-img { max-width: 94vw; max-height: 88vh; object-fit: contain; border-radius: 6px; box-shadow: 0 10px 50px rgba(0,0,0,.6); user-select: none; }
-  .flb-cerrar { position: absolute; top: 1rem; right: 1rem; z-index: 3; width: 44px; height: 44px; border: none; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease; }
-  .flb-cerrar:hover { background: var(--red); }
-  .flb-flecha { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 50px; height: 50px; border: none; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; font-size: 2rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease; }
-  .flb-flecha:hover { background: var(--red); }
-  .flb-prev { left: 1rem; }
-  .flb-next { right: 1rem; }
-  .flb-contador { position: absolute; bottom: 1.2rem; left: 50%; transform: translateX(-50%); z-index: 3; color: #fff; font-size: .9rem; font-weight: 700; background: rgba(0,0,0,.4); padding: .3rem .8rem; border-radius: 999px; }
-  @media (max-width: 640px) {
-    .flb-flecha { width: 42px; height: 42px; font-size: 1.6rem; background: rgba(255,255,255,.18); }
-    .flb-prev { left: .5rem; } .flb-next { right: .5rem; }
-  }
-</style>
-<script>
-  // @ts-nocheck
-  document.querySelectorAll('[data-galeria]').forEach((g) => {
-    const imgs = [...g.querySelectorAll('.fg-img')];
-    if (imgs.length === 0) return;
-    const main = g.querySelector('.fg-main');
-    if (!main) return;
-    const puntos = [...g.querySelectorAll('.fg-punto')];
-    const thumbs = [...g.querySelectorAll('.fg-thumb')];
-    const contador = g.querySelector('[data-actual]');
-    let actual = 0;
-
-    const lb = g.querySelector('[data-lightbox]');
-    const lbImg = lb && lb.querySelector('.flb-img');
-    const lbCont = lb && lb.querySelector('[data-flb-actual]');
-
-    function mostrar(i) {
-      actual = (i + imgs.length) % imgs.length;
-      imgs.forEach((img, n) => img.classList.toggle('activa', n === actual));
-      puntos.forEach((p, n) => p.classList.toggle('activa', n === actual));
-      thumbs.forEach((t, n) => t.classList.toggle('activa', n === actual));
-      if (contador) contador.textContent = String(actual + 1);
-      thumbs[actual]?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      if (lb && !lb.hidden && lbImg) { lbImg.src = imgs[actual].src; if (lbCont) lbCont.textContent = String(actual + 1); }
+    <!-- Descripción -->
+    {
+      v.descripcion && (
+        <div class='ficha-desc'>
+          <img
+            src='/logo_dark.png'
+            class='ficha-marca'
+            alt=''
+            aria-hidden='true'
+            loading='lazy'
+          />
+          <h2>Descripción</h2>
+          <p>{v.descripcion}</p>
+        </div>
+      )
     }
 
-    thumbs.forEach((t, n) => t.addEventListener('click', () => mostrar(n)));
-    puntos.forEach((p, n) => p.addEventListener('click', () => mostrar(n)));
-    g.querySelector('.fg-prev')?.addEventListener('click', () => mostrar(actual - 1));
-    g.querySelector('.fg-next')?.addEventListener('click', () => mostrar(actual + 1));
-
-    // Swipe en la foto principal (cambiar foto)
-    let x0 = null;
-    main.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
-    main.addEventListener('touchend', (e) => {
-      if (x0 === null) return;
-      const dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) > 40) mostrar(actual + (dx < 0 ? 1 : -1));
-      x0 = null;
-    }, { passive: true });
-
-    // Lightbox
-    function abrirLB() {
-      if (!lb) return;
-      if (lbImg) lbImg.src = imgs[actual].src;
-      if (lbCont) lbCont.textContent = String(actual + 1);
-      lb.hidden = false;
-      document.body.style.overflow = 'hidden';
+    <!-- Equipamiento -->
+    {
+      v.equipamiento?.length > 0 && (
+        <div class='ficha-equip'>
+          <img
+            src='/logo.png'
+            class='ficha-marca'
+            alt=''
+            aria-hidden='true'
+            loading='lazy'
+          />
+          <h2>Equipamiento</h2>
+          <ul>
+            {v.equipamiento.map((e: string) => (
+              <li>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )
     }
-    function cerrarLB() { if (lb) { lb.hidden = true; document.body.style.overflow = ''; } }
 
-    // Al pulsar la foto (ignora flechas, puntos y contador)
-    main.addEventListener('click', (e) => {
-      if (e.target.closest('.fg-flecha, .fg-puntos, .fg-contador')) return;
-      abrirLB();
-    });
+    <!-- Ficha técnica visual -->
+    <div class='ficha-tecnica'>
+      <h2>Datos básicos</h2>
 
-    if (lb) {
-      lb.querySelector('.flb-cerrar')?.addEventListener('click', cerrarLB);
-      lb.querySelector('.flb-prev')?.addEventListener('click', () => mostrar(actual - 1));
-      lb.querySelector('.flb-next')?.addEventListener('click', () => mostrar(actual + 1));
-      lb.addEventListener('click', (e) => { if (e.target === lb) cerrarLB(); }); // clic fuera de la imagen
-      document.addEventListener('keydown', (e) => {
-        if (lb.hidden) return;
-        if (e.key === 'Escape') cerrarLB();
-        else if (e.key === 'ArrowLeft') mostrar(actual - 1);
-        else if (e.key === 'ArrowRight') mostrar(actual + 1);
-      });
-      let lx0 = null;
-      lb.addEventListener('touchstart', (e) => { lx0 = e.touches[0].clientX; }, { passive: true });
-      lb.addEventListener('touchend', (e) => {
-        if (lx0 === null) return;
-        const dx = e.changedTouches[0].clientX - lx0;
-        if (Math.abs(dx) > 40) mostrar(actual + (dx < 0 ? 1 : -1));
-        lx0 = null;
-      }, { passive: true });
+      <!-- Azulejos -->
+      <div class='ft-azulejos'>
+        {
+          v.matriculacion && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.matricula} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Matriculación</span>
+                    <strong>
+                      {new Date(v.matriculacion).toLocaleDateString('es-ES')}
+                    </strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+        <div class='ft-azulejo'>
+          <span class='ft-ico' set:html={ic.km} /><div class='ft-dato'>
+            <span>Kilometraje</span><strong>{fmt(v.km)} km</strong>
+          </div>
+        </div>
+        <div class='ft-azulejo'>
+          <span class='ft-ico' set:html={ic.combustible} /><div class='ft-dato'>
+            <span>Combustible</span><strong>{v.combustible}</strong>
+          </div>
+        </div>
+        <div class='ft-azulejo'>
+          <span class='ft-ico' set:html={ic.transmision} /><div class='ft-dato'>
+            <span>Transmisión</span><strong>{v.cambio}</strong>
+          </div>
+        </div>
+        <div class='ft-azulejo'>
+          <span class='ft-ico' set:html={ic.potencia} /><div class='ft-dato'>
+            <span>Potencia</span><strong>{v.potencia} CV</strong>
+          </div>
+        </div>
+        {
+          v.traccion && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.traccion} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Tracción</span>
+                    <strong>{v.traccion}</strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+        {
+          v.puertas && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.puertas} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Puertas</span>
+                    <strong>{v.puertas}</strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+        {
+          v.plazas && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.plazas} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Plazas</span>
+                    <strong>{v.plazas}</strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+        {
+          v.anio && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.anio} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Año</span>
+                    <strong>{v.anio}</strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+        {
+          v.carroceria && (
+            <div class='ft-azulejo'>
+              <>
+                <span class='ft-ico' set:html={ic.carroceria} />
+                <div class='ft-dato'>
+                  <>
+                    <span>Carrocería</span>
+                    <strong>{v.carroceria}</strong>
+                  </>
+                </div>
+              </>
+            </div>
+          )
+        }
+      </div>
+
+      <!-- Dimensiones con siluetas acotadas + capacidades -->
+      {
+        (v.largoM ||
+          v.anchoM ||
+          v.altoM ||
+          v.pesoKg ||
+          v.depositoL ||
+          v.maleteroL) && (
+          <div class='ft-dimensiones'>
+            <div class='ft-diagrama'>
+              <svg
+                viewBox='0 0 560 205'
+                xmlns='http://www.w3.org/2000/svg'
+                style='width:100%;height:auto;font-family:var(--font);'
+              >
+                <defs>
+                  <linearGradient id='ftBody' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='0' stop-color='#2a3450' />
+                    <stop offset='1' stop-color='#1b2235' />
+                  </linearGradient>
+                </defs>
+
+                <g transform='translate(16,10)'>
+                  <path
+                    d='M14,118 L14,98 C14,89 21,85 33,83 L66,77 C76,57 94,48 116,48 L150,48 C172,48 187,57 199,76 L222,82 C234,84 240,89 240,99 L240,118 Z'
+                    fill='url(#ftBody)'
+                  />
+
+                  <path d='M 44 118 A 22 22 0 0 1 88 118 Z' fill='#11161f' />
+                  <path d='M 168 118 A 22 22 0 0 1 212 118 Z' fill='#11161f' />
+
+                  <path
+                    d='M74,76 C82,61 96,55 114,54 L132,54 L132,76 Z'
+                    fill='#8fa0c4'
+                    opacity='0.55'
+                  />
+                  <path
+                    d='M140,54 L150,54 C168,55 181,61 191,75 L140,76 Z'
+                    fill='#8fa0c4'
+                    opacity='0.55'
+                  />
+
+                  <path
+                    d='M 185 70 L 195 70 L 193 76 L 185 76 Z'
+                    fill='#1b2235'
+                  />
+
+                  <circle cx='66' cy='122' r='17' fill='#161c2b' />
+                  <circle cx='66' cy='122' r='10' fill='#8fa0c4' />
+                  <circle cx='66' cy='122' r='4' fill='#161c2b' />
+                  <circle cx='190' cy='122' r='17' fill='#161c2b' />
+                  <circle cx='190' cy='122' r='10' fill='#8fa0c4' />
+                  <circle cx='190' cy='122' r='4' fill='#161c2b' />
+
+                  <line
+                    x1='14'
+                    y1='150'
+                    x2='14'
+                    y2='166'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='240'
+                    y1='150'
+                    x2='240'
+                    y2='166'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='22'
+                    y1='158'
+                    x2='232'
+                    y2='158'
+                    stroke='var(--red)'
+                    stroke-width='1.6'
+                  />
+                  <path d='M14,158 L22,154 L22,162 Z' fill='var(--red)' />
+                  <path d='M240,158 L232,154 L232,162 Z' fill='var(--red)' />
+                  <rect
+                    x='100'
+                    y='148'
+                    width='54'
+                    height='20'
+                    rx='5'
+                    fill='#ffffff'
+                  />
+                  <text
+                    x='127'
+                    y='162.5'
+                    text-anchor='middle'
+                    font-size='13'
+                    font-weight='700'
+                    fill='var(--text)'
+                  >
+                    {v.largoM ?? '—'} m
+                  </text>
+                </g>
+
+                <g transform='translate(304,10)'>
+                  <rect
+                    x='2'
+                    y='68'
+                    width='16'
+                    height='10'
+                    rx='3'
+                    fill='#1b2235'
+                  />
+                  <rect
+                    x='182'
+                    y='68'
+                    width='16'
+                    height='10'
+                    rx='3'
+                    fill='#1b2235'
+                  />
+
+                  <rect
+                    x='22'
+                    y='112'
+                    width='26'
+                    height='28'
+                    rx='4'
+                    fill='#161c2b'
+                  />
+                  <rect
+                    x='152'
+                    y='112'
+                    width='26'
+                    height='28'
+                    rx='4'
+                    fill='#161c2b'
+                  />
+
+                  <path
+                    d='M 16 118 L 16 85 Q 16 75 24 75 L 42 75 L 56 52 Q 62 48 70 48 L 130 48 Q 138 48 144 52 L 158 75 L 176 75 Q 184 75 184 85 L 184 118 Z'
+                    fill='url(#ftBody)'
+                  />
+
+                  <path
+                    d='M 48 75 L 60 54 Q 64 51 70 51 L 130 51 Q 136 51 140 54 L 152 75 Z'
+                    fill='#8fa0c4'
+                    opacity='0.55'
+                  />
+                  <path
+                    d='M 60 54 L 80 54 L 60 75 L 48 75 Z'
+                    fill='#ffffff'
+                    opacity='0.15'
+                  />
+
+                  <rect
+                    x='65'
+                    y='85'
+                    width='70'
+                    height='14'
+                    rx='4'
+                    fill='#11161f'
+                  />
+                  <path
+                    d='M 45 106 L 155 106 L 145 116 L 55 116 Z'
+                    fill='#11161f'
+                  />
+
+                  <path d='M 20 80 L 55 85 L 55 92 L 20 86 Z' fill='#cfd7e6' />
+                  <path
+                    d='M 180 80 L 145 85 L 145 92 L 180 86 Z'
+                    fill='#cfd7e6'
+                  />
+                  <circle cx='45' cy='88' r='3' fill='#ffffff' />
+                  <circle cx='155' cy='88' r='3' fill='#ffffff' />
+
+                  <line
+                    x1='16'
+                    y1='150'
+                    x2='16'
+                    y2='166'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='184'
+                    y1='150'
+                    x2='184'
+                    y2='166'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='24'
+                    y1='158'
+                    x2='176'
+                    y2='158'
+                    stroke='var(--red)'
+                    stroke-width='1.6'
+                  />
+                  <path d='M16,158 L24,154 L24,162 Z' fill='var(--red)' />
+                  <path d='M184,158 L176,154 L176,162 Z' fill='var(--red)' />
+                  <rect
+                    x='73'
+                    y='148'
+                    width='54'
+                    height='20'
+                    rx='5'
+                    fill='#ffffff'
+                  />
+                  <text
+                    x='100'
+                    y='162.5'
+                    text-anchor='middle'
+                    font-size='13'
+                    font-weight='700'
+                    fill='var(--text)'
+                  >
+                    {v.anchoM ?? '—'} m
+                  </text>
+
+                  <line
+                    x1='194'
+                    y1='48'
+                    x2='210'
+                    y2='48'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='194'
+                    y1='140'
+                    x2='210'
+                    y2='140'
+                    stroke='var(--red)'
+                    stroke-width='1.4'
+                  />
+                  <line
+                    x1='202'
+                    y1='56'
+                    x2='202'
+                    y2='132'
+                    stroke='var(--red)'
+                    stroke-width='1.6'
+                  />
+                  <path d='M202,48 L198,56 L206,56 Z' fill='var(--red)' />
+                  <path d='M202,140 L198,132 L206,132 Z' fill='var(--red)' />
+
+                  <g transform='rotate(-90 202 94)'>
+                    <rect
+                      x='175'
+                      y='84'
+                      width='54'
+                      height='20'
+                      rx='5'
+                      fill='#ffffff'
+                    />
+                    <text
+                      x='202'
+                      y='98.5'
+                      text-anchor='middle'
+                      font-size='13'
+                      font-weight='700'
+                      fill='var(--text)'
+                    >
+                      {v.altoM ?? '—'} m
+                    </text>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class='ft-capacidades'>
+              {v.pesoKg && (
+                <div>
+                  <span>Peso</span>
+                  <strong>{fmt(v.pesoKg)} kg</strong>
+                </div>
+              )}
+              {v.depositoL && (
+                <div>
+                  <span>Depósito</span>
+                  <strong>{v.depositoL} l</strong>
+                </div>
+              )}
+              {v.maleteroL && (
+                <div>
+                  <span>Maletero</span>
+                  <strong>{v.maleteroL} l</strong>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
+
+      <!-- Prestaciones con iconos rojos -->
+      {
+        (v.aceleracion || v.velMaxima || v.consumo || v.emisionesCo2) && (
+          <div class='ft-prestaciones'>
+            {v.aceleracion && (
+              <div class='ft-presta'>
+                <div class='ft-presta-ico'>
+                  <svg
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                  >
+                    <circle cx='16' cy='18' r='11' />
+                    <path d='M16 12v6l4 3' />
+                    <path d='M12 3h8' />
+                    <path d='M16 3v3' />
+                  </svg>
+                </div>
+                <div class='ft-presta-label'>0 a 100 km/h</div>
+                <div class='ft-presta-num'>
+                  {v.aceleracion}
+                  <small>segundos</small>
+                </div>
+              </div>
+            )}
+            {v.velMaxima && (
+              <div class='ft-presta'>
+                <div class='ft-presta-ico'>
+                  <svg
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                  >
+                    <path d='M5 24a13 13 0 1 1 22 0' />
+                    <path d='M16 18l5-5' />
+                    <circle
+                      cx='16'
+                      cy='18'
+                      r='2'
+                      fill='currentColor'
+                      stroke='none'
+                    />
+                  </svg>
+                </div>
+                <div class='ft-presta-label'>Velocidad máxima</div>
+                <div class='ft-presta-num'>
+                  {v.velMaxima}
+                  <small>km/h</small>
+                </div>
+              </div>
+            )}
+            {v.consumo && (
+              <div class='ft-presta'>
+                <div class='ft-presta-ico'>
+                  <svg
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                  >
+                    <path d='M5 31V6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v25' />
+                    <path d='M3 31h16' />
+                    <path d='M5 14h13' />
+                    <path d='M22 10l3 3v11a1.5 1.5 0 0 1-3 0v-5' />
+                  </svg>
+                </div>
+                <div class='ft-presta-label'>Consumo mixto</div>
+                <div class='ft-presta-num'>
+                  {v.consumo}
+                  <small>l/100km</small>
+                </div>
+              </div>
+            )}
+            {v.emisionesCo2 && (
+              <div class='ft-presta'>
+                <div class='ft-presta-ico'>
+                  <svg
+                    viewBox='0 0 32 32'
+                    fill='none'
+                    stroke='currentColor'
+                    stroke-width='2'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                  >
+                    <path d='M11 28A7 7 0 0 1 9.8 8.1C15.5 7 17 6.48 19 4c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z' />
+                    <path d='M2 29c0-3 1.85-5.36 5.08-6' />
+                  </svg>
+                </div>
+                <div class='ft-presta-label'>Emisiones</div>
+                <div class='ft-presta-num'>
+                  {v.emisionesCo2}
+                  <small>g/km CO₂</small>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <script type='application/ld+json' set:html={JSON.stringify(schemaCoche)} />
+
+  <style>
+    .ficha {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 7rem 1.5rem 4rem;
     }
-  });
-</script>
+    .breadcrumb {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      color: var(--red);
+    }
+    .ficha-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .ficha-galeria {
+      min-width: 0;
+    }
+    .ficha-title {
+      font-family: var(--font-h);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin: 0.2rem 0 1.3rem;
+      line-height: 1.1;
+    }
+    .ficha-title span {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 1.3rem;
+    }
+    .ficha-specs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-bottom: 1.8rem;
+    }
+    .spec {
+      background: var(--gray);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .spec span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .spec strong {
+      font-size: 1rem;
+      margin-top: 0.15rem;
+    }
+    .ficha-precio {
+      background: var(--black);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      margin-bottom: 1.3rem;
+    }
+    .ficha-precio .price-num,
+    .ficha-precio .price-cur {
+      color: #fff;
+      font-size: 2.4rem;
+    }
+    .ficha-precio .price-cur {
+      font-size: 1.5rem;
+    }
+    .ficha-precio .price-fin {
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 0.3rem;
+    }
+    .ficha-ctas {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    @property --aura-ang {
+      syntax: '<angle>';
+      inherits: false;
+      initial-value: 0deg;
+    }
 
-<script>
-  import { supabase } from '../../lib/supabaseBrowser.js';
+    .ficha-desc,
+    .ficha-equip {
+      position: relative;
+      isolation: isolate;
+      margin: 2rem auto 0;
+      max-width: 820px;
+      border-radius: 14px;
+      padding: 1.5rem 1.7rem;
+    }
+    /* Aura roja girando en sentido horario */
+    .ficha-desc::before,
+    .ficha-equip::before {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 18px;
+      background: conic-gradient(
+        from var(--aura-ang),
+        rgba(204, 28, 28, 0) 0deg,
+        rgba(204, 28, 28, 0) 210deg,
+        rgba(204, 28, 28, 0.5) 290deg,
+        rgba(255, 95, 95, 1) 325deg,
+        rgba(204, 28, 28, 0.5) 358deg,
+        rgba(204, 28, 28, 0) 360deg
+      );
+      filter: blur(7px);
+      z-index: 0;
+      animation: ficha-aura 11s linear infinite;
+    }
+    /* Fondo gris por encima del aura */
+    .ficha-desc::after,
+    .ficha-equip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--gray);
+      border: 1px solid var(--border);
+      z-index: 1;
+    }
+    /* Solo el texto va por encima del fondo (el logo NO se toca aquí) */
+    .ficha-desc > h2,
+    .ficha-equip > h2,
+    .ficha-desc > p,
+    .ficha-equip > ul {
+      position: relative;
+      z-index: 2;
+    }
 
-  const el = document.querySelector('[data-vehiculo-id]');
-  const id = el?.getAttribute('data-vehiculo-id');
+    /* Logo: marca de agua fija arriba a la derecha */
+    .ficha-desc .ficha-marca,
+    .ficha-equip .ficha-marca {
+      position: absolute;
+      top: 0.9rem;
+      right: 1.1rem;
+      width: 90px;
+      height: auto;
+      margin: 0;
+      opacity: 0.76;
+      filter: brightness(0);
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
+    }
 
-  if (id) {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) return; // eres tú (admin): no contamos la visita
+    .ficha-desc h2,
+    .ficha-equip h2 {
+      font-family: var(--font-h);
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin: 0 0 1rem;
+      padding-right: 100px;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .ficha-desc h2::before,
+    .ficha-equip h2::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      flex: 0 0 auto;
+    }
+    .ficha-desc p {
+      color: var(--text);
+      line-height: 1.8;
+      white-space: pre-line;
+      margin: 0;
+    }
+    .ficha-equip ul {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.7rem 1.6rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .ficha-equip li {
+      padding-left: 1.6rem;
+      position: relative;
+      color: var(--text);
+    }
+    .ficha-equip li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--red);
+      font-weight: 800;
+    }
 
-      const clave = 'vista_' + id;
-      if (sessionStorage.getItem(clave)) return;
-      sessionStorage.setItem(clave, '1');
+    @keyframes ficha-aura {
+      to {
+        --aura-ang: 360deg;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ficha-desc::before,
+      .ficha-equip::before {
+        animation: none;
+      }
+    }
+    @media (max-width: 820px) {
+      .ficha-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (min-width: 821px) {
+      .fg-main {
+        aspect-ratio: auto;
+        height: 470px;
+      }
+    }
+    .ficha-tecnica {
+      margin-top: 3rem;
+    }
+    .ficha-tecnica h2 {
+      font-family: var(--font-h);
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
 
-      const { error } = await supabase.from('vistas').insert({ vehiculo_id: id });
-      if (error) console.warn('No se pudo registrar la vista:', error.message);
-    })();
-  }
-</script>
+    /* Azulejos de datos */
+    .ft-azulejos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 0.7rem;
+      margin-bottom: 2rem;
+    }
+    .ft-azulejo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--gray);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.8rem 0.9rem;
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+    }
+    .ft-azulejo:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: rgba(204, 28, 28, 0.35);
+    }
+    .ft-ico {
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(204, 28, 28, 0.09);
+      color: var(--red);
+    }
+    .ft-dato {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .ft-dato span {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.12rem;
+    }
+    .ft-dato strong {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.15;
+    }
 
+    /* Dimensiones */
+    .ft-dimensiones {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .ft-silueta {
+      background: var(--gray);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .ft-silueta svg {
+      width: 70%;
+      max-width: 280px;
+    }
+    .ft-medidas {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ft-medidas span {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .ft-medidas strong {
+      color: var(--text);
+    }
+    .ft-capacidades {
+      background: var(--gray);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .ft-capacidades div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .ft-capacidades span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .ft-capacidades strong {
+      font-weight: 800;
+    }
+
+    /* Prestaciones con iconos */
+    .ft-prestaciones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+    .ft-presta {
+      background: var(--gray);
+      border-radius: 14px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+    .ft-presta-ico {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 0.8rem;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: var(--shadow);
+    }
+    .ft-presta-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .ft-presta-num {
+      font-family: var(--font-h);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+    .ft-presta-num small {
+      display: block;
+      font-family: var(--font);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    @media (max-width: 640px) {
+      .ft-azulejos {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+      }
+      .ft-azulejo {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.5rem;
+        padding: 1rem 0.6rem;
+      }
+      .ft-azulejo:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+      .ft-dato {
+        align-items: center;
+      }
+      .ft-dimensiones {
+        grid-template-columns: 1fr;
+      }
+      .ft-prestaciones {
+        grid-template-columns: 1fr 1fr;
+      }
+      .ft-prestaciones .ft-presta:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+    }
+    .fg-main {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: var(--gray);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: zoom-in;
+      touch-action: pan-y;
+      user-select: none;
+      box-shadow: var(--shadow-lg);
+    }
+    .fg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .fg-img.activa {
+      opacity: 1;
+    }
+    .fg-main .car-cert,
+    .fg-main .car-badge {
+      z-index: 4;
+    }
+    .fg-flecha {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.6rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition:
+        opacity 0.2s ease,
+        background 0.2s ease;
+    }
+    .fg-main:hover .fg-flecha {
+      opacity: 1;
+    }
+    .fg-flecha:hover {
+      background: var(--red);
+    }
+    .fg-prev {
+      left: 0.8rem;
+    }
+    .fg-next {
+      right: 0.8rem;
+    }
+    .fg-contador {
+      position: absolute;
+      bottom: 0.8rem;
+      right: 0.8rem;
+      z-index: 3;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+    }
+    .fg-puntos {
+      position: absolute;
+      bottom: 0.9rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex;
+      gap: 0.35rem;
+    }
+    .fg-punto {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+    }
+    .fg-punto.activa {
+      background: #fff;
+      transform: scale(1.35);
+    }
+    .fg-thumbs {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 2px 0;
+    }
+    .fg-thumbs::-webkit-scrollbar {
+      display: none;
+    }
+    .fg-thumb {
+      flex: 0 0 auto;
+      width: 84px;
+      height: 60px;
+      object-fit: cover;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      opacity: 0.55;
+      transition:
+        border-color 0.15s ease,
+        opacity 0.15s ease;
+    }
+    .fg-thumb.activa {
+      border-color: var(--red);
+      opacity: 1;
+    }
+    .fg-thumb:hover {
+      opacity: 1;
+    }
+    @media (max-width: 640px) {
+      .fg-main {
+        aspect-ratio: 4 / 3;
+        cursor: default;
+      }
+      .fg-flecha {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.4);
+      }
+      .fg-thumb {
+        width: 70px;
+        height: 50px;
+      }
+    }
+    .fg-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .fg-lightbox[hidden] {
+      display: none;
+    }
+    .flb-img {
+      max-width: 94vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+      user-select: none;
+    }
+    .flb-cerrar {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 3;
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+    .flb-cerrar:hover {
+      background: var(--red);
+    }
+    .flb-flecha {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 3;
+      width: 50px;
+      height: 50px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 2rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+    .flb-flecha:hover {
+      background: var(--red);
+    }
+    .flb-prev {
+      left: 1rem;
+    }
+    .flb-next {
+      right: 1rem;
+    }
+    .flb-contador {
+      position: absolute;
+      bottom: 1.2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+    }
+    @media (max-width: 640px) {
+      .flb-flecha {
+        width: 42px;
+        height: 42px;
+        font-size: 1.6rem;
+        background: rgba(255, 255, 255, 0.18);
+      }
+      .flb-prev {
+        left: 0.5rem;
+      }
+      .flb-next {
+        right: 0.5rem;
+      }
+    }
+  </style>
+  <script>
+    // @ts-nocheck
+    document.querySelectorAll('[data-galeria]').forEach((g) => {
+      const imgs = [...g.querySelectorAll('.fg-img')]
+      if (imgs.length === 0) return
+      const main = g.querySelector('.fg-main')
+      if (!main) return
+      const puntos = [...g.querySelectorAll('.fg-punto')]
+      const thumbs = [...g.querySelectorAll('.fg-thumb')]
+      const contador = g.querySelector('[data-actual]')
+      let actual = 0
+
+      const lb = g.querySelector('[data-lightbox]')
+      const lbImg = lb && lb.querySelector('.flb-img')
+      const lbCont = lb && lb.querySelector('[data-flb-actual]')
+
+      function mostrar(i) {
+        actual = (i + imgs.length) % imgs.length
+        imgs.forEach((img, n) => img.classList.toggle('activa', n === actual))
+        puntos.forEach((p, n) => p.classList.toggle('activa', n === actual))
+        thumbs.forEach((t, n) => t.classList.toggle('activa', n === actual))
+        if (contador) contador.textContent = String(actual + 1)
+        thumbs[actual]?.scrollIntoView({
+          inline: 'center',
+          block: 'nearest',
+          behavior: 'smooth',
+        })
+        if (lb && !lb.hidden && lbImg) {
+          lbImg.src = imgs[actual].src
+          if (lbCont) lbCont.textContent = String(actual + 1)
+        }
+      }
+
+      thumbs.forEach((t, n) => t.addEventListener('click', () => mostrar(n)))
+      puntos.forEach((p, n) => p.addEventListener('click', () => mostrar(n)))
+      g.querySelector('.fg-prev')?.addEventListener('click', () =>
+        mostrar(actual - 1),
+      )
+      g.querySelector('.fg-next')?.addEventListener('click', () =>
+        mostrar(actual + 1),
+      )
+
+      // Swipe en la foto principal (cambiar foto)
+      let x0 = null
+      main.addEventListener(
+        'touchstart',
+        (e) => {
+          x0 = e.touches[0].clientX
+        },
+        { passive: true },
+      )
+      main.addEventListener(
+        'touchend',
+        (e) => {
+          if (x0 === null) return
+          const dx = e.changedTouches[0].clientX - x0
+          if (Math.abs(dx) > 40) mostrar(actual + (dx < 0 ? 1 : -1))
+          x0 = null
+        },
+        { passive: true },
+      )
+
+      // Lightbox
+      function abrirLB() {
+        if (!lb) return
+        if (lbImg) lbImg.src = imgs[actual].src
+        if (lbCont) lbCont.textContent = String(actual + 1)
+        lb.hidden = false
+        document.body.style.overflow = 'hidden'
+      }
+      function cerrarLB() {
+        if (lb) {
+          lb.hidden = true
+          document.body.style.overflow = ''
+        }
+      }
+
+      // Al pulsar la foto (ignora flechas, puntos y contador)
+      main.addEventListener('click', (e) => {
+        if (e.target.closest('.fg-flecha, .fg-puntos, .fg-contador')) return
+        abrirLB()
+      })
+
+      if (lb) {
+        lb.querySelector('.flb-cerrar')?.addEventListener('click', cerrarLB)
+        lb.querySelector('.flb-prev')?.addEventListener('click', () =>
+          mostrar(actual - 1),
+        )
+        lb.querySelector('.flb-next')?.addEventListener('click', () =>
+          mostrar(actual + 1),
+        )
+        lb.addEventListener('click', (e) => {
+          if (e.target === lb) cerrarLB()
+        }) // clic fuera de la imagen
+        document.addEventListener('keydown', (e) => {
+          if (lb.hidden) return
+          if (e.key === 'Escape') cerrarLB()
+          else if (e.key === 'ArrowLeft') mostrar(actual - 1)
+          else if (e.key === 'ArrowRight') mostrar(actual + 1)
+        })
+        let lx0 = null
+        lb.addEventListener(
+          'touchstart',
+          (e) => {
+            lx0 = e.touches[0].clientX
+          },
+          { passive: true },
+        )
+        lb.addEventListener(
+          'touchend',
+          (e) => {
+            if (lx0 === null) return
+            const dx = e.changedTouches[0].clientX - lx0
+            if (Math.abs(dx) > 40) mostrar(actual + (dx < 0 ? 1 : -1))
+            lx0 = null
+          },
+          { passive: true },
+        )
+      }
+    })
+  </script>
+
+  <script>
+    import { supabase } from '../../lib/supabaseBrowser.js'
+
+    const el = document.querySelector('[data-vehiculo-id]')
+    const id = el?.getAttribute('data-vehiculo-id')
+
+    if (id) {
+      ;(async () => {
+        const { data } = await supabase.auth.getSession()
+        if (data.session) return // eres tú (admin): no contamos la visita
+
+        const clave = 'vista_' + id
+        if (sessionStorage.getItem(clave)) return
+        sessionStorage.setItem(clave, '1')
+
+        const { error } = await supabase
+          .from('vistas')
+          .insert({ vehiculo_id: id })
+        if (error) console.warn('No se pudo registrar la vista:', error.message)
+      })()
+    }
+  </script>
 </Base>
-
