@@ -1,19 +1,20 @@
 ---
 // Layout base: lo usan todas las páginas
-import ChatBot from '../components/ChatBot.astro';
-import '../styles/styles.css';
-import Newsletter from '../components/Newsletter.astro';
+import ChatBot from '../components/ChatBot.astro'
+import '../styles/styles.css'
+import Newsletter from '../components/Newsletter.astro'
+import CookieBanner from '../components/CookieBanner.astro'
 // @ts-check
 const {
   title = 'GuadiCar Multimarcas — Vehículos de Ocasión y Km0 en Villanueva de la Serena',
   description = 'Concesionario multimarca en Villanueva de la Serena (Badajoz). Vehículos de ocasión, Km0 y nuevos con garantía y financiación. 35 años de experiencia.',
   image = '/logo.png',
-  heroNav = false,          // true en páginas con hero oscuro (inicio)
-  solidNav = true,         // true en páginas que siempre deben tener navbar sólido
-} = Astro.props;
+  heroNav = false, // true en páginas con hero oscuro (inicio)
+  solidNav = true, // true en páginas que siempre deben tener navbar sólido
+} = Astro.props
 
-const SITE = Astro.site ?? new URL('https://pruebaguadicar.netlify.app');
-const canonical = new URL(Astro.url.pathname, SITE).href;
+const SITE = Astro.site ?? new URL('https://pruebaguadicar.netlify.app')
+const canonical = new URL(Astro.url.pathname, SITE).href
 
 // Datos estructurados para SEO local (Google)
 const negocio = {
@@ -33,152 +34,230 @@ const negocio = {
     addressCountry: 'ES',
   },
   openingHoursSpecification: [
-    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '10:00', closes: '14:00' },
-    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday'], opens: '17:00', closes: '21:00' },
-    { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '10:00', closes: '13:00' },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '10:00',
+      closes: '14:00',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '17:00',
+      closes: '21:00',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: 'Saturday',
+      opens: '10:00',
+      closes: '13:00',
+    },
   ],
-};
+}
 ---
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="/logo.png" />
-  <title>{title}</title>
-  <meta name="description" content={description} />
-  <link rel="canonical" href={canonical} />
 
-  <!-- Open Graph (cómo se ve al compartir en WhatsApp/redes) -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta property="og:image" content={new URL(image, Astro.site).href} />
-  <meta property="og:url" content={canonical} />
-  <meta property="og:locale" content="es_ES" />
+<!doctype html>
+<html lang='es'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <link rel='icon' type='image/png' href='/logo.png' />
+    <title>{title}</title>
+    <meta name='description' content={description} />
+    <link rel='canonical' href={canonical} />
+    <meta property='og:type' content='website' />
+    <meta property='og:title' content={title} />
+    <meta property='og:description' content={description} />
+    <meta property='og:image' content={new URL(image, Astro.site).href} />
+    <meta property='og:url' content={canonical} />
+    <meta property='og:locale' content='es_ES' />
+    <script type='application/ld+json' set:html={JSON.stringify(negocio)} />
+  </head>
+  <body>
+    <nav class='navbar' id='navbar'>
+      <div class='nav-pill'>
+        <a href='/' class='nav-logo'
+          ><img src='/logo.png' alt='GuadiCar Multimarcas' /></a
+        >
 
-  <!-- Datos estructurados -->
-  <script type="application/ld+json" set:html={JSON.stringify(negocio)} />
-</head>
-<body>
-
-<!-- ══ NAVBAR ══ -->
-<!-- ══ NAVBAR PÍLDORA ══ -->
-<nav class="navbar" id="navbar">
-  <div class="nav-pill">
-    <a href="/" class="nav-logo"><img src="/logo.png" alt="GuadiCar Multimarcas" /></a>
-
-    <ul class="nav-links">
-      <li><a href="/">Inicio</a></li>
-      <li><a href="/vehiculos">Vehículos</a></li>
-      <li><a href="/carta">A la carta</a></li>
-      <li><a href="/servicios">Servicios</a></li>
-      <li><a href="/nosotros">Nosotros</a></li>
-      <li><a href="/contacto">Contacto</a></li>
-    </ul>
-
-    <a href="/contacto" class="nav-cta">Contactar</a>
-
-    <button class="nav-burger" id="nav-burger" aria-label="Abrir menú">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</nav>
-
-<!-- Menú a pantalla completa -->
-<div class="nav-overlay" id="nav-overlay">
-  <button class="nav-close" id="nav-close" aria-label="Cerrar menú">✕</button>
-  <img src="/logo.png" alt="GuadiCar" class="nav-overlay-logo" />
-  <nav class="nav-overlay-links">
-    <a href="/">Inicio</a>
-    <a href="/vehiculos">Vehículos</a>
-    <a href="/carta">A la carta</a>
-    <a href="/servicios">Servicios</a>
-    <a href="/nosotros">Nosotros</a>
-    <a href="/contacto">Contacto</a>
-  </nav>
-  <div class="nav-overlay-contacto">
-    <span>CONTÁCTANOS</span>
-    <a href="tel:+34696352820">696 352 820</a>
-    <a href="mailto:ventas@guadicar.es">ventas@guadicar.es</a>
-  </div>
-</div>
-
-<!-- Contenido de cada página -->
-<slot />
-
-<ChatBot />
-
-<!-- ══ FOOTER ══ -->
-<footer class="footer">
-  <div class="footer-top">
-    <div>
-      <div class="footer-logo"><img src="/logo.png" alt="GuadiCar Multimarcas" style="height:72px;" /></div>
-      <p class="footer-tagline" style="max-width:340px;line-height:1.7;margin-top:1rem;">
-        35 años en el sector ayudando a nuestros clientes a encontrar el coche perfecto, garantizando transparencia, seguridad y vehículos de calidad.
-      </p>
-      <Newsletter variant="footer" />
-    </div>
-    <div class="footer-links">
-      <div class="footer-col"><h4>Vehículos</h4><ul><li><a href="/vehiculos">Ocasión</a></li><li><a href="/vehiculos">Km 0</a></li><li><a href="/vehiculos">Eléctricos</a></li><li><a href="/vehiculos">SUVs</a></li></ul></div>
-      <div class="footer-col"><h4>Empresa</h4><ul><li><a href="/servicios">Servicios</a></li><li><a href="/nosotros">Nosotros</a></li><li><a href="/contacto">Contacto</a></li></ul></div>
-      <div class="footer-col">
-        <h4>Contacto</h4>
-        <ul>
-          <li><a href="tel:+34696352820">696 352 820</a></li>
-          <li><a href="mailto:ventas@guadicar.es">ventas@guadicar.es</a></li>
-          <li>Polígono Cagancha, 39<br/>06700 Villanueva de la Serena (Badajoz)</li>
+        <ul class='nav-links'>
+          <li><a href='/'>Inicio</a></li>
+          <li><a href='/vehiculos'>Vehículos</a></li>
+          <li><a href='/carta'>A la carta</a></li>
+          <li><a href='/servicios'>Servicios</a></li>
+          <li><a href='/nosotros'>Nosotros</a></li>
+          <li><a href='/contacto'>Contacto</a></li>
         </ul>
+
+        <a href='/contacto' class='nav-cta'>Contactar</a>
+
+        <button class='nav-burger' id='nav-burger' aria-label='Abrir menú'>
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+    <div class='nav-overlay' id='nav-overlay'>
+      <button class='nav-close' id='nav-close' aria-label='Cerrar menú'
+        >✕</button
+      >
+      <img src='/logo.png' alt='GuadiCar' class='nav-overlay-logo' />
+      <nav class='nav-overlay-links'>
+        <a href='/'>Inicio</a>
+        <a href='/vehiculos'>Vehículos</a>
+        <a href='/carta'>A la carta</a>
+        <a href='/servicios'>Servicios</a>
+        <a href='/nosotros'>Nosotros</a>
+        <a href='/contacto'>Contacto</a>
+      </nav>
+      <div class='nav-overlay-contacto'>
+        <span>CONTÁCTANOS</span>
+        <a href='tel:+34722496124'>📞 722 49 61 24</a>
+        <a href='mailto:ventas@guadicar.es'>ventas@guadicar.es</a>
       </div>
     </div>
-  </div>
-  <div class="footer-bottom">
-    <div class="footer-copy">© 2025 GuadiCar Multimarcas · Todos los derechos reservados · DESARROLLADO POR EXTREWEB</div>
-    <div class="socials">
-      <a href="https://www.instagram.com/guadicar_multimarcas" target="_blank" rel="noopener" class="social" aria-label="Instagram"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-    </div>
-  </div>
-</footer>
-<Newsletter variant="popup" />
-<!-- Comportamientos (navbar, menú móvil, animaciones) -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const navbar = document.getElementById('navbar');
-    const burger = document.getElementById('nav-burger');
-    const overlay = document.getElementById('nav-overlay');
-    const close = document.getElementById('nav-close');
-    const hero = document.getElementById('hero');
+    <slot />
+    <ChatBot />
+    <footer class='footer'>
+      <div class='footer-top'>
+        <div>
+          <div class='footer-logo'>
+            <img
+              src='/logo.png'
+              alt='GuadiCar Multimarcas'
+              style='height:72px;'
+            />
+          </div>
+          <p
+            class='footer-tagline'
+            style='max-width:340px;line-height:1.7;margin-top:1rem;'
+          >
+            35 años en el sector ayudando a nuestros clientes a encontrar el
+            coche perfecto, garantizando transparencia, seguridad y vehículos de
+            calidad.
+          </p>
+          <Newsletter variant='footer' />
+        </div>
+        <div class='footer-links'>
+          <div class='footer-legal'>
+            <a href='/aviso-legal'>Aviso legal</a>
+            <a href='/privacidad'>Política de privacidad</a>
+            <a href='/cookies'>Política de cookies</a>
+            <button
+              type='button'
+              class='footer-legal-btn'
+              onclick='window.gcAbrirCookies && window.gcAbrirCookies()'
+              >Configurar cookies</button
+            >
+          </div>
+          <div class='footer-col'>
+            <h4>Empresa</h4><ul>
+              <li><a href='/servicios'>Servicios</a></li><li>
+                <a href='/nosotros'>Nosotros</a>
+              </li><li><a href='/contacto'>Contacto</a></li>
+            </ul>
+          </div>
+          <div class='footer-col'>
+            <h4>Contacto</h4>
+            <ul>
+              <li><a href='tel:+34722496124'>📞 722 49 61 24</a></li>
+              <li>
+                <a href='mailto:ventas@guadicar.es'>ventas@guadicar.es</a>
+              </li>
+              <li>
+                Polígono Cagancha, 39<br />06700 Villanueva de la Serena
+                (Badajoz)
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class='footer-bottom'>
+        <div class='footer-copy'>
+          © 2025 GuadiCar Multimarcas · Todos los derechos reservados ·
+          DESARROLLADO POR EXTREWEB
+        </div>
+        <div class='socials'>
+          <a
+            href='https://www.instagram.com/guadicar_multimarcas'
+            target='_blank'
+            rel='noopener'
+            class='social'
+            aria-label='Instagram'
+            ><svg viewBox='0 0 24 24'
+              ><rect x='2' y='2' width='20' height='20' rx='5'></rect><path
+                d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'></path><line
+                x1='17.5'
+                y1='6.5'
+                x2='17.51'
+                y2='6.5'></line></svg
+            ></a
+          >
+        </div>
+      </div>
+    </footer>
+    <Newsletter variant='popup' />
+    <CookieBanner />
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const navbar = document.getElementById('navbar')
+        const burger = document.getElementById('nav-burger')
+        const overlay = document.getElementById('nav-overlay')
+        const close = document.getElementById('nav-close')
+        const hero = document.getElementById('hero')
 
-    // Píldora: transparente sobre hero, sólida al hacer scroll
-    const updateNav = () => {
-      if (!navbar) return;
-      const sobreHero = hero ? hero.getBoundingClientRect().bottom > 70 : false;
-      navbar.classList.toggle('solid', !sobreHero);
-    };
-    window.addEventListener('scroll', updateNav, { passive: true });
-    updateNav();
+        // Píldora: transparente sobre hero, sólida al hacer scroll
+        const updateNav = () => {
+          if (!navbar) return
+          const sobreHero = hero
+            ? hero.getBoundingClientRect().bottom > 70
+            : false
+          navbar.classList.toggle('solid', !sobreHero)
+        }
+        window.addEventListener('scroll', updateNav, { passive: true })
+        updateNav()
 
-    // Marcar enlace activo
-    const page = window.location.pathname;
-    document.querySelectorAll('.nav-links a, .nav-overlay-links a').forEach(a => {
-      const href = a.getAttribute('href');
-      if (!href) return;
-      if (href === page || (href !== '/' && page.startsWith(href))) a.classList.add('active');
-    });
+        // Marcar enlace activo
+        const page = window.location.pathname
+        document
+          .querySelectorAll('.nav-links a, .nav-overlay-links a')
+          .forEach((a) => {
+            const href = a.getAttribute('href')
+            if (!href) return
+            if (href === page || (href !== '/' && page.startsWith(href)))
+              a.classList.add('active')
+          })
 
-    // Abrir / cerrar menú a pantalla completa
-    const abrir = () => { if (!overlay) return; overlay.classList.add('open'); document.body.style.overflow = 'hidden'; };
-    const cerrar = () => { if (!overlay) return; overlay.classList.remove('open'); document.body.style.overflow = ''; };
-    burger?.addEventListener('click', abrir);
-    close?.addEventListener('click', cerrar);
-    overlay?.querySelectorAll('a').forEach(a => a.addEventListener('click', cerrar));
+        // Abrir / cerrar menú a pantalla completa
+        const abrir = () => {
+          if (!overlay) return
+          overlay.classList.add('open')
+          document.body.style.overflow = 'hidden'
+        }
+        const cerrar = () => {
+          if (!overlay) return
+          overlay.classList.remove('open')
+          document.body.style.overflow = ''
+        }
+        burger?.addEventListener('click', abrir)
+        close?.addEventListener('click', cerrar)
+        overlay
+          ?.querySelectorAll('a')
+          .forEach((a) => a.addEventListener('click', cerrar))
 
-    // Animaciones de aparición al hacer scroll (.reveal → .visible)
-    const ro = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
-    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-  });
-</script>
-</body>
+        // Animaciones de aparición al hacer scroll (.reveal → .visible)
+        const ro = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add('visible')
+                ro.unobserve(e.target)
+              }
+            })
+          },
+          { threshold: 0.1, rootMargin: '0px 0px -30px 0px' },
+        )
+        document.querySelectorAll('.reveal').forEach((el) => ro.observe(el))
+      })
+    </script>
+  </body>
 </html>

@@ -19,7 +19,7 @@ function limitado(ip: string) {
 const NEGOCIO = `Datos de GuadiCar:
 - Concesionario de coches multimarca, coches de ocasión y km0 en Villanueva de la Serena (Badajoz).
 - Horario: L-V 10:00-14:00 y 17:00-21:00; Sábados 10:00-13:30; Domingos cerrado.
-- Teléfono: 696 352 820.
+- Teléfono: 722 49 61 24.
 - Email: ventas@guadicar.es
 - Pide tu coche a medida en la página de A la carta
 - Dirección: Polígono Cagancha, 39. 06700 Villanueva de la Serena (Badajoz).

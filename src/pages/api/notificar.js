@@ -75,12 +75,6 @@ export async function POST({ request }) {
       })
     }
     console.log('[notificar] Respuesta Resend:', JSON.stringify(envio))
-    if (envio.error)
-      return new Response(
-        JSON.stringify({ error: 'Resend: ' + envio.error.message }),
-        { status: 500 },
-      )
-    console.log('[notificar] Respuesta Resend:', JSON.stringify(envio))
     if (envio.error) {
       return new Response(
         JSON.stringify({ error: 'Resend: ' + envio.error.message }),
@@ -89,7 +83,7 @@ export async function POST({ request }) {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, enviados: destinatarios.length }),
+      JSON.stringify({ ok: true, enviados: subs.length }),
       { status: 200 },
     )
   } catch (e) {
@@ -123,7 +117,7 @@ function emailHTML(v, tipo, url, titulo) {
         <a href="${url}" style="display:block;background:#cc1c1c;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:700;margin-top:20px;">Ver este vehículo</a>
       </div>
       <div style="background:#0d0d0d;padding:16px;text-align:center;color:#888;font-size:12px;">
-        GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 696 352 820
+        GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 722 49 61 24
       </div>
     </div>
   </div>`

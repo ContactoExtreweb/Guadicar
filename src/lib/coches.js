@@ -58,7 +58,6 @@ function mapRow(r) {
     anchoM: r.ancho_m,
     altoM: r.alto_m,
     ivaDeducible: r.iva_deducible,
-    ivaDeducible: r.iva_deducible,
     descripcion: r.descripcion,
     cuota: computeCuota(r.precio),
   }

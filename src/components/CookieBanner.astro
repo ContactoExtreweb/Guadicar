@@ -1,0 +1,372 @@
+---
+// Banner de cookies (RGPD / AEPD): aceptar todas, rechazar, configurar
+---
+
+<div id='gc-cookies' class='gc-cookies' hidden>
+  <div class='gcc-card'>
+    <h3>🍪 Cookies en GuadiCar</h3>
+    <p>
+      Usamos cookies propias necesarias para que la web funcione y, con tu
+      permiso, cookies de terceros para mostrar contenido externo como el mapa
+      de Google. Puedes aceptarlas, rechazarlas o configurarlas. Más información
+      en la <a href='/cookies'>Política de cookies</a>.
+    </p>
+    <div class='gcc-acciones'>
+      <button type='button' id='gcc-rechazar' class='gcc-btn gcc-btn--sec'
+        >Rechazar</button
+      >
+      <button type='button' id='gcc-config' class='gcc-btn gcc-btn--sec'
+        >Configurar</button
+      >
+      <button type='button' id='gcc-aceptar' class='gcc-btn gcc-btn--main'
+        >Aceptar todas</button
+      >
+    </div>
+  </div>
+</div>
+
+<div id='gc-cookies-config' class='gc-cookies-modal' hidden>
+  <div class='gccm-card'>
+    <button type='button' id='gccm-cerrar' class='gccm-x' aria-label='Cerrar'
+      >✕</button
+    >
+    <h3>Configura tus cookies</h3>
+    <div class='gccm-cat'>
+      <div class='gccm-cat-head'>
+        <strong>Necesarias</strong><span class='gccm-siempre'
+          >Siempre activas</span>
+      </div>
+      <p>
+        Imprescindibles para el funcionamiento del sitio (inicio de sesión,
+        seguridad y recordar tu elección de cookies). No se pueden desactivar.
+      </p>
+    </div>
+    <div class='gccm-cat'>
+      <div class='gccm-cat-head'>
+        <strong>Contenido externo</strong>
+        <label class='gccm-switch'
+          ><input type='checkbox' id='gccm-externas' /><span class='gccm-slider'
+          ></span></label
+        >
+      </div>
+      <p>
+        Permite cargar contenido de terceros, como el mapa de Google en la
+        página de Contacto. Estos servicios pueden instalar sus propias cookies.
+      </p>
+    </div>
+    <div class='gccm-acciones'>
+      <button type='button' id='gccm-guardar' class='gcc-btn gcc-btn--main'
+        >Guardar preferencias</button>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .gc-cookies {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 4000;
+    display: flex;
+    justify-content: center;
+  }
+  .gc-cookies[hidden],
+  .gc-cookies-modal[hidden] {
+    display: none;
+  }
+  .gcc-card {
+    background: #fff;
+    border: 1px solid var(--border, #e5e5ea);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+    padding: 1.3rem 1.5rem;
+    max-width: 720px;
+    width: 100%;
+  }
+  .gcc-card h3 {
+    font-family: var(--font-h, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+  }
+  .gcc-card p {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--muted, #555);
+    margin: 0 0 1rem;
+  }
+  .gcc-card a {
+    color: var(--red, #cc1c1c);
+    font-weight: 600;
+  }
+  .gcc-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+  .gcc-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 1.2rem;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .gcc-btn--main {
+    background: var(--red, #cc1c1c);
+    color: #fff;
+  }
+  .gcc-btn--sec {
+    background: var(--gray, #f2f2f4);
+    color: var(--text, #1b2235);
+    border: 1px solid var(--border, #e5e5ea);
+  }
+  .gcc-btn--sec:hover {
+    border-color: var(--red, #cc1c1c);
+  }
+
+  .gc-cookies-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 4100;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem;
+  }
+  .gccm-card {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 520px;
+    width: 100%;
+    padding: 1.8rem;
+    position: relative;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .gccm-x {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--muted, #555);
+  }
+  .gccm-card h3 {
+    font-family: var(--font-h, sans-serif);
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 1.2rem;
+  }
+  .gccm-cat {
+    border: 1px solid var(--border, #e5e5ea);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.9rem;
+  }
+  .gccm-cat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .gccm-cat-head strong {
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+  .gccm-cat p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--muted, #555);
+    margin: 0;
+  }
+  .gccm-siempre {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0a7d33;
+    background: rgba(10, 125, 51, 0.1);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+  }
+  .gccm-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+    flex: 0 0 auto;
+  }
+  .gccm-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .gccm-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 999px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .gccm-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .gccm-switch input:checked + .gccm-slider {
+    background: var(--red, #cc1c1c);
+  }
+  .gccm-switch input:checked + .gccm-slider::before {
+    transform: translateX(18px);
+  }
+  .gccm-acciones {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.4rem;
+  }
+
+  .gc-embed-bloqueado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    text-align: center;
+    background: var(--gray, #f2f2f4);
+    border: 1px dashed var(--border, #ccc);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    min-height: 200px;
+  }
+  .gc-embed-bloqueado p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--muted, #555);
+    max-width: 360px;
+  }
+  .gc-embed-bloqueado button {
+    background: var(--red, #cc1c1c);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  // @ts-nocheck
+  ;(function () {
+    const CLAVE = 'gc_cookie_consent'
+    const VERSION = 1
+    const banner = document.getElementById('gc-cookies')
+    const modal = document.getElementById('gc-cookies-config')
+    const swExternas = document.getElementById('gccm-externas')
+
+    function leer() {
+      try {
+        const c = JSON.parse(localStorage.getItem(CLAVE) || 'null')
+        return c && c.v === VERSION ? c : null
+      } catch {
+        return null
+      }
+    }
+    function guardar(externas) {
+      const c = {
+        v: VERSION,
+        necesarias: true,
+        externas: !!externas,
+        ts: Date.now(),
+      }
+      try {
+        localStorage.setItem(CLAVE, JSON.stringify(c))
+      } catch {}
+      aplicar(c)
+      ocultar()
+    }
+    function aplicar(c) {
+      window.gcConsent = c
+      document
+        .querySelectorAll('[data-cookie-embed]')
+        .forEach((el) => activarEmbed(el, c.externas))
+      document.dispatchEvent(new CustomEvent('gc-consent', { detail: c }))
+    }
+    function activarEmbed(el, permitido) {
+      if (permitido) {
+        if (el.dataset.cargado) return
+        const src = el.getAttribute('data-src')
+        const titulo = el.getAttribute('data-title') || 'Contenido externo'
+        const alto = el.getAttribute('data-height') || '380'
+        el.innerHTML =
+          '<iframe src="' +
+          src +
+          '" title="' +
+          titulo +
+          '" width="100%" height="' +
+          alto +
+          '" style="border:0;display:block;border-radius:12px;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>'
+        el.dataset.cargado = '1'
+      } else {
+        el.dataset.cargado = ''
+        el.innerHTML =
+          '<div class="gc-embed-bloqueado"><p>Este contenido (mapa de Google) usa cookies de terceros. Acéptalas para verlo.</p><button type="button" data-aceptar-embed>Aceptar y ver el mapa</button></div>'
+        el.querySelector('[data-aceptar-embed]')?.addEventListener(
+          'click',
+          () => guardar(true),
+        )
+      }
+    }
+    function ocultar() {
+      if (banner) banner.hidden = true
+      if (modal) modal.hidden = true
+    }
+    function abrirConfig() {
+      const c = leer()
+      if (swExternas) swExternas.checked = c ? !!c.externas : false
+      if (modal) modal.hidden = false
+    }
+
+    document
+      .getElementById('gcc-aceptar')
+      ?.addEventListener('click', () => guardar(true))
+    document
+      .getElementById('gcc-rechazar')
+      ?.addEventListener('click', () => guardar(false))
+    document
+      .getElementById('gcc-config')
+      ?.addEventListener('click', abrirConfig)
+    document.getElementById('gccm-cerrar')?.addEventListener('click', () => {
+      if (modal) modal.hidden = true
+    })
+    document
+      .getElementById('gccm-guardar')
+      ?.addEventListener('click', () => guardar(swExternas?.checked))
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) modal.hidden = true
+    })
+
+    window.gcAbrirCookies = abrirConfig
+
+    const actual = leer()
+    if (actual) {
+      aplicar(actual)
+    } else {
+      aplicar({ v: VERSION, necesarias: true, externas: false })
+      if (banner) banner.hidden = false
+    }
+  })()
+</script>

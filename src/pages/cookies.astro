@@ -1,0 +1,155 @@
+---
+import Base from '../layouts/Base.astro'
+---
+
+<Base heroNav={false} title='Política de cookies | GuadiCar Multimarcas'>
+  <section class='legal'>
+    <h1>Política de cookies</h1>
+    <p class='legal-fecha'>Última actualización: junio de 2026</p>
+
+    <h2>1. ¿Qué son las cookies?</h2>
+    <p>
+      Una cookie es un pequeño archivo que se descarga en tu dispositivo al
+      visitar determinadas páginas web, y que permite almacenar y recuperar
+      información sobre la navegación. En este sitio también utilizamos
+      tecnologías similares, como el almacenamiento local (<em>localStorage</em
+      >) y de sesión (<em>sessionStorage</em>) del navegador, que se rigen por
+      esta misma política.
+    </p>
+
+    <h2>2. Tipos de cookies que utilizamos</h2>
+    <p>
+      Según quién las gestione, usamos cookies <strong>propias</strong> (nuestras)
+      y <strong>de terceros</strong> (Google). Según su finalidad, usamos:
+    </p>
+    <ul>
+      <li>
+        <strong>Cookies técnicas o necesarias:</strong> imprescindibles para que la
+        web funcione (mantener la sesión del panel, recordar tu elección de cookies).
+        No requieren consentimiento.
+      </li>
+      <li>
+        <strong>Cookies de terceros (contenido externo):</strong> se cargan al mostrar
+        contenido externo como el mapa de Google. Requieren tu consentimiento y solo
+        se activan si lo aceptas.
+      </li>
+    </ul>
+
+    <h2>3. Relación de cookies y almacenamiento</h2>
+    <table class='legal-tabla'>
+      <thead>
+        <tr
+          ><th>Nombre</th><th>Titular</th><th>Finalidad</th><th>Tipo</th><th
+            >Duración</th
+          ></tr
+        >
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label='Nombre'>gc_cookie_consent</td>
+          <td data-label='Titular'>Propia</td>
+          <td data-label='Finalidad'>Recordar tu elección sobre las cookies</td>
+          <td data-label='Tipo'>Necesaria</td>
+          <td data-label='Duración'>Persistente</td>
+        </tr>
+        <tr>
+          <td data-label='Nombre'>sb-…-auth-token</td>
+          <td data-label='Titular'>Propia (Supabase)</td>
+          <td data-label='Finalidad'
+            >Mantener la sesión iniciada en el panel de administración</td
+          >
+          <td data-label='Tipo'>Necesaria</td>
+          <td data-label='Duración'>Sesión / persistente</td>
+        </tr>
+        <tr>
+          <td data-label='Nombre'>nl_popup_done</td>
+          <td data-label='Titular'>Propia</td>
+          <td data-label='Finalidad'
+            >Recordar que ya se mostró el aviso de la newsletter</td
+          >
+          <td data-label='Tipo'>Necesaria</td>
+          <td data-label='Duración'>Persistente</td>
+        </tr>
+        <tr>
+          <td data-label='Nombre'
+            >Almacenamiento del chat y del contador de visitas</td
+          >
+          <td data-label='Titular'>Propia</td>
+          <td data-label='Finalidad'
+            >Recordar la conversación del asistente y no contar dos veces una
+            misma visita</td
+          >
+          <td data-label='Tipo'>Necesaria</td>
+          <td data-label='Duración'>Sesión</td>
+        </tr>
+        <tr>
+          <td data-label='Nombre'
+            >Cookies de Google Maps (p. ej. NID, CONSENT)</td
+          >
+          <td data-label='Titular'>Terceros (Google)</td>
+          <td data-label='Finalidad'
+            >Mostrar el mapa de ubicación del concesionario</td
+          >
+          <td data-label='Tipo'>De terceros (requiere consentimiento)</td>
+          <td data-label='Duración'>Según Google</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. Cómo gestionar las cookies</h2>
+    <p>
+      Al acceder por primera vez te mostramos un aviso para que puedas <strong
+        >aceptar</strong
+      >, <strong>rechazar</strong> o <strong>configurar</strong> las cookies. Puedes
+      cambiar tu elección en cualquier momento desde aquí:
+    </p>
+    <button
+      type='button'
+      class='legal-btn'
+      onclick='window.gcAbrirCookies && window.gcAbrirCookies()'
+      >Configurar cookies</button
+    >
+    <p>
+      Además, puedes bloquear o eliminar las cookies desde la configuración de
+      tu navegador:
+    </p>
+    <ul>
+      <li>
+        <a
+          href='https://support.google.com/chrome/answer/95647'
+          target='_blank'
+          rel='noopener'>Google Chrome</a
+        >
+      </li>
+      <li>
+        <a
+          href='https://support.mozilla.org/es/kb/proteccion-antirrastreo-mejorada-firefox-escritorio'
+          target='_blank'
+          rel='noopener'>Mozilla Firefox</a
+        >
+      </li>
+      <li>
+        <a
+          href='https://support.apple.com/es-es/guide/safari/sfri11471/mac'
+          target='_blank'
+          rel='noopener'>Safari</a
+        >
+      </li>
+      <li>
+        <a
+          href='https://support.microsoft.com/es-es/microsoft-edge'
+          target='_blank'
+          rel='noopener'>Microsoft Edge</a
+        >
+      </li>
+    </ul>
+
+    <h2>5. Consentimiento</h2>
+    <p>
+      El uso de cookies no necesarias requiere tu consentimiento, que
+      solicitamos mediante el aviso de cookies. Rechazarlas es tan sencillo como
+      aceptarlas. Esta política puede actualizarse; te recomendamos revisar la
+      fecha de última actualización.
+    </p>
+  </section>
+</Base>
