@@ -1,110 +1,302 @@
 ---
-export const prerender = false;
-import Base from '../../layouts/Base.astro';
-import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js';
+export const prerender = false
+import Base from '../../layouts/Base.astro'
+import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js'
 
-const vehiculos = await getVehiculos();
-const marcas = [...new Set(vehiculos.map(v => v.marca))].sort();
+const vehiculos = await getVehiculos()
+const unicos = (arr: any[]) => [...new Set(arr.filter(Boolean))] as any[]
+const marcas = unicos(vehiculos.map((v: any) => v.marca)).sort()
+const carrocerias = unicos(vehiculos.map((v: any) => v.carroceria)).sort()
+const combustibles = unicos(vehiculos.map((v: any) => v.combustible)).sort()
+const cambios = unicos(vehiculos.map((v: any) => v.cambio)).sort()
+const anios = unicos(vehiculos.map((v: any) => v.anio)).sort((a: any, b: any) => b - a)
 ---
-<Base title="Vehículos de Ocasión y Km0 en Villanueva de la Serena | GuadiCar"
-      description="Catálogo de coches de ocasión, Km0 y seminuevos en Villanueva de la Serena (Badajoz). Filtra por marca, precio y combustible. Vehículos revisados con garantía.">
 
-<header class="cat-hero">
-  <span class="tag" style="color:var(--red);">Nuestro stock</span>
-  <h1>Todos nuestros vehículos</h1>
-  <p>Coches revisados y certificados, listos para entregar. Usa los filtros para encontrar el tuyo.</p>
-</header>
+<Base
+  title='Vehículos de Ocasión y Km0 en Villanueva de la Serena | GuadiCar'
+  description='Catálogo de coches de ocasión, Km0 y seminuevos en Villanueva de la Serena (Badajoz). Filtra por marca, carrocería, combustible, cambio, año, km y precio. Vehículos revisados con garantía.'
+>
+  <header class='cat-hero'>
+    <span class='tag' style='color:var(--red);'>Nuestro stock</span>
+    <h1>Todos nuestros vehículos</h1>
+    <p>
+      Coches revisados y certificados, listos para entregar. Usa los filtros
+      para encontrar el tuyo.
+    </p>
+  </header>
 
-<section class="section section--gray" style="padding-top:2rem;">
-  <div class="filter-bar">
-    <select id="f-marca"><option value="">Todas las marcas</option>{marcas.map(m => <option value={m}>{m}</option>)}</select>
-    <select id="f-estado"><option value="">Estado</option><option value="ocasion">Ocasión</option><option value="km0">Km 0</option><option value="nuevo">Nuevo</option></select>
-    <select id="f-comb"><option value="">Combustible</option><option>Gasolina</option><option>Diésel</option><option>Híbrido</option><option>Eléctrico</option></select>
-    <select id="f-precio"><option value="">Precio</option><option value="20000">Hasta 20.000€</option><option value="30000">Hasta 30.000€</option><option value="40000">Hasta 40.000€</option></select>
-    <button id="f-reset" class="f-reset">Limpiar</button>
-  </div>
+  <section class='section section--gray catalogo'>
+    <div class='cat-layout'>
+      <button id='abrir-filtros' class='filtros-toggle' type='button'>
+        <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'><line x1='4' y1='6' x2='20' y2='6'></line><line x1='7' y1='12' x2='17' y2='12'></line><line x1='10' y1='18' x2='14' y2='18'></line></svg>
+        Filtros
+      </button>
 
-  <div class="cat-count"><span id="count">{vehiculos.length}</span> vehículos disponibles</div>
-
-  <div class="cars-grid" id="grid">
-    {vehiculos.map((c) => (
-      <a href={`/vehiculos/${c.slug}`} class="car-card reveal"
-         data-marca={c.marca} data-estado={c.estado} data-comb={c.combustible} data-precio={c.precio}>
-        <div class="car-img">
-          <img src={c.fotos[0]} alt={`${c.marca} ${c.modelo}`} loading="lazy" />
-          <div class="car-img-overlay"></div>
-          {c.certificado && <div class="car-cinta">CERTIFICADO</div>}
-          {c.reservado && <div class="car-reservado">Reservado</div>}
-          <div class="car-badge">{badgeDe(c)}</div>
+      <aside id='sidebar' class='cat-sidebar'>
+        <div class='sidebar-head'>
+          <strong>Filtros</strong>
+          <button id='cerrar-filtros' class='sidebar-x' type='button' aria-label='Cerrar'>✕</button>
         </div>
-        <div class="car-body">
-          <div class="car-brand">{c.marca}</div>
-          <div class="car-name">{c.modelo}</div>
-          <div class="car-tags">
-            <span class="car-tag">{c.anio}</span>
-            <span class="car-tag">{fmt(c.km)} km</span>
-            <span class="car-tag">{c.combustible}</span>
-            <span class="car-tag">{c.cambio}</span>
+
+        <div class='sidebar-body'>
+          <div class='filtro-grupo'>
+            <label>Buscar</label>
+            <input id='f-buscar' type='search' placeholder='Marca o modelo…' autocomplete='off' />
           </div>
-          <div class="car-price-row">
-            <div class="car-price-main">
-              <span class="car-price">{fmt(c.precio)}<span style="font-size:1rem;">€</span></span>
-              {c.precioAnterior && <span class="car-price-old">{fmt(c.precioAnterior)}€</span>}
+          <div class='filtro-grupo'>
+            <label>Marca</label>
+            <select id='f-marca'><option value=''>Todas</option>{marcas.map((m: any) => <option value={m}>{m}</option>)}</select>
+          </div>
+          <div class='filtro-grupo'>
+            <label>Carrocería</label>
+            <select id='f-carroceria'><option value=''>Todas</option>{carrocerias.map((x: any) => <option value={x}>{x}</option>)}</select>
+          </div>
+          <div class='filtro-grupo'>
+            <label>Combustible</label>
+            <select id='f-comb'><option value=''>Todos</option>{combustibles.map((x: any) => <option value={x}>{x}</option>)}</select>
+          </div>
+          <div class='filtro-grupo'>
+            <label>Cambio</label>
+            <select id='f-cambio'><option value=''>Todos</option>{cambios.map((x: any) => <option value={x}>{x}</option>)}</select>
+          </div>
+          <div class='filtro-grupo'>
+            <label>Estado</label>
+            <select id='f-estado'><option value=''>Todos</option><option value='ocasion'>Ocasión</option><option value='km0'>Km 0</option><option value='nuevo'>Nuevo</option></select>
+          </div>
+          <div class='filtro-grupo'>
+            <label>Año desde</label>
+            <select id='f-anio'><option value=''>Cualquiera</option>{anios.map((a: any) => <option value={a}>{a}</option>)}</select>
+          </div>
+          <div class='filtro-grupo filtro-doble'>
+            <div>
+              <label>Precio mín.</label>
+              <select id='f-pmin'><option value=''>—</option><option value='5000'>5.000€</option><option value='10000'>10.000€</option><option value='15000'>15.000€</option><option value='20000'>20.000€</option><option value='25000'>25.000€</option><option value='30000'>30.000€</option></select>
             </div>
-            <div class="car-price-fin">Desde <strong>{c.cuota}€/mes</strong></div>
+            <div>
+              <label>Precio máx.</label>
+              <select id='f-pmax'><option value=''>—</option><option value='10000'>10.000€</option><option value='15000'>15.000€</option><option value='20000'>20.000€</option><option value='25000'>25.000€</option><option value='30000'>30.000€</option><option value='40000'>40.000€</option><option value='50000'>50.000€</option></select>
+            </div>
           </div>
-          <span class="btn-card">Ver ficha</span>
+          <div class='filtro-grupo'>
+            <label>Km máximo</label>
+            <select id='f-km'><option value=''>Cualquiera</option><option value='25000'>25.000 km</option><option value='50000'>50.000 km</option><option value='75000'>75.000 km</option><option value='100000'>100.000 km</option><option value='150000'>150.000 km</option><option value='200000'>200.000 km</option></select>
+          </div>
         </div>
-      </a>
-    ))}
-  </div>
 
-  <div id="no-results" class="no-results" hidden>No hay vehículos que coincidan con tu búsqueda.</div>
-</section>
+        <div class='sidebar-foot'>
+          <button id='f-reset' class='f-reset' type='button'>Limpiar filtros</button>
+          <button id='f-aplicar' class='f-aplicar' type='button'>Ver <span id='count-btn'>{vehiculos.length}</span> coches</button>
+        </div>
+      </aside>
 
-<style>
-  .filter-bar { display:flex; flex-wrap:wrap; gap:.7rem; justify-content:center; margin-bottom:1.5rem; }
-  .filter-bar select, .f-reset { padding:.7rem 1rem; border:1px solid var(--border); border-radius:10px; background:#fff;
-    font-family:inherit; font-size:.85rem; font-weight:600; color:var(--text); cursor:pointer; }
-  .f-reset { background:var(--text); color:#fff; border:none; }
-  .cat-count { text-align:center; font-size:.85rem; color:var(--muted); margin-bottom:2rem; }
-  .cat-count #count { color:var(--red); font-weight:800; }
-  .car-card { text-decoration:none; color:inherit; display:block; }
-  .car-card.hide { display:none; }
-  .no-results { text-align:center; color:var(--muted); padding:3rem 0; font-weight:600; }
-</style>
+      <div class='cat-main'>
+        <div class='cat-toolbar'>
+          <div class='cat-count'><span id='count'>{vehiculos.length}</span> vehículos disponibles</div>
+          <label class='filter-orden'>Ordenar:
+            <select id='f-orden'>
+              <option value=''>Relevancia</option>
+              <option value='precio-asc'>Precio: menor a mayor</option>
+              <option value='precio-desc'>Precio: mayor a menor</option>
+              <option value='anio-desc'>Año: más nuevo</option>
+              <option value='km-asc'>Km: menos kilómetros</option>
+            </select>
+          </label>
+        </div>
 
-<script>
-  const sel = (id: string) => document.getElementById(id) as HTMLSelectElement;
-  const cards = [...document.querySelectorAll<HTMLElement>('#grid .car-card')];
+        <div class='cars-grid cars-grid--cat' id='grid'>
+          {
+            vehiculos.map((c: any) => (
+              <a
+                href={`/vehiculos/${c.slug}`}
+                class='car-card'
+                data-marca={c.marca}
+                data-estado={c.estado}
+                data-comb={c.combustible}
+                data-cambio={c.cambio}
+                data-carroceria={c.carroceria}
+                data-precio={c.precio}
+                data-anio={c.anio}
+                data-km={c.km}
+                data-nombre={`${c.marca} ${c.modelo}`.toLowerCase()}
+              >
+                <div class='car-img'>
+                  <img src={c.fotos[0]} alt={`${c.marca} ${c.modelo}`} loading='lazy' />
+                  <div class='car-img-overlay' />
+                  {c.certificado && <div class='car-cinta'>CERTIFICADO</div>}
+                  {c.reservado && <div class='car-reservado'>Reservado</div>}
+                  <div class='car-badge'>{badgeDe(c)}</div>
+                </div>
+                <div class='car-body'>
+                  <div class='car-brand'>{c.marca}</div>
+                  <div class='car-name'>{c.modelo}</div>
+                  <div class='car-tags'>
+                    <span class='car-tag'>{c.anio}</span>
+                    <span class='car-tag'>{fmt(c.km)} km</span>
+                    <span class='car-tag'>{c.combustible}</span>
+                    <span class='car-tag'>{c.cambio}</span>
+                  </div>
+                  <div class='car-price-row'>
+                    <div class='car-price-main'>
+                      <span class='car-price'>{fmt(c.precio)}<span style='font-size:1rem;'>€</span></span>
+                      {c.precioAnterior && <span class='car-price-old'>{fmt(c.precioAnterior)}€</span>}
+                    </div>
+                    <div class='car-price-fin'>Desde <strong>{c.cuota}€/mes</strong></div>
+                  </div>
+                  <span class='btn-card'>Ver ficha</span>
+                </div>
+              </a>
+            ))
+          }
+        </div>
 
-  const filtrar = () => {
-    const marca = sel('f-marca').value,
-          estado = sel('f-estado').value,
-          comb = sel('f-comb').value,
-          precio = Number(sel('f-precio').value || Infinity);
-    let visibles = 0;
-    cards.forEach(c => {
-      const ok = (!marca || c.dataset.marca === marca)
-        && (!estado || c.dataset.estado === estado)
-        && (!comb || c.dataset.comb === comb)
-        && (Number(c.dataset.precio) <= precio);
-      c.classList.toggle('hide', !ok);
-      if (ok) visibles++;
+        <div id='no-results' class='no-results' hidden>No hay vehículos que coincidan con tu búsqueda.</div>
+      </div>
+    </div>
+
+    <div id='filtros-backdrop' class='filtros-backdrop' hidden></div>
+  </section>
+
+  <style>
+    .catalogo { padding-top: 2rem; padding-left: 1.5rem; padding-right: 2rem; }
+    .cat-layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.8rem; align-items: start; max-width: 1380px; margin: 0 auto; }
+
+    /* Barra lateral sticky con cabecera y pie fijos */
+    .cat-sidebar { position: sticky; top: 90px; align-self: start; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--border); border-radius: 16px; max-height: calc(100vh - 110px); overflow: hidden; }
+    .sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.2rem .9rem; flex: 0 0 auto; }
+    .sidebar-head strong { font-family: var(--font-h); font-size: 1.1rem; font-weight: 800; }
+    .sidebar-x { display: none; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--muted); }
+    .sidebar-body { flex: 1 1 auto; overflow-y: auto; padding: .2rem 1.2rem; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .sidebar-body::-webkit-scrollbar { width: 4px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .filtro-grupo { margin-bottom: .9rem; }
+    .filtro-grupo > label { display: block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); margin-bottom: .35rem; }
+    .filtro-grupo select, .filtro-grupo input { width: 100%; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 9px; background: #fff; font-family: inherit; font-size: .88rem; font-weight: 600; color: var(--text); cursor: pointer; }
+    .filtro-grupo input { cursor: text; }
+    .filtro-grupo select:focus, .filtro-grupo input:focus { outline: none; border-color: var(--red); }
+    .filtro-doble { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+    .filtro-doble label { font-size: .68rem; }
+
+    .sidebar-foot { flex: 0 0 auto; padding: .9rem 1.2rem 1.1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: .6rem; background: #fff; }
+    .f-reset { padding: .6rem; border: 1px solid var(--border); border-radius: 9px; background: #fff; font-family: inherit; font-size: .82rem; font-weight: 700; color: var(--text); cursor: pointer; }
+    .f-reset:hover { border-color: var(--red); color: var(--red); }
+    .f-aplicar { padding: .8rem; border: none; border-radius: 9px; background: var(--red); color: #fff; font-family: inherit; font-size: .92rem; font-weight: 800; cursor: pointer; }
+    .f-aplicar:hover { filter: brightness(1.08); }
+
+    .cat-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
+    .cat-count { font-size: .85rem; color: var(--muted); }
+    .cat-count #count { color: var(--red); font-weight: 800; }
+    .filter-orden { font-size: .82rem; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: .5rem; }
+    .filter-orden select { padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 8px; background: #fff; font-family: inherit; font-size: .82rem; font-weight: 600; color: var(--text); cursor: pointer; }
+
+    .cars-grid--cat { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .car-card { text-decoration: none; color: inherit; display: block; }
+    .car-card.hide { display: none; }
+    .no-results { text-align: center; color: var(--muted); padding: 3rem 0; font-weight: 600; }
+
+    .filtros-toggle { display: none; align-items: center; gap: .5rem; padding: .7rem 1.2rem; border: none; border-radius: 10px; background: var(--text); color: #fff; font-family: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; margin: 0 auto 1.4rem; }
+    .filtros-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1500; }
+    .filtros-backdrop[hidden] { display: none; }
+
+    /* ===== Móvil: panel deslizante ===== */
+    @media (max-width: 880px) {
+      .cat-layout { display: block; }
+      .filtros-toggle { display: flex; width: 100%; justify-content: center; }
+      .cat-sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 1600;
+        width: 86%; max-width: 340px; height: 100%; max-height: none;
+        border-radius: 0; border: none;
+        transform: translateX(-100%); transition: transform .28s ease;
+        box-shadow: 0 0 40px rgba(0,0,0,.25);
+      }
+      .cat-sidebar.abierto { transform: translateX(0); }
+      .sidebar-x { display: block; }
+      .sidebar-head { padding: 1.2rem; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+
+  <script>
+    // @ts-nocheck
+    const $ = (id) => document.getElementById(id);
+    const grid = $('grid');
+    const todas = [...grid.querySelectorAll('.car-card')];
+    const orig = [...todas];
+    const val = (id) => { const el = $(id); return el ? el.value : ''; };
+    const txt = (s) => (s || '').toString().trim().toLowerCase();
+
+    const IDS = ['f-buscar','f-marca','f-carroceria','f-comb','f-cambio','f-estado','f-anio','f-pmin','f-pmax','f-km'];
+
+    function coincide(c) {
+      const d = c.dataset;
+      const q = txt(val('f-buscar'));
+      const marca = txt(val('f-marca'));
+      const carro = txt(val('f-carroceria'));
+      const comb = txt(val('f-comb'));
+      const cambio = txt(val('f-cambio'));
+      const estado = txt(val('f-estado'));
+      const anio = Number(val('f-anio') || 0);
+      const pmin = Number(val('f-pmin') || 0);
+      const pmax = Number(val('f-pmax') || Infinity);
+      const kmax = Number(val('f-km') || Infinity);
+      return (!q || txt(d.nombre).includes(q))
+        && (!marca || txt(d.marca) === marca)
+        && (!carro || txt(d.carroceria) === carro)
+        && (!comb || txt(d.comb) === comb)
+        && (!cambio || txt(d.cambio) === cambio)
+        && (!estado || txt(d.estado) === estado)
+        && (Number(d.anio) || 0) >= anio
+        && (Number(d.precio) || 0) >= pmin
+        && (Number(d.precio) || 0) <= pmax
+        && (Number(d.km) || 0) <= kmax;
+    }
+
+    function aplicarOrden() {
+      const modo = val('f-orden');
+      const num = (c, k) => Number(c.dataset[k]) || 0;
+      let arr = [...orig];
+      if (modo === 'precio-asc') arr.sort((a, b) => num(a, 'precio') - num(b, 'precio'));
+      else if (modo === 'precio-desc') arr.sort((a, b) => num(b, 'precio') - num(a, 'precio'));
+      else if (modo === 'anio-desc') arr.sort((a, b) => num(b, 'anio') - num(a, 'anio'));
+      else if (modo === 'km-asc') arr.sort((a, b) => num(a, 'km') - num(b, 'km'));
+      arr.forEach((c) => grid.appendChild(c));
+    }
+
+    // Solo cuenta y actualiza el botón (NO toca el grid)
+    function previa() {
+      const n = todas.filter(coincide).length;
+      const cb = $('count-btn'); if (cb) cb.textContent = String(n);
+    }
+
+    // Aplica de verdad al grid
+    function aplicar() {
+      let visibles = 0;
+      todas.forEach((c) => { const ok = coincide(c); c.classList.toggle('hide', !ok); if (ok) visibles++; });
+      const count = $('count'); if (count) count.textContent = String(visibles);
+      const noRes = $('no-results'); if (noRes) noRes.hidden = visibles > 0;
+      aplicarOrden();
+    }
+
+    // Panel móvil
+    const sidebar = $('sidebar');
+    const backdrop = $('filtros-backdrop');
+    const abrir = () => { sidebar?.classList.add('abierto'); if (backdrop) backdrop.hidden = false; document.body.style.overflow = 'hidden'; };
+    const cerrar = () => { sidebar?.classList.remove('abierto'); if (backdrop) backdrop.hidden = true; document.body.style.overflow = ''; };
+    $('abrir-filtros')?.addEventListener('click', abrir);
+    $('cerrar-filtros')?.addEventListener('click', cerrar);
+    backdrop?.addEventListener('click', cerrar);
+
+    // Cambiar filtros = solo vista previa en el botón
+    IDS.forEach((id) => { const ev = id === 'f-buscar' ? 'input' : 'change'; $(id)?.addEventListener(ev, previa); });
+    // Orden = se aplica al momento sobre lo visible
+    $('f-orden')?.addEventListener('change', aplicarOrden);
+    // Botón "Ver N coches" = aplica filtros y cierra panel en móvil
+    $('f-aplicar')?.addEventListener('click', () => { aplicar(); cerrar(); });
+    // Limpiar = resetea y muestra todo
+    $('f-reset')?.addEventListener('click', () => {
+      [...IDS, 'f-orden'].forEach((id) => { const el = $(id); if (el) el.value = ''; });
+      aplicar(); previa();
     });
-    const count = sel('count');
-    if (count) count.textContent = String(visibles);
-    const noRes = sel('no-results');
-    if (noRes) noRes.hidden = visibles > 0;
-  };
 
-  ['f-marca','f-estado','f-comb','f-precio'].forEach(id =>
-    sel(id)?.addEventListener('change', filtrar));
-
-  sel('f-reset')?.addEventListener('click', () => {
-    ['f-marca','f-estado','f-comb','f-precio'].forEach(id => { sel(id).value = ''; });
-    filtrar();
-  });
-</script>
-
+    previa();
+  </script>
 </Base>

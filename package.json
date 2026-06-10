@@ -19,5 +19,9 @@
     "astro": "^6.3.7",
     "chart.js": "^4.5.1",
     "resend": "^6.12.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^6.0.3"
   }
 }
