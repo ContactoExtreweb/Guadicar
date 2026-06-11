@@ -6,9 +6,16 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY)
 
 const fmt = (n) => Number(n).toLocaleString('es-ES')
 
+// Pequeña pausa entre envíos para respetar el límite de Resend (evita errores 429)
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
 export async function POST({ request }) {
   try {
     const { vehiculoId, tipo } = await request.json() // tipo: 'nuevo' | 'bajada'
+
+    if (!vehiculoId) {
+      return new Response(JSON.stringify({ error: 'Falta el vehículo.' }), { status: 400 })
+    }
 
     // 1) Traer el coche
     const { data: v, error: ev } = await supabaseAdmin
@@ -16,81 +23,72 @@ export async function POST({ request }) {
       .select('*')
       .eq('id', vehiculoId)
       .maybeSingle()
-    if (ev || !v)
-      return new Response(
-        JSON.stringify({ error: 'Vehículo no encontrado.' }),
-        { status: 404 },
-      )
+    if (ev || !v) {
+      return new Response(JSON.stringify({ error: 'Vehículo no encontrado.' }), { status: 404 })
+    }
 
     // 2) Traer suscriptores
     const { data: subs, error: es } = await supabaseAdmin
       .from('suscriptores')
       .select('email')
-    if (es)
+    if (es) {
+      return new Response(JSON.stringify({ error: 'Error leyendo suscriptores.' }), { status: 500 })
+    }
+    if (!subs.length) {
       return new Response(
-        JSON.stringify({ error: 'Error leyendo suscriptores.' }),
-        { status: 500 },
-      )
-    if (!subs.length)
-      return new Response(
-        JSON.stringify({
-          ok: true,
-          enviados: 0,
-          aviso: 'No hay suscriptores.',
-        }),
+        JSON.stringify({ ok: true, enviados: 0, fallos: 0, aviso: 'No hay suscriptores.' }),
         { status: 200 },
       )
+    }
 
-    // 3) Construir el email
+    // 3) Construir el email (una sola vez, es igual para todos)
     const url = `https://guadicar.es/vehiculos/${v.slug}`
-    const titulo =
-      tipo === 'bajada' ? '¡Bajada de precio!' : 'Nuevo vehículo disponible'
+    const titulo = tipo === 'bajada' ? '¡Bajada de precio!' : 'Nuevo vehículo disponible'
     const html = emailHTML(v, tipo, url, titulo)
     const asunto =
       tipo === 'bajada'
         ? `📉 Bajada de precio: ${v.marca} ${v.modelo} ahora ${fmt(v.precio)}€`
         : `🚗 Nuevo en GuadiCar: ${v.marca} ${v.modelo}`
 
-    // 4) Enviar (en lotes para no saturar). Mientras no haya dominio verificado,
-    //    Resend solo entrega al email registrado; el resto se ignora silenciosamente.
-    // MODO PRUEBAS: sin dominio verificado, Resend solo entrega a tu propia dirección.
-    // Cuando se verifique guadicar.es, cambia MODO_PRUEBAS a false.
-    const MODO_PRUEBAS = true
+    // 4) Envío individual a cada suscriptor (dominio guadicar.es verificado en Resend)
+    const remitente = 'GuadiCar <ventas@guadicar.es>'
 
-    let envio
-    if (MODO_PRUEBAS) {
-      envio = await resend.emails.send({
-        from: 'GuadiCar <onboarding@resend.dev>',
-        to: import.meta.env.LEAD_EMAIL_TO,
-        subject: '[PRUEBA] ' + asunto,
-        html,
-      })
-    } else {
-      envio = await resend.emails.send({
-        from: 'GuadiCar <ofertas@guadicar.es>',
-        to: 'ofertas@guadicar.es',
-        bcc: subs.map((s) => s.email),
-        subject: asunto,
-        html,
-      })
-    }
-    console.log('[notificar] Respuesta Resend:', JSON.stringify(envio))
-    if (envio.error) {
-      return new Response(
-        JSON.stringify({ error: 'Resend: ' + envio.error.message }),
-        { status: 500 },
-      )
+    // Validación básica de email + eliminar duplicados y vacíos
+    const emailValido = (e) => typeof e === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)
+    const destinatarios = [...new Set(
+      subs.map((s) => (s.email || '').toLowerCase().trim()).filter(emailValido),
+    )]
+
+    let enviados = 0
+    let fallos = 0
+
+    for (const email of destinatarios) {
+      try {
+        const envio = await resend.emails.send({
+          from: remitente,
+          to: email,
+          replyTo: 'ventas@guadicar.es',
+          subject: asunto,
+          html,
+        })
+        if (envio.error) {
+          fallos++
+          console.error('[notificar] Fallo a', email, ':', envio.error.message)
+        } else {
+          enviados++
+        }
+      } catch (err) {
+        fallos++
+        console.error('[notificar] Excepción a', email, ':', err)
+      }
+      await sleep(550) // ~2 envíos/seg, dentro del límite de Resend
     }
 
-    return new Response(
-      JSON.stringify({ ok: true, enviados: subs.length }),
-      { status: 200 },
-    )
+    console.log(`[notificar] Coche ${v.slug} (${tipo}) → enviados:${enviados} fallos:${fallos}`)
+    return new Response(JSON.stringify({ ok: true, enviados, fallos }), { status: 200 })
   } catch (e) {
     console.error('Error en /api/notificar:', e)
-    return new Response(JSON.stringify({ error: 'Error inesperado.' }), {
-      status: 500,
-    })
+    return new Response(JSON.stringify({ error: 'Error inesperado.' }), { status: 500 })
   }
 }
 
@@ -117,7 +115,7 @@ function emailHTML(v, tipo, url, titulo) {
         <a href="${url}" style="display:block;background:#cc1c1c;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:700;margin-top:20px;">Ver este vehículo</a>
       </div>
       <div style="background:#0d0d0d;padding:16px;text-align:center;color:#888;font-size:12px;">
-        GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 722 49 61 24
+        GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 722 496 124
       </div>
     </div>
   </div>`
