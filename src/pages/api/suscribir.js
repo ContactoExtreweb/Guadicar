@@ -14,12 +14,15 @@ export async function POST({ request }) {
     const { error } = await supabaseAdmin
       .from('suscriptores')
       .upsert({ email: email.toLowerCase().trim() }, { onConflict: 'email' })
-    if (error)
+    if (error) {
+      console.error('[suscribir] Error Supabase:', error.message)
       return new Response(JSON.stringify({ error: 'No se pudo registrar.' }), {
         status: 500,
       })
+    }
     return new Response(JSON.stringify({ ok: true }), { status: 200 })
-  } catch {
+  } catch (e) {
+    console.error('[suscribir] Excepción:', e)
     return new Response(JSON.stringify({ error: 'Error inesperado.' }), {
       status: 500,
     })
