@@ -9,5 +9,9 @@ export default defineConfig({
   output: 'static',
   adapter: netlify(),
   site: 'https://guadicar.es',
-  integrations: [sitemap()]
+  integrations: [
+    sitemap({
+      filter: (page) => !page.includes('/admin'),
+    }),
+  ],
 })

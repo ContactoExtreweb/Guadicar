@@ -1,344 +1,758 @@
 ---
-const { vehiculo = null } = Astro.props;
-const v = vehiculo ?? {};
-const esEdicion = !!vehiculo;
+const { vehiculo = null } = Astro.props
+const v = vehiculo ?? {}
+const esEdicion = !!vehiculo
 ---
-<form id="form-vehiculo" data-edicion={esEdicion} data-id={v.id ?? ''}>
+
+<form id='form-vehiculo' data-edicion={esEdicion} data-id={v.id ?? ''}>
   <!-- Navegación de pasos -->
-  <div class="fv-steps">
-    <button type="button" class="fv-step on" data-step="1">1 · General</button>
-    <button type="button" class="fv-step" data-step="2">2 · Ficha técnica</button>
-    <button type="button" class="fv-step" data-step="3">3 · Precio y publicar</button>
+  <div class='fv-steps'>
+    <button type='button' class='fv-step on' data-step='1'>1 · General</button>
+    <button type='button' class='fv-step' data-step='2'
+      >2 · Ficha técnica</button
+    >
+    <button type='button' class='fv-step' data-step='3'
+      >3 · Precio y publicar</button
+    >
   </div>
 
   <!-- PASO 1: GENERAL -->
-  <section class="fv-panel" data-panel="1">
-    <small>Añadir solo los datos, no rellenar con € o L para litros, o KM/H, se rellena solo automaticamente. <b><em>NO PONER €, KM, L, etc</em></b></small>
-    <br><br>
-    <div class="fv-grid">
-      <label>Marca *<input name="marca" value={v.marca ?? ''} required /></label>
-      <label>Modelo *<input name="modelo" value={v.modelo ?? ''} required /></label>
-      <label>Versión<input name="version" value={v.version ?? ''} placeholder="1.0 TSI 110cv" /></label>
-      <label>Año<input type="number" name="anio" value={v.anio ?? ''} min="1990" max="2030" /></label>
-      <label>Kilómetros<input type="number" name="km" value={v.km ?? ''} min="0" /></label>
-      <label>Estado
-        <select name="estado">
-          <option value="ocasion" selected={v.estado==='ocasion'}>Ocasión</option>
-          <option value="km0" selected={v.estado==='km0'}>Km 0</option>
-          <option value="nuevo" selected={v.estado==='nuevo'}>Nuevo</option>
+  <section class='fv-panel' data-panel='1'>
+    <small
+      >Añadir solo los datos, no rellenar con € o L para litros, o KM/H, se
+      rellena solo automaticamente. <b><em>NO PONER €, KM, L, etc</em></b
+      ></small
+    >
+    <br /><br />
+    <div class='fv-grid'>
+      <label>Marca *<input name='marca' value={v.marca ?? ''} required /></label
+      >
+      <label
+        >Modelo *<input name='modelo' value={v.modelo ?? ''} required /></label
+      >
+      <label
+        >Versión<input
+          name='version'
+          value={v.version ?? ''}
+          placeholder='1.0 TSI 110cv'
+        /></label
+      >
+      <label
+        >Año<input
+          type='number'
+          name='anio'
+          value={v.anio ?? ''}
+          min='1990'
+          max='2030'
+        /></label
+      >
+      <label
+        >Kilómetros<input
+          type='number'
+          name='km'
+          value={v.km ?? ''}
+          min='0'
+        /></label
+      >
+      <label
+        >Estado
+        <select name='estado'>
+          <option value='ocasion' selected={v.estado === 'ocasion'}
+            >Ocasión</option
+          >
+          <option value='km0' selected={v.estado === 'km0'}>Km 0</option>
+          <option value='nuevo' selected={v.estado === 'nuevo'}>Nuevo</option>
         </select>
       </label>
-      <label>Carrocería
-        <select name="carroceria">
-          {['Berlina','SUV','Familiar','Coupé','Cabrio','Monovolumen','Furgoneta','Pick-up'].map(c =>
-            <option value={c} selected={v.carroceria===c}>{c}</option>)}
+      <label
+        >Carrocería
+        <select name='carroceria'>
+          {
+            [
+              'Berlina',
+              'SUV',
+              'Familiar',
+              'Coupé',
+              'Cabrio',
+              'Monovolumen',
+              'Furgoneta',
+              'Pick-up',
+            ].map((c) => (
+              <option value={c} selected={v.carroceria === c}>
+                {c}
+              </option>
+            ))
+          }
         </select>
       </label>
-      <label>Combustible
-        <select name="combustible">
-          {['Gasolina','Diésel','Híbrido','Eléctrico','GLP'].map(c =>
-            <option value={c} selected={v.combustible===c}>{c}</option>)}
+      <label
+        >Combustible
+        <select name='combustible'>
+          {
+            ['Gasolina', 'Diésel', 'Híbrido', 'Eléctrico', 'GLP'].map((c) => (
+              <option value={c} selected={v.combustible === c}>
+                {c}
+              </option>
+            ))
+          }
         </select>
       </label>
-      <label>Cambio
-        <select name="cambio">
-          <option value="Manual" selected={v.cambio==='Manual'}>Manual</option>
-          <option value="Automático" selected={v.cambio==='Automático'}>Automático</option>
+      <label
+        >Cambio
+        <select name='cambio'>
+          <option value='Manual' selected={v.cambio === 'Manual'}>Manual</option
+          >
+          <option value='Automático' selected={v.cambio === 'Automático'}
+            >Automático</option
+          >
         </select>
       </label>
-      <label>Potencia (CV)<input type="number" name="potencia_cv" value={v.potencia_cv ?? ''} min="0" /></label>
+      <label
+        >Potencia (CV)<input
+          type='number'
+          name='potencia_cv'
+          value={v.potencia_cv ?? ''}
+          min='0'
+        /></label
+      >
     </div>
 
-    <label class="fv-full">Descripción
-      <textarea name="descripcion" rows="4" placeholder="Describe el coche, su estado, extras destacados…">{v.descripcion ?? ''}</textarea>
+    <label class='fv-full'
+      >Descripción
+      <textarea
+        name='descripcion'
+        rows='4'
+        placeholder='Describe el coche, su estado, extras destacados…'
+        >{v.descripcion ?? ''}</textarea
+      >
     </label>
 
-    <label class="fv-full">Equipamiento (separado por comas)
-      <input name="equipamiento" value={(v.equipamiento ?? []).join(', ')} placeholder="Climatizador, CarPlay, Cámara trasera, Llantas 18&quot;" />
+    <label class='fv-full'
+      >Equipamiento (separado por comas)
+      <input
+        name='equipamiento'
+        value={(v.equipamiento ?? []).join(', ')}
+        placeholder='Climatizador, CarPlay, Cámara trasera, Llantas 18"'
+      />
     </label>
 
-    <div class="fv-full fotos-zona">
-      <span class="fotos-label">Fotos del vehículo</span>
-      <div id="dropzone" class="dropzone">
-        <input type="file" id="file-input" accept="image/*" multiple hidden />
-        <div class="dropzone-text">
-          <svg width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <div class='fv-full fotos-zona'>
+      <span class='fotos-label'>Fotos del vehículo</span>
+      <div id='dropzone' class='dropzone'>
+        <input
+          type='file'
+          id='file-input'
+          accept='image/*,.heic,.heif'
+          multiple
+          hidden
+        />
+        <div class='dropzone-text'>
+          <svg
+            width='34'
+            height='34'
+            fill='none'
+            stroke='currentColor'
+            stroke-width='1.6'
+            viewBox='0 0 24 24'
+            ><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'
+            ></path><polyline points='17 8 12 3 7 8'></polyline><line
+              x1='12'
+              y1='3'
+              x2='12'
+              y2='15'></line></svg
+          >
           <strong>Arrastra fotos aquí</strong>
           <span>o haz clic para seleccionarlas desde tu ordenador</span>
         </div>
       </div>
-      <div id="fotos-preview" class="fotos-preview"></div>
-      <input type="hidden" name="fotos" value={(v.fotos ?? []).join(',')} />
-      <small>La primera foto será la principal. Arrastra para reordenar. Pulsa la ✕ para quitar una.</small>
+      <div id='fotos-preview' class='fotos-preview'></div>
+      <input type='hidden' name='fotos' value={(v.fotos ?? []).join(',')} />
+      <small
+        >La primera foto será la principal. Arrastra para reordenar. Pulsa la ✕
+        para quitar una.</small
+      >
     </div>
   </section>
 
   <!-- PASO 2: FICHA TÉCNICA -->
-  <section class="fv-panel" data-panel="2" hidden>
-    <div class="fv-grid">
-      <label>Matriculación<input type="date" name="matriculacion" value={v.matriculacion ?? ''} /></label>
-      <label>Tracción
-        <select name="traccion">
-          <option value="">—</option>
-          {['Delantera','Trasera','Total'].map(t => <option value={t} selected={v.traccion===t}>{t}</option>)}
+  <section class='fv-panel' data-panel='2' hidden>
+    <div class='fv-grid'>
+      <label
+        >Matriculación<input
+          type='date'
+          name='matriculacion'
+          value={v.matriculacion ?? ''}
+        /></label
+      >
+      <label
+        >Tracción
+        <select name='traccion'>
+          <option value=''>—</option>
+          {
+            ['Delantera', 'Trasera', 'Total'].map((t) => (
+              <option value={t} selected={v.traccion === t}>
+                {t}
+              </option>
+            ))
+          }
         </select>
       </label>
-      <label>Puertas<input type="number" name="puertas" value={v.puertas ?? ''} min="2" max="5" /></label>
-      <label>Plazas<input type="number" name="plazas" value={v.plazas ?? ''} min="1" max="9" /></label>
-      <label>Consumo (l/100km)<input type="number" step="0.1" name="consumo" value={v.consumo ?? ''} /></label>
-      <label>Emisiones CO₂ (g/km)<input type="number" name="emisiones_co2" value={v.emisiones_co2 ?? ''} /></label>
-      <label>Velocidad máx. (km/h)<input type="number" name="vel_maxima" value={v.vel_maxima ?? ''} /></label>
-      <label>0-100 km/h (s)<input type="number" step="0.1" name="aceleracion" value={v.aceleracion ?? ''} /></label>
-      <label>Peso (kg)<input type="number" name="peso_kg" value={v.peso_kg ?? ''} /></label>
-      <label>Depósito (l)<input type="number" name="deposito_l" value={v.deposito_l ?? ''} /></label>
-      <label>Maletero (l)<input type="number" name="maletero_l" value={v.maletero_l ?? ''} /></label>
-      <label>Largo (m)<input type="number" step="0.01" name="largo_m" value={v.largo_m ?? ''} /></label>
-      <label>Ancho (m)<input type="number" step="0.01" name="ancho_m" value={v.ancho_m ?? ''} /></label>
-      <label>Alto (m)<input type="number" step="0.01" name="alto_m" value={v.alto_m ?? ''} /></label>
+      <label
+        >Puertas<input
+          type='number'
+          name='puertas'
+          value={v.puertas ?? ''}
+          min='2'
+          max='5'
+        /></label
+      >
+      <label
+        >Plazas<input
+          type='number'
+          name='plazas'
+          value={v.plazas ?? ''}
+          min='1'
+          max='9'
+        /></label
+      >
+      <label
+        >Consumo (l/100km)<input
+          type='number'
+          step='0.1'
+          name='consumo'
+          value={v.consumo ?? ''}
+        /></label
+      >
+      <label
+        >Emisiones CO₂ (g/km)<input
+          type='number'
+          name='emisiones_co2'
+          value={v.emisiones_co2 ?? ''}
+        /></label
+      >
+      <label
+        >Velocidad máx. (km/h)<input
+          type='number'
+          name='vel_maxima'
+          value={v.vel_maxima ?? ''}
+        /></label
+      >
+      <label
+        >0-100 km/h (s)<input
+          type='number'
+          step='0.1'
+          name='aceleracion'
+          value={v.aceleracion ?? ''}
+        /></label
+      >
+      <label
+        >Peso (kg)<input
+          type='number'
+          name='peso_kg'
+          value={v.peso_kg ?? ''}
+        /></label
+      >
+      <label
+        >Depósito (l)<input
+          type='number'
+          name='deposito_l'
+          value={v.deposito_l ?? ''}
+        /></label
+      >
+      <label
+        >Maletero (l)<input
+          type='number'
+          name='maletero_l'
+          value={v.maletero_l ?? ''}
+        /></label
+      >
+      <label
+        >Largo (m)<input
+          type='number'
+          step='0.01'
+          name='largo_m'
+          value={v.largo_m ?? ''}
+        /></label
+      >
+      <label
+        >Ancho (m)<input
+          type='number'
+          step='0.01'
+          name='ancho_m'
+          value={v.ancho_m ?? ''}
+        /></label
+      >
+      <label
+        >Alto (m)<input
+          type='number'
+          step='0.01'
+          name='alto_m'
+          value={v.alto_m ?? ''}
+        /></label
+      >
     </div>
   </section>
 
   <!-- PASO 3: PRECIO Y PUBLICAR -->
-  <section class="fv-panel" data-panel="3" hidden>
-    <div class="fv-grid">
-      <label>Precio de venta<input type="number" name="precio" value={v.precio ?? ''} required min="0" placeholder="12000"></label>
-      <label>Precio anterior<small>tachado, para ofertas</small><input type="number" name="precio_anterior" value={v.precio_anterior ?? ''} min="0" placeholder="16000"></label>
+  <section class='fv-panel' data-panel='3' hidden>
+    <div class='fv-grid'>
+      <label
+        >Precio de venta<input
+          type='number'
+          name='precio'
+          value={v.precio ?? ''}
+          required
+          min='0'
+          placeholder='12000'
+        /></label
+      >
+      <label
+        >Precio anterior<small>tachado, para ofertas</small><input
+          type='number'
+          name='precio_anterior'
+          value={v.precio_anterior ?? ''}
+          min='0'
+          placeholder='16000'
+        /></label
+      >
     </div>
 
-    <div class="fv-privado">
-      <div class="fv-privado-head">🔒 Privado — solo visible para ti (no aparece en la web)</div>
-      <div class="fv-grid">
-        <label>Precio de compra<input type="number" name="precio_compra" value={v.precio_compra ?? ''} min="0" placeholder="15000" /></label>
-        <label>Gastos<small>reparación, transporte…</small><input type="number" name="gastos" value={v.gastos ?? ''} min="0" placeholder="1000" /></label>
+    <div class='fv-privado'>
+      <div class='fv-privado-head'>
+        🔒 Privado — solo visible para ti (no aparece en la web)
       </div>
-      <label class="fv-full">Notas internas<textarea name="notas_internas" rows="2">{v.notas_internas ?? ''}</textarea></label>
+      <div class='fv-grid'>
+        <label
+          >Precio de compra<input
+            type='number'
+            name='precio_compra'
+            value={v.precio_compra ?? ''}
+            min='0'
+            placeholder='15000'
+          /></label
+        >
+        <label
+          >Gastos<small>reparación, transporte…</small><input
+            type='number'
+            name='gastos'
+            value={v.gastos ?? ''}
+            min='0'
+            placeholder='1000'
+          /></label
+        >
+      </div>
+      <label class='fv-full'
+        >Notas internas<textarea name='notas_internas' rows='2'
+          >{v.notas_internas ?? ''}</textarea
+        ></label
+      >
     </div>
 
-    <label class="fv-full">URL del coche (slug)
-      <input name="slug" value={v.slug ?? ''} placeholder="se genera solo desde marca, modelo y año" />
-      <small>Se rellena automáticamente. Solo edítalo si sabes lo que haces.</small>
+    <label class='fv-full'
+      >URL del coche (slug)
+      <input
+        name='slug'
+        value={v.slug ?? ''}
+        placeholder='se genera solo desde marca, modelo y año'
+      />
+      <small
+        >Se rellena automáticamente. Solo edítalo si sabes lo que haces.</small
+      >
     </label>
 
-    <div class="fv-flags">
-      <label class="fv-check"><input type="checkbox" name="certificado" checked={v.certificado !== false} /> Vehículo revisado y certificado</label>
-      <label class="fv-check"><input type="checkbox" name="destacado" checked={!!v.destacado} /> Mostrar en destacados (portada)</label>
-      <label class="fv-check"><input type="checkbox" name="ocasion_semana" checked={!!v.ocasion_semana} /> Ocasión de la semana</label>
-      <label class="fv-check"><input type="checkbox" name="publicado" checked={v.publicado !== false} /> Publicado (visible en la web)</label>
-      <label class="fv-check"><input type="checkbox" name="reservado" /> 🔒 Reservado</label>
-      <label class="fv-check fv-check--avisar"><input type="checkbox" name="avisar" /> 📣 Avisar a los suscriptores de este vehículo</label>
+    <div class='fv-flags'>
+      <label class='fv-check'
+        ><input
+          type='checkbox'
+          name='certificado'
+          checked={v.certificado !== false}
+        /> Vehículo revisado y certificado</label
+      >
+      <label class='fv-check'
+        ><input type='checkbox' name='destacado' checked={!!v.destacado} /> Mostrar
+        en destacados (portada)</label
+      >
+      <label class='fv-check'
+        ><input
+          type='checkbox'
+          name='ocasion_semana'
+          checked={!!v.ocasion_semana}
+        /> Ocasión de la semana</label
+      >
+      <label class='fv-check'
+        ><input
+          type='checkbox'
+          name='publicado'
+          checked={v.publicado !== false}
+        /> Publicado (visible en la web)</label
+      >
+      <label class='fv-check'
+        ><input type='checkbox' name='reservado' checked={!!v.reservado} /> 🔒 Reservado</label
+      >
+      <label class='fv-check fv-check--avisar'
+        ><input type='checkbox' name='avisar' /> 📣 Avisar a los suscriptores de este
+        vehículo</label
+      >
     </div>
   </section>
 
-  <div class="fv-footer">
-    <a href="/admin/vehiculos" class="fv-cancel">Cancelar</a>
-    <div class="fv-nav">
-      <button type="button" id="fv-prev" hidden>← Anterior</button>
-      <button type="button" id="fv-next">Siguiente →</button>
-      <button type="submit" id="fv-save" hidden>{esEdicion ? 'Guardar cambios' : 'Crear vehículo'}</button>
+  <div class='fv-footer'>
+    <a href='/admin/vehiculos' class='fv-cancel'>Cancelar</a>
+    <div class='fv-nav'>
+      <button type='button' id='fv-prev' hidden>← Anterior</button>
+      <button type='button' id='fv-next'>Siguiente →</button>
+      <button type='submit' id='fv-save' hidden
+        >{esEdicion ? 'Guardar cambios' : 'Crear vehículo'}</button
+      >
     </div>
   </div>
-  <p id="fv-msg" class="fv-msg" hidden></p>
+  <p id='fv-msg' class='fv-msg' hidden></p>
 </form>
 
 <script>
   // @ts-nocheck
-  import { supabase } from '../lib/supabaseBrowser.js';
+  import { supabase } from '../lib/supabaseBrowser.js'
 
-  const form = document.getElementById('form-vehiculo');
-  const esEdicion = form.dataset.edicion === 'true';
-  const idEdicion = form.dataset.id;
-  let paso = 1;
+  const form = document.getElementById('form-vehiculo')
+  const esEdicion = form.dataset.edicion === 'true'
+  const idEdicion = form.dataset.id
+  let paso = 1
 
   // Navegación por pasos
   const irA = (n) => {
-    paso = n;
-    document.querySelectorAll('.fv-panel').forEach(p => p.hidden = p.dataset.panel != n);
-    document.querySelectorAll('.fv-step').forEach(s => s.classList.toggle('on', s.dataset.step == n));
-    document.getElementById('fv-prev').hidden = n === 1;
-    document.getElementById('fv-next').hidden = n === 3;
-    document.getElementById('fv-save').hidden = n !== 3;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-  document.getElementById('fv-next').addEventListener('click', () => irA(Math.min(paso + 1, 3)));
-  document.getElementById('fv-prev').addEventListener('click', () => irA(Math.max(paso - 1, 1)));
-  document.querySelectorAll('.fv-step').forEach(s => s.addEventListener('click', () => irA(Number(s.dataset.step))));
+    paso = n
+    document
+      .querySelectorAll('.fv-panel')
+      .forEach((p) => (p.hidden = p.dataset.panel != n))
+    document
+      .querySelectorAll('.fv-step')
+      .forEach((s) => s.classList.toggle('on', s.dataset.step == n))
+    document.getElementById('fv-prev').hidden = n === 1
+    document.getElementById('fv-next').hidden = n === 3
+    document.getElementById('fv-save').hidden = n !== 3
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  document
+    .getElementById('fv-next')
+    .addEventListener('click', () => irA(Math.min(paso + 1, 3)))
+  document
+    .getElementById('fv-prev')
+    .addEventListener('click', () => irA(Math.max(paso - 1, 1)))
+  document
+    .querySelectorAll('.fv-step')
+    .forEach((s) =>
+      s.addEventListener('click', () => irA(Number(s.dataset.step))),
+    )
 
   // Slug automático
-  const slugify = (s) => s.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-  const campoSlug = form.querySelector('[name=slug]');
-  let slugTocado = esEdicion; // en edición no autogeneramos salvo que lo borren
-  campoSlug.addEventListener('input', () => { slugTocado = true; });
+  const slugify = (s) =>
+    s
+      .toString()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  const campoSlug = form.querySelector('[name=slug]')
+  let slugTocado = esEdicion // en edición no autogeneramos salvo que lo borren
+  campoSlug.addEventListener('input', () => {
+    slugTocado = true
+  })
   const autoSlug = () => {
-    if (slugTocado && campoSlug.value) return;
-    const m = form.marca.value, mo = form.modelo.value, a = form.anio.value;
-    if (m && mo) campoSlug.value = slugify(`${m} ${mo} ${a || ''}`);
-  };
-  ['marca','modelo','anio'].forEach(n => form[n].addEventListener('input', autoSlug));
+    if (slugTocado && campoSlug.value) return
+    const m = form.marca.value,
+      mo = form.modelo.value,
+      a = form.anio.value
+    if (m && mo) campoSlug.value = slugify(`${m} ${mo} ${a || ''}`)
+  }
+  ;['marca', 'modelo', 'anio'].forEach((n) =>
+    form[n].addEventListener('input', autoSlug),
+  )
 
   // ───── SUBIDA DE FOTOS ─────
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('file-input');
-  const preview = document.getElementById('fotos-preview');
-  const campoFotos = form.querySelector('[name=fotos]');
+  const dropzone = document.getElementById('dropzone')
+  const fileInput = document.getElementById('file-input')
+  const preview = document.getElementById('fotos-preview')
+  const campoFotos = form.querySelector('[name=fotos]')
 
   // Lista inicial (en edición, las que ya tenía)
-  let fotos = (campoFotos.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  let fotos = (campoFotos.value || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 
   function pintarFotos() {
-    preview.innerHTML = fotos.map((url, i) => `
+    preview.innerHTML = fotos
+      .map(
+        (url, i) => `
       <div class="foto-item" draggable="true" data-i="${i}">
         <img src="${url}" alt="" />
         ${i === 0 ? '<span class="foto-principal">Principal</span>' : ''}
         <button type="button" class="foto-del" data-i="${i}">✕</button>
-      </div>`).join('');
-    campoFotos.value = fotos.join(',');
-    preview.querySelectorAll('.foto-del').forEach(b =>
-      b.addEventListener('click', () => { fotos.splice(Number(b.dataset.i), 1); pintarFotos(); }));
-    activarArrastre();
+      </div>`,
+      )
+      .join('')
+    campoFotos.value = fotos.join(',')
+    preview.querySelectorAll('.foto-del').forEach((b) =>
+      b.addEventListener('click', () => {
+        fotos.splice(Number(b.dataset.i), 1)
+        pintarFotos()
+      }),
+    )
+    activarArrastre()
   }
 
-  // Reordenar arrastrando
-  let arrastrando = null;
+  // Reordenar arrastrando (asignación directa para no acumular listeners)
+  let arrastrando = null
   function activarArrastre() {
-    preview.querySelectorAll('.foto-item').forEach(item => {
-      item.addEventListener('dragstart', () => { arrastrando = Number(item.dataset.i); });
-      item.addEventListener('dragover', e => e.preventDefault());
-      item.addEventListener('drop', e => {
-        e.preventDefault();
-        const destino = Number(item.dataset.i);
-        const [movida] = fotos.splice(arrastrando, 1);
-        fotos.splice(destino, 0, movida);
-        pintarFotos();
-      });
-    });
+    preview.querySelectorAll('.foto-item').forEach((item) => {
+      item.ondragstart = () => {
+        arrastrando = Number(item.dataset.i)
+      }
+      item.ondragover = (e) => e.preventDefault()
+      item.ondrop = (e) => {
+        e.preventDefault()
+        const destino = Number(item.dataset.i)
+        if (arrastrando === null || arrastrando === destino) return
+        const [movida] = fotos.splice(arrastrando, 1)
+        fotos.splice(destino, 0, movida)
+        arrastrando = null
+        pintarFotos()
+      }
+    })
   }
 
-// Comprime y redimensiona una imagen antes de subirla
-  async function comprimirImagen(file, maxLado = 1600, calidad = 0.82) {
-    // Si no es algo que el canvas pueda procesar bien, la dejamos tal cual
-    if (!file.type.startsWith('image/')) return file;
+  // ───── Conversor HEIC (se carga solo si hace falta) ─────
+  let heicPromesa = null
+  function cargarHeic() {
+    if (window.heic2any) return Promise.resolve()
+    if (heicPromesa) return heicPromesa
+    heicPromesa = new Promise((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js'
+      s.onload = () => resolve()
+      s.onerror = () =>
+        reject(new Error('No se pudo cargar el conversor de HEIC.'))
+      document.head.appendChild(s)
+    })
+    return heicPromesa
+  }
+
+  // Comprime y redimensiona a WebP. Si el navegador no decodifica el formato
+  // (típico: HEIC en Chrome), convierte primero con heic2any.
+  async function comprimirImagen(file, maxLado = 1600, calidad = 0.8) {
+    let bitmap
     try {
-      const bitmap = await createImageBitmap(file);
-      let { width, height } = bitmap;
-
-      // Reescalar manteniendo proporción si excede el máximo
-      if (width > maxLado || height > maxLado) {
-        if (width >= height) { height = Math.round(height * maxLado / width); width = maxLado; }
-        else { width = Math.round(width * maxLado / height); height = maxLado; }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
-      bitmap.close?.();
-
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/webp', calidad));
-      if (!blob) return file; // si algo falla, subimos la original
-
-      // Si por lo que sea la "comprimida" pesa más que la original, nos quedamos la original
-      if (blob.size >= file.size) return file;
-
-      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' });
+      bitmap = await createImageBitmap(file)
     } catch (e) {
-      console.warn('No se pudo comprimir, se sube original:', e);
-      return file;
+      // Formato no soportado por el navegador → intentamos convertir HEIC/HEIF
+      await cargarHeic()
+      if (!window.heic2any) throw new Error('Conversor HEIC no disponible.')
+      const conv = await window.heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.92,
+      })
+      const blobJpg = Array.isArray(conv) ? conv[0] : conv
+      bitmap = await createImageBitmap(blobJpg)
     }
+
+    let { width, height } = bitmap
+    if (width > maxLado || height > maxLado) {
+      if (width >= height) {
+        height = Math.round((height * maxLado) / width)
+        width = maxLado
+      } else {
+        width = Math.round((width * maxLado) / height)
+        height = maxLado
+      }
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height)
+    bitmap.close?.()
+
+    const blob = await new Promise((res) =>
+      canvas.toBlob(res, 'image/webp', calidad),
+    )
+    if (!blob) throw new Error('No se pudo generar el WebP.')
+
+    return new File([blob], 'foto.webp', { type: 'image/webp' })
   }
 
   async function subirArchivos(files) {
     for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      const tmp = document.createElement('div');
-      tmp.className = 'foto-item cargando';
-      tmp.innerHTML = '<span class="foto-spinner">Optimizando…</span>';
-      preview.appendChild(tmp);
+      const esImagen =
+        file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name)
+      if (!esImagen) continue
 
-      // 1) Comprimir antes de subir
-      const optimizada = await comprimirImagen(file);
+      const tmp = document.createElement('div')
+      tmp.className = 'foto-item cargando'
+      tmp.innerHTML = '<span class="foto-spinner">Optimizando…</span>'
+      preview.appendChild(tmp)
 
-      // 2) Subir la versión optimizada (siempre como .jpg)
-      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.webp`;
-      const { error } = await supabase.storage.from('coches').upload(nombre, optimizada, { cacheControl: '3600', upsert: false, contentType: 'image/webp' });
-      tmp.remove();
-      if (error) { alert('Error subiendo ' + file.name + ': ' + error.message); continue; }
+      // 1) Optimizar (convierte HEIC si hace falta + redimensiona + WebP)
+      let optimizada
+      try {
+        optimizada = await comprimirImagen(file)
+      } catch (err) {
+        tmp.remove()
+        console.error('Error optimizando', file.name, err)
+        alert(
+          `No se pudo procesar "${file.name}". ${err.message || ''}\n` +
+            `Si es una foto HEIC del iPhone, prueba de nuevo (el conversor puede tardar) o conviértela a JPG.`,
+        )
+        continue
+      }
 
-      const { data } = supabase.storage.from('coches').getPublicUrl(nombre);
-      fotos.push(data.publicUrl);
-      pintarFotos();
+      // 2) Subir el WebP optimizado
+      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`
+      const { error } = await supabase.storage
+        .from('coches')
+        .upload(nombre, optimizada, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'image/webp',
+        })
+      tmp.remove()
+      if (error) {
+        alert('Error subiendo ' + file.name + ': ' + error.message)
+        continue
+      }
+
+      const { data } = supabase.storage.from('coches').getPublicUrl(nombre)
+      fotos.push(data.publicUrl)
+      pintarFotos()
     }
   }
 
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => subirArchivos(fileInput.files));
-  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-  dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag'); subirArchivos(e.dataTransfer.files); });
+  dropzone.addEventListener('click', () => fileInput.click())
+  fileInput.addEventListener('change', () => subirArchivos(fileInput.files))
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault()
+    dropzone.classList.add('drag')
+  })
+  dropzone.addEventListener('dragleave', () =>
+    dropzone.classList.remove('drag'),
+  )
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault()
+    dropzone.classList.remove('drag')
+    subirArchivos(e.dataTransfer.files)
+  })
 
-  pintarFotos();
+  pintarFotos()
+
   // Guardar
   form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msg = document.getElementById('fv-msg');
-    const btn = document.getElementById('fv-save');
-    btn.disabled = true; btn.textContent = 'Guardando…';
+    e.preventDefault()
+    const msg = document.getElementById('fv-msg')
+    const btn = document.getElementById('fv-save')
+    btn.disabled = true
+    btn.textContent = 'Guardando…'
 
-    const num = (n) => form[n].value === '' ? null : Number(form[n].value);
-    const lista = (n) => form[n].value.split(',').map(s => s.trim()).filter(Boolean);
+    const num = (n) => (form[n].value === '' ? null : Number(form[n].value))
+    const lista = (n) =>
+      form[n].value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
 
-    // Datos públicos (tabla vehiculos)
     const datos = {
-      marca: form.marca.value.trim(), modelo: form.modelo.value.trim(), version: form.version.value.trim() || null,
-      anio: num('anio'), km: num('km'), estado: form.estado.value, carroceria: form.carroceria.value,
-      combustible: form.combustible.value, cambio: form.cambio.value, potencia_cv: num('potencia_cv'),
-      descripcion: form.descripcion.value.trim() || null, equipamiento: lista('equipamiento'), fotos: lista('fotos'),
-      matriculacion: form.matriculacion.value || null, traccion: form.traccion.value || null,
-      puertas: num('puertas'), plazas: num('plazas'), consumo: num('consumo'), emisiones_co2: num('emisiones_co2'),
-      vel_maxima: num('vel_maxima'), aceleracion: num('aceleracion'), peso_kg: num('peso_kg'),
-      deposito_l: num('deposito_l'), maletero_l: num('maletero_l'),
-      largo_m: num('largo_m'), ancho_m: num('ancho_m'), alto_m: num('alto_m'),
-      precio: num('precio'), precio_anterior: num('precio_anterior'), slug: form.slug.value.trim(),
-      certificado: form.certificado.checked, destacado: form.destacado.checked,
-      ocasion_semana: form.ocasion_semana.checked, publicado: form.publicado.checked,
+      marca: form.marca.value.trim(),
+      modelo: form.modelo.value.trim(),
+      version: form.version.value.trim() || null,
+      anio: num('anio'),
+      km: num('km'),
+      estado: form.estado.value,
+      carroceria: form.carroceria.value,
+      combustible: form.combustible.value,
+      cambio: form.cambio.value,
+      potencia_cv: num('potencia_cv'),
+      descripcion: form.descripcion.value.trim() || null,
+      equipamiento: lista('equipamiento'),
+      fotos: lista('fotos'),
+      matriculacion: form.matriculacion.value || null,
+      traccion: form.traccion.value || null,
+      puertas: num('puertas'),
+      plazas: num('plazas'),
+      consumo: num('consumo'),
+      emisiones_co2: num('emisiones_co2'),
+      vel_maxima: num('vel_maxima'),
+      aceleracion: num('aceleracion'),
+      peso_kg: num('peso_kg'),
+      deposito_l: num('deposito_l'),
+      maletero_l: num('maletero_l'),
+      largo_m: num('largo_m'),
+      ancho_m: num('ancho_m'),
+      alto_m: num('alto_m'),
+      precio: num('precio'),
+      precio_anterior: num('precio_anterior'),
+      slug: form.slug.value.trim(),
+      certificado: form.certificado.checked,
+      destacado: form.destacado.checked,
+      ocasion_semana: form.ocasion_semana.checked,
+      publicado: form.publicado.checked,
       reservado: form.reservado?.checked ?? false,
-    };
+    }
 
-    let vehiculoId = idEdicion;
-    let error;
+    let vehiculoId = idEdicion
+    let error
 
     if (esEdicion) {
-      ({ error } = await supabase.from('vehiculos').update(datos).eq('id', idEdicion));
+      ;({ error } = await supabase
+        .from('vehiculos')
+        .update(datos)
+        .eq('id', idEdicion))
     } else {
-      const { data, error: e2 } = await supabase.from('vehiculos').insert(datos).select('id').single();
-      error = e2; if (data) vehiculoId = data.id;
+      const { data, error: e2 } = await supabase
+        .from('vehiculos')
+        .insert(datos)
+        .select('id')
+        .single()
+      error = e2
+      if (data) vehiculoId = data.id
     }
 
     if (error) {
-      msg.hidden = false; msg.className = 'fv-msg error';
-      msg.textContent = error.message.includes('duplicate') ? 'Ya existe un coche con esa URL (slug). Cámbiala en el paso 3.' : 'Error: ' + error.message;
-      btn.disabled = false; btn.textContent = esEdicion ? 'Guardar cambios' : 'Crear vehículo';
-      return;
+      msg.hidden = false
+      msg.className = 'fv-msg error'
+      msg.textContent = error.message.includes('duplicate')
+        ? 'Ya existe un coche con esa URL (slug). Cámbiala en el paso 3.'
+        : 'Error: ' + error.message
+      btn.disabled = false
+      btn.textContent = esEdicion ? 'Guardar cambios' : 'Crear vehículo'
+      return
     }
 
-    // Datos privados (tabla vehiculos_privado) — solo si hay algo
-    const priv = { vehiculo_id: vehiculoId, precio_compra: num('precio_compra'), gastos: num('gastos') || 0, notas_internas: form.notas_internas.value.trim() || null };
+    const priv = {
+      vehiculo_id: vehiculoId,
+      precio_compra: num('precio_compra'),
+      gastos: num('gastos') || 0,
+      notas_internas: form.notas_internas.value.trim() || null,
+    }
     if (priv.precio_compra !== null || priv.notas_internas || priv.gastos) {
-      await supabase.from('vehiculos_privado').upsert(priv);
+      await supabase.from('vehiculos_privado').upsert(priv)
     }
 
-    // Si se marcó "avisar" y el coche está publicado, notificar a los suscriptores
     if (form.avisar?.checked && datos.publicado && vehiculoId) {
       try {
         const res = await fetch('/api/notificar', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ vehiculoId, tipo: esEdicion ? 'bajada' : 'nuevo' }),
-        });
-        const r = await res.json();
-        console.log('Aviso:', r);
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vehiculoId,
+            tipo: esEdicion ? 'bajada' : 'nuevo',
+          }),
+        })
+        const r = await res.json()
+        console.log('Aviso:', r)
       } catch (err) {
-        console.error('No se pudo enviar el aviso:', err);
+        console.error('No se pudo enviar el aviso:', err)
       }
     }
-    window.location.href = '/admin/vehiculos';
-  });
+    window.location.href = '/admin/vehiculos'
+  })
 </script>
