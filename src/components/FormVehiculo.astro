@@ -538,14 +538,38 @@ const esEdicion = !!vehiculo
     return heicPromesa
   }
 
-  // Comprime y redimensiona a WebP. Si el navegador no decodifica el formato
-  // (típico: HEIC en Chrome), convierte primero con heic2any.
-  async function comprimirImagen(file, maxLado = 1600, calidad = 0.8) {
-    let bitmap
+  // Detecta formatos RAW que el navegador NO puede procesar
+  function esRaw(file) {
+    return /\.(dng|raw|cr2|cr3|nef|arw|orf|rw2|raf|srw|pef)$/i.test(file.name)
+  }
+
+  // Detecta HEIC/HEIF por tipo, extensión y por los bytes (lo más fiable)
+  async function esHeic(file) {
+    if (/image\/heic|image\/heif/i.test(file.type)) return true
+    if (/\.(heic|heif)$/i.test(file.name)) return true
     try {
-      bitmap = await createImageBitmap(file)
-    } catch (e) {
-      // Formato no soportado por el navegador → intentamos convertir HEIC/HEIF
+      const buf = new Uint8Array(await file.slice(0, 12).arrayBuffer())
+      const marca = String.fromCharCode(...buf.slice(4, 12))
+      return /ftyp(heic|heix|hevc|heim|heis|hevm|hevs|mif1|msf1)/i.test(marca)
+    } catch {
+      return false
+    }
+  }
+
+  // Comprime y redimensiona a WebP.
+  async function comprimirImagen(file, maxLado = 1600, calidad = 0.8) {
+    // Los RAW/DNG no los puede procesar el navegador → avisamos
+    if (esRaw(file)) {
+      throw new Error(
+        'Las fotos en formato RAW/DNG no se pueden subir a la web (son de edición profesional y pesan demasiado). ' +
+          'Por favor, expórtalas a JPEG o HEIC antes de subirlas.',
+      )
+    }
+
+    let fuente = file
+
+    // Si es HEIC/HEIF, convertir a JPEG antes de tocar el canvas
+    if (await esHeic(file)) {
       await cargarHeic()
       if (!window.heic2any) throw new Error('Conversor HEIC no disponible.')
       const conv = await window.heic2any({
@@ -553,10 +577,29 @@ const esEdicion = !!vehiculo
         toType: 'image/jpeg',
         quality: 0.92,
       })
-      const blobJpg = Array.isArray(conv) ? conv[0] : conv
-      bitmap = await createImageBitmap(blobJpg)
+      fuente = Array.isArray(conv) ? conv[0] : conv
     }
 
+    // Decodificar
+    let bitmap
+    try {
+      bitmap = await createImageBitmap(fuente)
+    } catch (e) {
+      await cargarHeic()
+      if (window.heic2any) {
+        const conv = await window.heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.92,
+        })
+        const blobJpg = Array.isArray(conv) ? conv[0] : conv
+        bitmap = await createImageBitmap(blobJpg)
+      } else {
+        throw e
+      }
+    }
+
+    // Reescalar manteniendo proporción
     let { width, height } = bitmap
     if (width > maxLado || height > maxLado) {
       if (width >= height) {
@@ -574,6 +617,7 @@ const esEdicion = !!vehiculo
     canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height)
     bitmap.close?.()
 
+    // Exportar a WebP ligero
     const blob = await new Promise((res) =>
       canvas.toBlob(res, 'image/webp', calidad),
     )
