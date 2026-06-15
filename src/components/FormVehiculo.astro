@@ -558,6 +558,12 @@ const esEdicion = !!vehiculo
 
   // Comprime y redimensiona a WebP.
   async function comprimirImagen(file, maxLado = 1600, calidad = 0.8) {
+    console.log(
+      '🟢 NUEVA versión activa. Archivo:',
+      file.name,
+      file.type,
+      (file.size / 1024 / 1024).toFixed(2) + 'MB',
+    )
     // Los RAW/DNG no los puede procesar el navegador → avisamos
     if (esRaw(file)) {
       throw new Error(
