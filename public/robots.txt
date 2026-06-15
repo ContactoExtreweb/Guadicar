@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin
 
 Sitemap: https://guadicar.es/sitemap-index.xml
+Sitemap: https://guadicar.es/sitemap-coches.xml
