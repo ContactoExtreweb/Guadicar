@@ -142,7 +142,7 @@ const esEdicion = !!vehiculo
         <input
           type='file'
           id='file-input'
-          accept='image/*,.heic,.heif'
+          accept='image/jpeg,image/png,image/webp'
           multiple
           hidden
         />
@@ -162,14 +162,15 @@ const esEdicion = !!vehiculo
               y2='15'></line></svg
           >
           <strong>Arrastra fotos aquí</strong>
-          <span>o haz clic para seleccionarlas desde tu ordenador</span>
+          <span>o haz clic para seleccionarlas</span>
         </div>
       </div>
       <div id='fotos-preview' class='fotos-preview'></div>
       <input type='hidden' name='fotos' value={(v.fotos ?? []).join(',')} />
       <small
         >La primera foto será la principal. Arrastra para reordenar. Pulsa la ✕
-        para quitar una.</small
+        para quitar una. <b>En iPhone, elige las fotos desde «Fototeca»</b> para que
+        se suban optimizadas.</small
       >
     </div>
   </section>
@@ -522,28 +523,12 @@ const esEdicion = !!vehiculo
     })
   }
 
-  // ───── Conversor HEIC (se carga solo si hace falta) ─────
-  let heicPromesa = null
-  function cargarHeic() {
-    if (window.heic2any) return Promise.resolve()
-    if (heicPromesa) return heicPromesa
-    heicPromesa = new Promise((resolve, reject) => {
-      const s = document.createElement('script')
-      s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js'
-      s.onload = () => resolve()
-      s.onerror = () =>
-        reject(new Error('No se pudo cargar el conversor de HEIC.'))
-      document.head.appendChild(s)
-    })
-    return heicPromesa
-  }
-
   // Detecta formatos RAW que el navegador NO puede procesar
   function esRaw(file) {
     return /\.(dng|raw|cr2|cr3|nef|arw|orf|rw2|raf|srw|pef)$/i.test(file.name)
   }
 
-  // Detecta HEIC/HEIF por tipo, extensión y por los bytes (lo más fiable)
+  // Detecta HEIC/HEIF por tipo, extensión y por los bytes (firma ftyp)
   async function esHeic(file) {
     if (/image\/heic|image\/heif/i.test(file.type)) return true
     if (/\.(heic|heif)$/i.test(file.name)) return true
@@ -556,56 +541,31 @@ const esEdicion = !!vehiculo
     }
   }
 
-  // Comprime y redimensiona a WebP.
-  async function comprimirImagen(file, maxLado = 1600, calidad = 0.8) {
-    console.log(
-      '🟢 NUEVA versión activa. Archivo:',
-      file.name,
-      file.type,
-      (file.size / 1024 / 1024).toFixed(2) + 'MB',
-    )
-    // Los RAW/DNG no los puede procesar el navegador → avisamos
+  async function comprimirImagen(file, maxLado = 1400, calidad = 0.75) {
+    const esH = await esHeic(file)
     if (esRaw(file)) {
-      throw new Error(
-        'Las fotos en formato RAW/DNG no se pueden subir a la web (son de edición profesional y pesan demasiado). ' +
-          'Por favor, expórtalas a JPEG o HEIC antes de subirlas.',
-      )
+      throw new Error('RAW/DNG no soportado. Exporta a JPEG.')
     }
 
     let fuente = file
 
-    // Si es HEIC/HEIF, convertir a JPEG antes de tocar el canvas
-    if (await esHeic(file)) {
-      await cargarHeic()
-      if (!window.heic2any) throw new Error('Conversor HEIC no disponible.')
-      const conv = await window.heic2any({
-        blob: file,
-        toType: 'image/jpeg',
-        quality: 0.92,
-      })
-      fuente = Array.isArray(conv) ? conv[0] : conv
-    }
-
-    // Decodificar
-    let bitmap
-    try {
-      bitmap = await createImageBitmap(fuente)
-    } catch (e) {
-      await cargarHeic()
-      if (window.heic2any) {
-        const conv = await window.heic2any({
+    if (esH) {
+      try {
+        const { default: heic2any } = await import('heic2any')
+        const conv = await heic2any({
           blob: file,
           toType: 'image/jpeg',
           quality: 0.92,
         })
-        const blobJpg = Array.isArray(conv) ? conv[0] : conv
-        bitmap = await createImageBitmap(blobJpg)
-      } else {
-        throw e
+        fuente = Array.isArray(conv) ? conv[0] : conv
+      } catch (err) {
+        alert('2) ERROR al convertir HEIC: ' + (err.message || err))
+        throw new Error('No se pudo convertir el HEIC.')
       }
     }
 
-    // Reescalar manteniendo proporción
+    const bitmap = await createImageBitmap(fuente)
+
     let { width, height } = bitmap
     if (width > maxLado || height > maxLado) {
       if (width >= height) {
@@ -623,13 +583,12 @@ const esEdicion = !!vehiculo
     canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height)
     bitmap.close?.()
 
-    // Exportar a WebP ligero
     const blob = await new Promise((res) =>
-      canvas.toBlob(res, 'image/webp', calidad),
+      canvas.toBlob(res, 'image/jpeg', calidad),
     )
-    if (!blob) throw new Error('No se pudo generar el WebP.')
+    if (!blob) throw new Error('No se pudo generar la imagen.')
 
-    return new File([blob], 'foto.webp', { type: 'image/webp' })
+    return new File([blob], 'foto.jpg', { type: 'image/jpeg' })
   }
 
   async function subirArchivos(files) {
@@ -643,28 +602,23 @@ const esEdicion = !!vehiculo
       tmp.innerHTML = '<span class="foto-spinner">Optimizando…</span>'
       preview.appendChild(tmp)
 
-      // 1) Optimizar (convierte HEIC si hace falta + redimensiona + WebP)
       let optimizada
       try {
         optimizada = await comprimirImagen(file)
       } catch (err) {
         tmp.remove()
         console.error('Error optimizando', file.name, err)
-        alert(
-          `No se pudo procesar "${file.name}". ${err.message || ''}\n` +
-            `Si es una foto HEIC del iPhone, prueba de nuevo (el conversor puede tardar) o conviértela a JPG.`,
-        )
+        alert(`No se pudo procesar "${file.name}".\n\n${err.message || ''}`)
         continue
       }
 
-      // 2) Subir el WebP optimizado
-      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`
+      const nombre = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
       const { error } = await supabase.storage
         .from('coches')
         .upload(nombre, optimizada, {
           cacheControl: '3600',
           upsert: false,
-          contentType: 'image/webp',
+          contentType: 'image/jpeg',
         })
       tmp.remove()
       if (error) {
