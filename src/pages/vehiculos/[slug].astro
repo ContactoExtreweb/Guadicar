@@ -18,9 +18,12 @@ const schemaCoche = {
   '@context': 'https://schema.org',
   '@type': 'Car',
   name: `${v.marca} ${v.modelo} ${v.version ?? ''}`.trim(),
+  description: desc,
   brand: { '@type': 'Brand', name: v.marca },
   model: v.modelo,
   vehicleModelDate: String(v.anio),
+  productionDate: String(v.anio),
+  ...(v.matriculacion && { dateVehicleFirstRegistered: v.matriculacion }),
   mileageFromOdometer: {
     '@type': 'QuantitativeValue',
     value: v.km,
@@ -28,14 +31,72 @@ const schemaCoche = {
   },
   fuelType: v.combustible,
   vehicleTransmission: v.cambio,
+  ...(v.carroceria && { bodyType: v.carroceria }),
+  ...(v.puertas && { numberOfDoors: v.puertas }),
+  ...(v.plazas && {
+    vehicleSeatingCapacity: v.plazas,
+  }),
+  ...(v.potencia && {
+    vehicleEngine: {
+      '@type': 'EngineSpecification',
+      enginePower: {
+        '@type': 'QuantitativeValue',
+        value: v.potencia,
+        unitCode: 'N12', // CV
+      },
+    },
+  }),
+  ...(v.traccion && { driveWheelConfiguration: v.traccion }),
   image: v.fotos,
+  itemCondition: 'https://schema.org/UsedCondition',
   offers: {
     '@type': 'Offer',
     price: v.precio,
     priceCurrency: 'EUR',
-    availability: 'https://schema.org/InStock',
-    seller: { '@type': 'AutoDealer', name: 'GuadiCar Multimarcas' },
+    availability: v.reservado
+      ? 'https://schema.org/OutOfStock'
+      : 'https://schema.org/InStock',
+    itemCondition: 'https://schema.org/UsedCondition',
+    url: `https://guadicar.es/vehiculos/${v.slug}`,
+    seller: {
+      '@type': 'AutoDealer',
+      name: 'GuadiCar Multimarcas',
+      telephone: '+34722496124',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Polígono Cagancha, 39',
+        addressLocality: 'Villanueva de la Serena',
+        addressRegion: 'Badajoz',
+        postalCode: '06700',
+        addressCountry: 'ES',
+      },
+    },
   },
+}
+
+const schemaBreadcrumb = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Inicio',
+      item: 'https://guadicar.es/',
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Vehículos',
+      item: 'https://guadicar.es/vehiculos',
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: `${v.marca} ${v.modelo}`,
+      item: `https://guadicar.es/vehiculos/${v.slug}`,
+    },
+  ],
 }
 
 const ic = {
@@ -787,6 +848,10 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
   </section>
 
   <script type='application/ld+json' set:html={JSON.stringify(schemaCoche)} />
+  <script
+    type='application/ld+json'
+    set:html={JSON.stringify(schemaBreadcrumb)}
+  />
 
   <style>
     .ficha {

@@ -21,7 +21,7 @@ const {
   solidNav = true, // true en páginas que siempre deben tener navbar sólido
 } = Astro.props
 
-const SITE = Astro.site ?? new URL('https://pruebaguadicar.netlify.app')
+const SITE = Astro.site ?? new URL('https://guadicar.es')
 const canonical = new URL(Astro.url.pathname, SITE).href
 
 // Datos estructurados para SEO local (Google)
@@ -33,6 +33,21 @@ const negocio = {
   url: Astro.site,
   telephone: '+34696352820',
   email: 'ventas@guadicar.es',
+  priceRange: '€€',
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 38.9678152,
+    longitude: -5.8003009,
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    reviewCount: '11',
+  },
+  sameAs: [
+    'https://www.instagram.com/guadicar_multimarcas',
+    'https://www.facebook.com/profile.php?id=61569940076321',
+  ],
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Polígono Cagancha, 39',
