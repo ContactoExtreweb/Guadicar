@@ -50,8 +50,9 @@ export async function POST({ request }) {
     try {
       const esCarta = tipo === 'carta'
       await resend.emails.send({
-        from: 'GuadiCar Web <onboarding@resend.dev>', // ← cambiar a web@guadicar.es cuando se verifique el dominio
-        to: import.meta.env.LEAD_EMAIL_TO,
+        from: 'GuadiCar Web <ventas@guadicar.es>',
+        to: 'ventas@guadicar.es',
+        replyTo: email || undefined,
         subject: esCarta
           ? `🔍 Nueva búsqueda "a la carta" de ${nombre}`
           : `📩 Nuevo contacto web de ${nombre}`,
