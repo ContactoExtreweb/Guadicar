@@ -1,82 +1,151 @@
 ---
-const { variant = 'section' } = Astro.props;
+const { variant = 'section' } = Astro.props
 ---
-{variant === 'popup' ? (
-  <div class="nl-popup" id="nl-popup" hidden>
-    <div class="nl-popup-card">
-      <button class="nl-popup-close" id="nl-popup-close" aria-label="Cerrar">✕</button>
-      <div class="nl-popup-ico">🔔</div>
-      <h3>No te pierdas ninguna oportunidad</h3>
-      <p>Suscríbete y recibe los coches nuevos y las bajadas de precio antes que nadie.</p>
-      <form class="nl-form" data-variant="popup">
-        <input type="email" name="email" placeholder="Tu email" required />
-        <button type="submit">Suscribirme</button>
-      </form>
-      <p class="nl-msg" hidden></p>
-    </div>
-  </div>
-) : variant === 'footer' ? (
-  <div class="nl-footer">
-    <strong>Recibe nuestras ofertas</strong>
-    <form class="nl-form" data-variant="footer">
-      <input type="email" name="email" placeholder="Tu email" required />
-      <button type="submit">Suscribirme</button>
-    </form>
-    <p class="nl-msg" hidden></p>
-  </div>
-) : (
-  <section class="nl-section">
-    <div class="nl-section-inner">
-      <div class="nl-section-text">
-        <span class="tag" style="color:var(--red);">Newsletter</span>
-        <h2>Entérate antes que nadie</h2>
-        <p>Coches nuevos, bajadas de precio y ofertas exclusivas directamente en tu correo. Sin spam, solo lo importante.</p>
+
+{
+  variant === 'popup' ? (
+    <div class='nl-popup' id='nl-popup' hidden>
+      <div class='nl-popup-card'>
+        <button class='nl-popup-close' id='nl-popup-close' aria-label='Cerrar'>
+          ✕
+        </button>
+        <div class='nl-popup-ico'>🔔</div>
+        <h3>No te pierdas ninguna oportunidad</h3>
+        <p>
+          Suscríbete y recibe los coches nuevos y las bajadas de precio antes
+          que nadie.
+        </p>
+        <form class='nl-form' data-variant='popup'>
+          <input type='email' name='email' placeholder='Tu email' required />
+          <div class='nl-hp' aria-hidden='true'>
+            <input
+              type='text'
+              name='empresa'
+              tabindex='-1'
+              autocomplete='off'
+            />
+          </div>
+          <button type='submit'>Suscribirme</button>
+        </form>
+        <p class='nl-msg' hidden />
       </div>
-      <form class="nl-form nl-form--big" data-variant="section">
-        <input type="email" name="email" placeholder="Introduce tu email" required />
-        <button type="submit">Suscribirme</button>
-      </form>
     </div>
-    <p class="nl-msg nl-msg--center" hidden></p>
-  </section>
-)}
+  ) : variant === 'footer' ? (
+    <div class='nl-footer'>
+      <strong>Recibe nuestras ofertas</strong>
+      <form class='nl-form' data-variant='footer'>
+        <input type='email' name='email' placeholder='Tu email' required />
+        <div class='nl-hp' aria-hidden='true'>
+          <input type='text' name='empresa' tabindex='-1' autocomplete='off' />
+        </div>
+        <button type='submit'>Suscribirme</button>
+      </form>
+      <p class='nl-msg' hidden />
+    </div>
+  ) : (
+    <section class='nl-section'>
+      <div class='nl-section-inner'>
+        <div class='nl-section-text'>
+          <span class='tag' style='color:var(--red);'>
+            Newsletter
+          </span>
+          <h2>Entérate antes que nadie</h2>
+          <p>
+            Coches nuevos, bajadas de precio y ofertas exclusivas directamente
+            en tu correo. Sin spam, solo lo importante.
+          </p>
+        </div>
+        <form class='nl-form nl-form--big' data-variant='section'>
+          <input
+            type='email'
+            name='email'
+            placeholder='Introduce tu email'
+            required
+          />
+          <div class='nl-hp' aria-hidden='true'>
+            <input
+              type='text'
+              name='empresa'
+              tabindex='-1'
+              autocomplete='off'
+            />
+          </div>
+          <button type='submit'>Suscribirme</button>
+        </form>
+      </div>
+      <p class='nl-msg nl-msg--center' hidden />
+    </section>
+  )
+}
 
 <script>
   // @ts-nocheck
-  (() => {
-    document.querySelectorAll('.nl-form').forEach(form => {
+  ;(() => {
+    const cargadoEn = Date.now() // para detectar envíos instantáneos (bots)
+
+    document.querySelectorAll('.nl-form').forEach((form) => {
       form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = form.querySelector('button');
-        const input = form.querySelector('input[name=email]');
-        const wrap = form.closest('.nl-section, .nl-footer, .nl-popup-card');
-        const msg = wrap?.querySelector('.nl-msg');
-        const original = btn.textContent;
-        btn.disabled = true; btn.textContent = '…';
+        e.preventDefault()
+        const btn = form.querySelector('button')
+        const input = form.querySelector('input[name=email]')
+        const trampa = form.querySelector('input[name=empresa]')
+        const wrap = form.closest('.nl-section, .nl-footer, .nl-popup-card')
+        const msg = wrap?.querySelector('.nl-msg')
+        const original = btn.textContent
+        btn.disabled = true
+        btn.textContent = '…'
         try {
           const res = await fetch('/api/suscribir', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: input.value }),
-          });
-          if (!res.ok) throw new Error();
-          if (msg) { msg.classList.remove('error'); msg.textContent = '¡Suscrito! Te avisaremos de las novedades.'; msg.hidden = false; }
-          form.reset();
-          if (form.dataset.variant === 'popup') localStorage.setItem('nl_popup_done', '1');
-        } catch {
-          if (msg) { msg.classList.add('error'); msg.textContent = 'No se pudo completar. Inténtalo de nuevo.'; msg.hidden = false; }
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: input.value,
+              empresa: trampa?.value || '',
+              ts: cargadoEn,
+            }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok) throw new Error(data.error || '')
+          if (msg) {
+            msg.classList.remove('error')
+            msg.textContent = '¡Suscrito! Te avisaremos de las novedades.'
+            msg.hidden = false
+          }
+          form.reset()
+          if (form.dataset.variant === 'popup')
+            localStorage.setItem('nl_popup_done', '1')
+        } catch (err) {
+          if (msg) {
+            msg.classList.add('error')
+            msg.textContent =
+              err.message || 'No se pudo completar. Inténtalo de nuevo.'
+            msg.hidden = false
+          }
         } finally {
-          btn.disabled = false; btn.textContent = original;
+          btn.disabled = false
+          btn.textContent = original
         }
-      });
-    });
+      })
+    })
 
     // Popup a los 8 segundos (si no se ha cerrado o suscrito antes)
-    const popup = document.getElementById('nl-popup');
+    const popup = document.getElementById('nl-popup')
     if (popup && !localStorage.getItem('nl_popup_done')) {
-      setTimeout(() => { popup.hidden = false; requestAnimationFrame(() => popup.classList.add('open')); }, 8000);
-      const cerrar = () => { popup.classList.remove('open'); setTimeout(() => popup.hidden = true, 300); localStorage.setItem('nl_popup_done', '1'); };
-      document.getElementById('nl-popup-close')?.addEventListener('click', cerrar);
-      popup.addEventListener('click', (e) => { if (e.target === popup) cerrar(); });
+      setTimeout(() => {
+        popup.hidden = false
+        requestAnimationFrame(() => popup.classList.add('open'))
+      }, 8000)
+      const cerrar = () => {
+        popup.classList.remove('open')
+        setTimeout(() => (popup.hidden = true), 300)
+        localStorage.setItem('nl_popup_done', '1')
+      }
+      document
+        .getElementById('nl-popup-close')
+        ?.addEventListener('click', cerrar)
+      popup.addEventListener('click', (e) => {
+        if (e.target === popup) cerrar()
+      })
     }
-  })();
+  })()
 </script>

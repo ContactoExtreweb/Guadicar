@@ -64,6 +64,16 @@ import Base from '../layouts/Base.astro'
       <div class='contacto-form-box'>
         <h2>Envíanos un mensaje</h2>
         <form id='form-contacto' class='contacto-form'>
+          <div class='cf-hp' aria-hidden='true'>
+            <label
+              >No rellenar<input
+                type='text'
+                name='empresa'
+                tabindex='-1'
+                autocomplete='off'
+              /></label
+            >
+          </div>
           <div id='coche-interes' class='coche-interes' hidden>
             Consultas sobre: <strong id='coche-nombre'></strong>
           </div>
@@ -257,6 +267,15 @@ import Base from '../layouts/Base.astro'
         grid-template-columns: 1fr;
       }
     }
+    .cf-hp {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 
   <script>
@@ -275,6 +294,7 @@ import Base from '../layouts/Base.astro'
     const form = document.getElementById('form-contacto')
     const btn = document.getElementById('cf-btn')
     const msg = document.getElementById('cf-msg')
+    const cargadoEn = Date.now() // para detectar envíos instantáneos (bots)
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -287,6 +307,8 @@ import Base from '../layouts/Base.astro'
         telefono: form.telefono.value,
         email: form.email.value,
         mensaje: form.mensaje.value,
+        empresa: form.empresa.value, // trampa: las personas lo dejan vacío
+        ts: cargadoEn,
         vehiculo_nombre: coche
           ? document.getElementById('coche-nombre').textContent
           : null,
@@ -298,15 +320,17 @@ import Base from '../layouts/Base.astro'
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
-        if (!res.ok) throw new Error()
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || '')
         msg.className = 'cf-msg ok'
         msg.textContent = '¡Mensaje enviado! Te contactaremos lo antes posible.'
         msg.hidden = false
         form.reset()
         document.getElementById('coche-interes').hidden = true
-      } catch {
+      } catch (err) {
         msg.className = 'cf-msg error'
         msg.textContent =
+          err.message ||
           'Hubo un problema al enviar. Llámanos al 722 49 61 24 o inténtalo de nuevo.'
         msg.hidden = false
       } finally {

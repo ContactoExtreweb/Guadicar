@@ -2786,3 +2786,12 @@ button {
     margin-bottom: 0.15rem;
   }
 }
+.nl-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
