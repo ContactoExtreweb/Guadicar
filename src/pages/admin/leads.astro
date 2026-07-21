@@ -1,94 +1,247 @@
 ---
-import Admin from '../../layouts/Admin.astro';
-import AdminNav from '../../components/AdminNav.astro';
+import Admin from '../../layouts/Admin.astro'
+import AdminNav from '../../components/AdminNav.astro'
 ---
-<Admin title="Leads · GuadiCar">
-  <div id="gate" class="admin-gate">Comprobando acceso…</div>
 
-  <div id="panel" hidden>
-    <AdminNav activo="leads" />
-    <main class="admin-main">
-      <div class="admin-titlebar">
+<Admin title='Leads · GuadiCar'>
+  <div id='gate' class='admin-gate'>Comprobando acceso…</div>
+
+  <div id='panel' hidden>
+    <AdminNav activo='leads' />
+    <main class='admin-main'>
+      <div class='admin-titlebar'>
         <h1>Notificaciones</h1>
-        <span id="lead-contador" class="lead-contador"></span>
+        <span id='lead-contador' class='lead-contador'></span>
       </div>
 
-      <div class="lead-filtros">
-        <input id="lead-buscar" type="search" placeholder="Buscar por nombre, teléfono o email…" />
-        <select id="lead-tipo"><option value="">Todos los tipos</option></select>
-        <select id="lead-estado"><option value="">Todos los estados</option></select>
+      <div class='lead-filtros'>
+        <input
+          id='lead-buscar'
+          type='search'
+          placeholder='Buscar por nombre, teléfono o email…'
+        />
+        <select id='lead-tipo'><option value=''>Todos los tipos</option></select
+        >
+        <select id='lead-estado'
+          ><option value=''>Todos los estados</option></select
+        >
       </div>
 
-      <div id="lead-lista" class="lead-lista"></div>
+      <div id='lead-lista' class='lead-lista'></div>
     </main>
   </div>
 
   <style is:global>
-    .lead-contador { font-size: .85rem; font-weight: 700; color: var(--red); }
-    .lead-filtros { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
-    .lead-filtros input, .lead-filtros select { padding: .55rem .8rem; border: 1px solid var(--border); border-radius: 10px; font-family: var(--font); font-size: .9rem; background: #fff; color: var(--text); }
-    .lead-filtros input { flex: 1; min-width: 180px; }
+    .lead-contador {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--red);
+    }
+    .lead-filtros {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+    .lead-filtros input,
+    .lead-filtros select {
+      padding: 0.55rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      background: #fff;
+      color: var(--text);
+    }
+    .lead-filtros input {
+      flex: 1;
+      min-width: 180px;
+    }
 
-    .lead-lista { display: flex; flex-direction: column; gap: .7rem; }
-    .lead-card { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--lc, var(--border)); border-radius: 14px; padding: .9rem 1rem; }
-    .lead-card.atendido { opacity: .72; }
-    .lead-top { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: .4rem; }
-    .lead-nombre { font-weight: 800; color: var(--text); font-size: 1.02rem; }
-    .lead-chip { font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: #fff; padding: .14rem .5rem; border-radius: 999px; }
-    .lead-fecha { margin-left: auto; font-size: .75rem; color: var(--muted); }
-    .lead-cont { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; font-size: .9rem; margin-bottom: .3rem; }
-    .lead-cont a { color: var(--text); font-weight: 700; text-decoration: none; }
-    .lead-cont a:hover { color: var(--red); }
-    .lead-int { font-size: .85rem; color: var(--text); margin-bottom: .3rem; }
-    .lead-int b { color: var(--red); }
-    .lead-msg { font-size: .9rem; color: var(--text); background: var(--gray); border-radius: 10px; padding: .55rem .7rem; margin: .3rem 0; line-height: 1.45; white-space: pre-wrap; }
-    .lead-carta { font-size: .85rem; color: var(--muted); margin: .3rem 0; }
-    .lead-carta b { color: var(--text); }
-    .lead-acciones { display: flex; gap: .5rem; margin-top: .6rem; }
-    .lead-btn { border: 1px solid var(--border); background: #fff; color: var(--text); font-family: var(--font); font-weight: 700; font-size: .8rem; padding: .45rem .8rem; border-radius: 9px; cursor: pointer; }
-    .lead-btn.ok { background: var(--red); color: #fff; border-color: var(--red); }
-    .lead-btn.del { margin-left: auto; color: #b91c1c; }
-    .lead-vacio { color: var(--muted); background: var(--gray); border-radius: 12px; padding: 1.2rem; text-align: center; }
+    .lead-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .lead-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--lc, var(--border));
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+    }
+    .lead-card.atendido {
+      opacity: 0.72;
+    }
+    .lead-top {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .lead-nombre {
+      font-weight: 800;
+      color: var(--text);
+      font-size: 1.02rem;
+    }
+    .lead-chip {
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #fff;
+      padding: 0.14rem 0.5rem;
+      border-radius: 999px;
+    }
+    .lead-fecha {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .lead-cont {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem 1.1rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+    .lead-cont a {
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .lead-cont a:hover {
+      color: var(--red);
+    }
+    .lead-int {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .lead-int b {
+      color: var(--red);
+    }
+    .lead-msg {
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--gray);
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      margin: 0.3rem 0;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .lead-carta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0.3rem 0;
+    }
+    .lead-carta b {
+      color: var(--text);
+    }
+    .lead-acciones {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+    .lead-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-family: var(--font);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .lead-btn.ok {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+    .lead-btn.del {
+      margin-left: auto;
+      color: #b91c1c;
+    }
+    .lead-vacio {
+      color: var(--muted);
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+    }
   </style>
 
   <script>
     // @ts-nocheck
-    import { supabase } from '../../lib/supabaseBrowser.js';
+    import { supabase } from '../../lib/supabaseBrowser.js'
 
-    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    const TIPO_LABEL = { chatbot: 'Chatbot', contacto: 'Contacto', carta: 'A la carta' };
-    const TIPO_COLOR = { chatbot: '#2563eb', contacto: '#15803d', carta: '#7c3aed' };
+    const esc = (s) =>
+      String(s ?? '').replace(
+        /[&<>"]/g,
+        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+      )
+    const TIPO_LABEL = {
+      chatbot: 'Chatbot',
+      contacto: 'Contacto',
+      carta: 'A la carta',
+    }
+    const TIPO_COLOR = {
+      chatbot: '#2563eb',
+      contacto: '#15803d',
+      carta: '#7c3aed',
+    }
 
-    let leads = [];
-    const lista = document.getElementById('lead-lista');
-    const fBuscar = document.getElementById('lead-buscar');
-    const fTipo = document.getElementById('lead-tipo');
-    const fEstado = document.getElementById('lead-estado');
+    let leads = []
+    const lista = document.getElementById('lead-lista')
+    const fBuscar = document.getElementById('lead-buscar')
+    const fTipo = document.getElementById('lead-tipo')
+    const fEstado = document.getElementById('lead-estado')
 
     function resumenCarta(l) {
-      const p = [];
-      if (l.carta_marca) p.push(esc(l.carta_marca) + (l.carta_modelo ? ' ' + esc(l.carta_modelo) : ''));
-      if (l.carta_tipo) p.push(esc(l.carta_tipo));
-      if (l.carta_combustible) p.push(esc(l.carta_combustible));
-      if (l.carta_cambio) p.push(esc(l.carta_cambio));
-      if (l.carta_color) p.push('color ' + esc(l.carta_color));
-      if (l.carta_presupuesto) p.push('hasta ' + Number(l.carta_presupuesto).toLocaleString('es-ES') + ' €');
-      if (l.carta_anio_min) p.push('desde ' + l.carta_anio_min);
-      if (l.carta_km_max) p.push('máx ' + esc(l.carta_km_max) + ' km');
-      if (Array.isArray(l.carta_equipamiento) && l.carta_equipamiento.length) p.push('equip.: ' + l.carta_equipamiento.map(esc).join(', '));
-      return p.join(' · ');
+      const p = []
+      if (l.carta_marca)
+        p.push(
+          esc(l.carta_marca) +
+            (l.carta_modelo ? ' ' + esc(l.carta_modelo) : ''),
+        )
+      if (l.carta_tipo) p.push(esc(l.carta_tipo))
+      if (l.carta_combustible) p.push(esc(l.carta_combustible))
+      if (l.carta_cambio) p.push(esc(l.carta_cambio))
+      if (l.carta_color) p.push('color ' + esc(l.carta_color))
+      if (l.carta_presupuesto)
+        p.push(
+          'hasta ' + Number(l.carta_presupuesto).toLocaleString('es-ES') + ' €',
+        )
+      if (l.carta_anio_min) p.push('desde ' + l.carta_anio_min)
+      if (l.carta_km_max) p.push('máx ' + esc(l.carta_km_max) + ' km')
+      if (Array.isArray(l.carta_equipamiento) && l.carta_equipamiento.length)
+        p.push('equip.: ' + l.carta_equipamiento.map(esc).join(', '))
+      return p.join(' · ')
     }
 
     function tarjeta(l) {
-      const atendido = (l.estado || 'nuevo') === 'atendido';
-      const tLabel = TIPO_LABEL[l.tipo] || (l.tipo ? esc(l.tipo) : 'Lead');
-      const tColor = TIPO_COLOR[l.tipo] || '#64748b';
-      const fecha = new Date(l.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const atendido = (l.estado || 'nuevo') === 'atendido'
+      const tLabel = TIPO_LABEL[l.tipo] || (l.tipo ? esc(l.tipo) : 'Lead')
+      const tColor = TIPO_COLOR[l.tipo] || '#64748b'
+      const fecha = new Date(l.created_at).toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
 
-      const contacto = [];
-      if (l.telefono) contacto.push(`<a href="tel:${esc(l.telefono)}">📞 ${esc(l.telefono)}</a>`);
-      if (l.email) contacto.push(`<a href="mailto:${esc(l.email)}">✉ ${esc(l.email)}</a>`);
-      const carta = resumenCarta(l);
+      const contacto = []
+      if (l.telefono)
+        contacto.push(
+          `<a href="tel:${esc(l.telefono)}">📞 ${esc(l.telefono)}</a>`,
+        )
+      if (l.email)
+        contacto.push(`<a href="mailto:${esc(l.email)}">✉ ${esc(l.email)}</a>`)
+      const carta = resumenCarta(l)
 
       return `
       <div class="lead-card ${atendido ? 'atendido' : ''}" style="--lc:${atendido ? 'var(--border)' : 'var(--red)'}">
@@ -102,75 +255,135 @@ import AdminNav from '../../components/AdminNav.astro';
         ${l.vehiculo_nombre ? `<div class="lead-int">Interesado en: <b>${esc(l.vehiculo_nombre)}</b></div>` : ''}
         ${l.mensaje ? `<div class="lead-msg">${esc(l.mensaje)}</div>` : ''}
         <div class="lead-acciones">
-          ${atendido
-            ? `<button class="lead-btn" data-accion="estado" data-estado="nuevo" data-id="${l.id}">Marcar nuevo</button>`
-            : `<button class="lead-btn ok" data-accion="estado" data-estado="atendido" data-id="${l.id}">Marcar atendido</button>`}
+          ${
+            atendido
+              ? `<button class="lead-btn" data-accion="estado" data-estado="nuevo" data-id="${l.id}">Marcar nuevo</button>`
+              : `<button class="lead-btn ok" data-accion="estado" data-estado="atendido" data-id="${l.id}">Marcar atendido</button>`
+          }
           <button class="lead-btn del" data-accion="borrar" data-id="${l.id}">Borrar</button>
         </div>
-      </div>`;
+      </div>`
     }
 
     function render() {
-      const q = (fBuscar.value || '').toLowerCase().trim();
-      const tipo = fTipo.value, estadoF = fEstado.value;
-      const arr = leads.filter(l => {
-        if (tipo && (l.tipo || '') !== tipo) return false;
-        if (estadoF && (l.estado || 'nuevo') !== estadoF) return false;
-        if (q && !`${l.nombre || ''} ${l.telefono || ''} ${l.email || ''}`.toLowerCase().includes(q)) return false;
-        return true;
-      });
-      lista.innerHTML = arr.length ? arr.map(tarjeta).join('') : '<p class="lead-vacio">No hay leads con estos filtros.</p>';
+      const q = (fBuscar.value || '').toLowerCase().trim()
+      const tipo = fTipo.value,
+        estadoF = fEstado.value
+      const arr = leads.filter((l) => {
+        if (tipo && (l.tipo || '') !== tipo) return false
+        if (estadoF && (l.estado || 'nuevo') !== estadoF) return false
+        if (
+          q &&
+          !`${l.nombre || ''} ${l.telefono || ''} ${l.email || ''}`
+            .toLowerCase()
+            .includes(q)
+        )
+          return false
+        return true
+      })
+      lista.innerHTML = arr.length
+        ? arr.map(tarjeta).join('')
+        : '<p class="lead-vacio">No hay leads con estos filtros.</p>'
     }
 
     function actualizarContador() {
-      const nuevos = leads.filter(l => (l.estado || 'nuevo') !== 'atendido').length;
-      document.getElementById('lead-contador').textContent = leads.length ? `${leads.length} en total · ${nuevos} sin atender` : '';
+      const nuevos = leads.filter(
+        (l) => (l.estado || 'nuevo') !== 'atendido',
+      ).length
+      document.getElementById('lead-contador').textContent = leads.length
+        ? `${leads.length} en total · ${nuevos} sin atender`
+        : ''
     }
 
     function opciones(sel, valores, etiquetas) {
-      valores.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = etiquetas[v] || v; sel.appendChild(o); });
+      valores.forEach((v) => {
+        const o = document.createElement('option')
+        o.value = v
+        o.textContent = etiquetas[v] || v
+        sel.appendChild(o)
+      })
     }
 
     async function init() {
-      const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      if (error) { lista.innerHTML = `<p class="lead-vacio">Error al cargar: ${esc(error.message)}</p>`; return; }
-      leads = data || [];
-      actualizarContador();
-      opciones(fTipo, [...new Set(leads.map(l => l.tipo).filter(Boolean))], TIPO_LABEL);
-      opciones(fEstado, [...new Set(leads.map(l => l.estado || 'nuevo'))], { nuevo: 'Nuevo', atendido: 'Atendido' });
-      [fBuscar, fTipo, fEstado].forEach(el => el.addEventListener('input', render));
-      render();
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) {
+        lista.innerHTML = `<p class="lead-vacio">Error al cargar: ${esc(error.message)}</p>`
+        return
+      }
+      leads = data || []
+      actualizarContador()
+      opciones(
+        fTipo,
+        [...new Set(leads.map((l) => l.tipo).filter(Boolean))],
+        TIPO_LABEL,
+      )
+      opciones(fEstado, [...new Set(leads.map((l) => l.estado || 'nuevo'))], {
+        nuevo: 'Nuevo',
+        atendido: 'Atendido',
+      })
+      ;[fBuscar, fTipo, fEstado].forEach((el) =>
+        el.addEventListener('input', render),
+      )
+      render()
     }
 
     lista.addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-accion]');
-      if (!btn) return;
-      const id = btn.getAttribute('data-id');
-      const accion = btn.getAttribute('data-accion');
+      const btn = e.target.closest('[data-accion]')
+      if (!btn) return
+      const id = btn.getAttribute('data-id')
+      const accion = btn.getAttribute('data-accion')
 
       if (accion === 'estado') {
-        const nuevo = btn.getAttribute('data-estado');
-        const { error } = await supabase.from('leads').update({ estado: nuevo }).eq('id', id);
-        if (error) { alert('No se pudo actualizar: ' + error.message); return; }
-        const l = leads.find(x => x.id === id); if (l) l.estado = nuevo;
-        actualizarContador(); render();
+        const nuevo = btn.getAttribute('data-estado')
+        const { error } = await supabase
+          .from('leads')
+          .update({ estado: nuevo })
+          .eq('id', id)
+        if (error) {
+          alert('No se pudo actualizar: ' + error.message)
+          return
+        }
+        const l = leads.find((x) => x.id === id)
+        if (l) l.estado = nuevo
+        actualizarContador()
+        render()
       }
 
       if (accion === 'borrar') {
-        if (!confirm('¿Borrar este lead? No se puede deshacer.')) return;
-        const { error } = await supabase.from('leads').delete().eq('id', id);
-        if (error) { alert('No se pudo borrar: ' + error.message); return; }
-        leads = leads.filter(x => x.id !== id);
-        actualizarContador(); render();
+        if (!confirm('¿Borrar este lead? No se puede deshacer.')) return
+        const { data: borrados, error } = await supabase
+          .from('leads')
+          .delete()
+          .eq('id', id)
+          .select()
+        if (error) {
+          alert('No se pudo borrar: ' + error.message)
+          return
+        }
+        if (!borrados?.length) {
+          alert(
+            'No se borró nada: falta la política DELETE en la tabla leads (RLS).',
+          )
+          return
+        }
+        leads = leads.filter((x) => x.id !== id)
+        actualizarContador()
+        render()
       }
-    });
+    })
 
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) { window.location.href = '/admin/login'; return; }
-      document.getElementById('gate').hidden = true;
-      document.getElementById('panel').hidden = false;
-      init();
-    })();
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) {
+        window.location.href = '/admin/login'
+        return
+      }
+      document.getElementById('gate').hidden = true
+      document.getElementById('panel').hidden = false
+      init()
+    })()
   </script>
 </Admin>
