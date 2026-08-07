@@ -1,214 +1,496 @@
 ---
-import Admin from '../../layouts/Admin.astro';
-import AdminNav from '../../components/AdminNav.astro';
+import Admin from '../../layouts/Admin.astro'
+import AdminNav from '../../components/AdminNav.astro'
 ---
-<Admin title="Estadísticas · GuadiCar">
-  <div id="gate" class="admin-gate">Comprobando acceso…</div>
 
-  <div id="panel" hidden>
-    <AdminNav activo="estadisticas" />
-    <main class="admin-main">
-      <div class="admin-titlebar"><h1>Estadísticas</h1></div>
-      <div class="consejo-box">
-        <div class="consejo-head"><span class="consejo-ico">✦</span> Consejo de hoy</div>
-        <p id="consejo-texto" class="consejo-texto cargando">Analizando tus datos…</p>
+<Admin title='Estadísticas · GuadiCar'>
+  <div id='gate' class='admin-gate'>Comprobando acceso…</div>
+
+  <div id='panel' hidden>
+    <AdminNav activo='estadisticas' />
+    <main class='admin-main'>
+      <div class='admin-titlebar'><h1>Estadísticas</h1></div>
+      <div class='consejo-box'>
+        <div class='consejo-head'>
+          <span class='consejo-ico'>✦</span> Consejo de hoy
+        </div>
+        <p id='consejo-texto' class='consejo-texto cargando'>
+          Analizando tus datos…
+        </p>
       </div>
 
-      <div class="dash-cards" id="cards"></div>
+      <div class='dash-cards' id='cards'></div>
 
-      <div class="dash-chart-box" style="margin:1.5rem 0;">
+      <div class='dash-chart-box' style='margin:1.5rem 0;'>
         <h3>Visitas por día (últimos 30 días)</h3>
-        <div class="stats-chart"><canvas id="chartVistas"></canvas></div>
+        <div class='stats-chart'><canvas id='chartVistas'></canvas></div>
       </div>
 
-      <h3 class="stats-h">Coches más vistos <span class="stats-sub">· de tus coches publicados</span></h3>
-      <div id="ranking" class="stats-ranking"></div>
+      <h3 class='stats-h'>
+        Coches más vistos <span class='stats-sub'
+          >· de tus coches publicados</span>
+      </h3>
+      <div id='ranking' class='stats-ranking'></div>
 
-      <h3 class="stats-h">Sugerencias <span class="stats-sub">· anuncios que quizá toque revisar</span></h3>
-      <div id="sugerencias" class="sug-lista"></div>
+      <h3 class='stats-h'>
+        Sugerencias <span class='stats-sub'
+          >· anuncios que quizá toque revisar</span>
+      </h3>
+      <div id='sugerencias' class='sug-lista'></div>
     </main>
   </div>
 
   <style is:global>
-    .stats-chart { position: relative; height: 280px; }
-    .stats-h { margin: 1.8rem 0 .6rem; font-family: var(--font-h); font-size: 1.15rem; }
-    .stats-sub { color: var(--muted); font-size: .8rem; font-weight: 600; }
-    .dc-num--sm { font-size: 1.15rem !important; line-height: 1.2; }
-
-    .stats-ranking { display: flex; flex-direction: column; gap: .6rem; }
-    .stat-row { display: flex; align-items: center; gap: .9rem; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: .6rem .8rem; opacity: 0; transform: translateY(10px); animation: statIn .45s cubic-bezier(.2,.7,.3,1) forwards; animation-delay: var(--delay, 0ms); transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
-    .stat-row:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: rgba(225,29,42,.3); }
-    .stat-pos { flex: 0 0 auto; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--red); color: #fff; font-weight: 800; font-size: .9rem; border-radius: 9px; }
-    .stat-row img { width: 84px; height: 60px; object-fit: cover; border-radius: 10px; background: var(--gray); }
-    .stat-info { flex: 1 1 auto; min-width: 0; }
-    .stat-marca { font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .stat-precio { font-size: .8rem; color: var(--muted); margin: .05rem 0 .4rem; }
-    .stat-barra { height: 6px; background: var(--gray); border-radius: 999px; overflow: hidden; }
-    .stat-barra-fill { display: block; height: 100%; width: 0; background: var(--red); border-radius: 999px; transition: width .9s cubic-bezier(.2,.7,.3,1); }
-    .stat-vistas { flex: 0 0 auto; text-align: center; line-height: 1.1; }
-    .stat-vistas strong { display: block; font-size: 1.2rem; color: var(--red); }
-    .stat-vistas span { font-size: .7rem; color: var(--muted); }
-    .stat-link { flex: 0 0 auto; background: var(--gray); color: var(--text); text-decoration: none; font-weight: 700; font-size: .8rem; padding: .45rem .75rem; border-radius: 9px; transition: background .15s ease, color .15s ease; }
-    .stat-link:hover { background: var(--red); color: #fff; }
-
-    .sug-lista { display: flex; flex-direction: column; gap: .6rem; }
-    .sug-row { display: flex; align-items: flex-start; gap: .9rem; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--sug, #f59e0b); border-radius: 14px; padding: .7rem .85rem; }
-    .sug-row img { width: 70px; height: 52px; object-fit: cover; border-radius: 8px; background: var(--gray); flex: 0 0 auto; }
-    .sug-info { flex: 1 1 auto; min-width: 0; }
-    .sug-cab { display: flex; align-items: center; gap: .5rem; margin-bottom: .15rem; }
-    .sug-chip { color: #fff; font-size: .66rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; padding: .12rem .45rem; border-radius: 999px; }
-    .sug-marca { font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sug-titulo { font-weight: 700; color: var(--text); font-size: .92rem; }
-    .sug-motivo { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
-    .sug-accion { font-size: .82rem; color: var(--text); margin-top: .3rem; line-height: 1.4; }
-    .sug-precio { flex: 0 0 auto; text-align: right; }
-    .sug-precio b { color: var(--text); font-size: 1rem; }
-    .stat-vacio { color: var(--muted); font-size: .9rem; background: var(--gray); border-radius: 12px; padding: 1rem; }
-
-    @keyframes statIn { to { opacity: 1; transform: none; } }
-    @media (max-width: 640px) {
-      .stat-link { display: none; }
-      .stat-row img { width: 64px; height: 46px; }
-      .stat-vistas strong { font-size: 1.05rem; }
-      .sug-row { flex-wrap: wrap; }
-      .sug-precio { text-align: left; }
+    .stats-chart {
+      position: relative;
+      height: 280px;
     }
-    .consejo-box { background: var(--gray); border: 1px solid var(--border); border-left: 4px solid var(--red); border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1.5rem; }
-    .consejo-head { font-family: var(--font-h); font-weight: 800; font-size: .95rem; color: var(--red); display: flex; align-items: center; gap: .4rem; margin-bottom: .35rem; }
-    .consejo-ico { font-size: 1rem; }
-    .consejo-texto { color: var(--text); font-size: .95rem; line-height: 1.55; margin: 0; white-space: pre-wrap; }
-    .consejo-texto.cargando { color: var(--muted); font-style: italic; }
+    .stats-h {
+      margin: 1.8rem 0 0.6rem;
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+    }
+    .stats-sub {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .dc-num--sm {
+      font-size: 1.15rem !important;
+      line-height: 1.2;
+    }
+
+    .stats-ranking {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 0.6rem 0.8rem;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: statIn 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+      animation-delay: var(--delay, 0ms);
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+    }
+    .stat-row:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+      border-color: rgba(225, 29, 42, 0.3);
+    }
+    .stat-pos {
+      flex: 0 0 auto;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--red);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.9rem;
+      border-radius: 9px;
+    }
+    .stat-row img {
+      width: 84px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--gray);
+    }
+    .stat-info {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .stat-marca {
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat-precio {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0.05rem 0 0.4rem;
+    }
+    .stat-barra {
+      height: 6px;
+      background: var(--gray);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .stat-barra-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--red);
+      border-radius: 999px;
+      transition: width 0.9s cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    .stat-vistas {
+      flex: 0 0 auto;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .stat-vistas strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--red);
+    }
+    .stat-vistas span {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .stat-link {
+      flex: 0 0 auto;
+      background: var(--gray);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: 9px;
+      transition:
+        background 0.15s ease,
+        color 0.15s ease;
+    }
+    .stat-link:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .sug-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .sug-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--sug, #f59e0b);
+      border-radius: 14px;
+      padding: 0.7rem 0.85rem;
+    }
+    .sug-row img {
+      width: 70px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: var(--gray);
+      flex: 0 0 auto;
+    }
+    .sug-info {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .sug-cab {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.15rem;
+    }
+    .sug-chip {
+      color: #fff;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+    }
+    .sug-marca {
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sug-titulo {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+    .sug-motivo {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+    .sug-accion {
+      font-size: 0.82rem;
+      color: var(--text);
+      margin-top: 0.3rem;
+      line-height: 1.4;
+    }
+    .sug-precio {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+    .sug-precio b {
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .stat-vacio {
+      color: var(--muted);
+      font-size: 0.9rem;
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    @keyframes statIn {
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    @media (max-width: 640px) {
+      .stat-link {
+        display: none;
+      }
+      .stat-row img {
+        width: 64px;
+        height: 46px;
+      }
+      .stat-vistas strong {
+        font-size: 1.05rem;
+      }
+      .sug-row {
+        flex-wrap: wrap;
+      }
+      .sug-precio {
+        text-align: left;
+      }
+    }
+    .consejo-box {
+      background: var(--gray);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--red);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+    .consejo-head {
+      font-family: var(--font-h);
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--red);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+    .consejo-ico {
+      font-size: 1rem;
+    }
+    .consejo-texto {
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    .consejo-texto.cargando {
+      color: var(--muted);
+      font-style: italic;
+    }
   </style>
 
   <script>
     // @ts-nocheck
-    import { supabase } from '../../lib/supabaseBrowser.js';
-    import Chart from 'chart.js/auto';
+    import { supabase } from '../../lib/supabaseBrowser.js'
+    import Chart from 'chart.js/auto'
 
-    const fmt = (n) => Number(n).toLocaleString('es-ES');
-    const ROJO = '#e11d2a';
-    const DIA = 86400000;
-    const MEDALLAS = ['#f0b429', '#9aa3ad', '#cd7f32'];
+    const fmt = (n) => Number(n).toLocaleString('es-ES')
+    const ROJO = '#e11d2a'
+    const DIA = 86400000
+    const MEDALLAS = ['#f0b429', '#9aa3ad', '#cd7f32']
 
     function animarNumero(el) {
-      const destino = Number(el.dataset.num) || 0;
-      const dur = 700, t0 = performance.now();
+      const destino = Number(el.dataset.num) || 0
+      const dur = 700,
+        t0 = performance.now()
       function paso(t) {
-        const p = Math.min((t - t0) / dur, 1);
-        el.textContent = fmt(Math.round(destino * (1 - Math.pow(1 - p, 3))));
-        if (p < 1) requestAnimationFrame(paso);
+        const p = Math.min((t - t0) / dur, 1)
+        el.textContent = fmt(Math.round(destino * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) requestAnimationFrame(paso)
       }
-      requestAnimationFrame(paso);
+      requestAnimationFrame(paso)
     }
 
-async function cargarConsejo({ total, u7, u30, ranking }, forzar = false) {
-      const box = document.getElementById('consejo-texto');
-      const hoy = new Date().toISOString().slice(0, 10);
-      const cacheKey = 'consejo_' + hoy;
+    async function cargarConsejo({ total, u7, u30, ranking }, forzar = false) {
+      const box = document.getElementById('consejo-texto')
+      const hoy = new Date().toISOString().slice(0, 10)
+      const cacheKey = 'consejo_' + hoy
 
       if (!forzar) {
-        const guardado = localStorage.getItem(cacheKey);
-        if (guardado) { box.classList.remove('cargando'); box.textContent = guardado; return; }
+        const guardado = localStorage.getItem(cacheKey)
+        if (guardado) {
+          box.classList.remove('cargando')
+          box.textContent = guardado
+          return
+        }
       }
 
-      box.classList.add('cargando');
-      box.textContent = 'Analizando tus datos…';
+      box.classList.add('cargando')
+      box.textContent = 'Analizando tus datos…'
       try {
         const r = await fetch('/api/consejo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            total, u7, u30,
-            coches: ranking.map(x => ({ marca: x.coche.marca, modelo: x.coche.modelo, precio: x.coche.precio, visitas: x.n, dias: x.dias })),
+            total,
+            u7,
+            u30,
+            coches: ranking.map((x) => ({
+              marca: x.coche.marca,
+              modelo: x.coche.modelo,
+              precio: x.coche.precio,
+              visitas: x.n,
+              dias: x.dias,
+            })),
           }),
-        });
-        const data = await r.json();
-        box.classList.remove('cargando');
+        })
+        const data = await r.json()
+        box.classList.remove('cargando')
         if (data.consejo) {
-          box.textContent = data.consejo;
-          Object.keys(localStorage).filter(k => k.startsWith('consejo_') && k !== cacheKey).forEach(k => localStorage.removeItem(k));
-          localStorage.setItem(cacheKey, data.consejo);
+          box.textContent = data.consejo
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith('consejo_') && k !== cacheKey)
+            .forEach((k) => localStorage.removeItem(k))
+          localStorage.setItem(cacheKey, data.consejo)
         } else {
-          box.textContent = data.error || 'No se pudo generar el consejo.';
+          box.textContent = data.error || 'No se pudo generar el consejo.'
         }
       } catch {
-        box.classList.remove('cargando');
-        box.textContent = 'No se pudo generar el consejo ahora mismo.';
+        box.classList.remove('cargando')
+        box.textContent = 'No se pudo generar el consejo ahora mismo.'
       }
     }
+
     function cardNum(valor, etiqueta, color = '') {
       return `<div class="dash-card">
         <div class="dc-num" data-num="${valor}" style="${color ? `color:${color}` : ''}">0</div>
         <div class="dc-label">${etiqueta}</div>
-      </div>`;
+      </div>`
     }
     function cardTexto(valor, etiqueta) {
       return `<div class="dash-card">
         <div class="dc-num dc-num--sm">${valor}</div>
         <div class="dc-label">${etiqueta}</div>
-      </div>`;
+      </div>`
     }
 
     async function init() {
-      const [{ data: vistas, error: e1 }, { data: coches, error: e2 }] = await Promise.all([
-        supabase.from('vistas').select('vehiculo_id, created_at'),
-        supabase.from('vehiculos').select('id, slug, marca, modelo, fotos, precio, created_at, publicado'),
-      ]);
-      if (e1 || e2) {
-        document.getElementById('cards').innerHTML = 'Error al cargar: ' + ((e1 || e2).message);
-        return;
+      // Las visitas se cuentan en la base de datos (evita el límite de 1000 filas)
+      const [rDia, rCoche, rTot, rCoches] = await Promise.all([
+        supabase.rpc('vistas_por_dia', { dias: 30 }),
+        supabase.rpc('vistas_por_coche'),
+        supabase.rpc('vistas_totales'),
+        supabase
+          .from('vehiculos')
+          .select(
+            'id, slug, marca, modelo, fotos, precio, created_at, publicado',
+          ),
+      ])
+      const fallo = rDia.error || rCoche.error || rTot.error || rCoches.error
+      if (fallo) {
+        document.getElementById('cards').innerHTML =
+          'Error al cargar: ' + fallo.message
+        return
       }
 
-      const cocheById = {};
-      coches.forEach(c => { cocheById[String(c.id)] = c; });
-      const limpias = (vistas || []).filter(v => cocheById[String(v.vehiculo_id)]);
-      const ahora = Date.now();
+      const coches = rCoches.data || []
+      const ahora = Date.now()
 
-      const total = limpias.length;
-      const u7 = limpias.filter(v => ahora - new Date(v.created_at).getTime() < 7 * DIA).length;
-      const u30 = limpias.filter(v => ahora - new Date(v.created_at).getTime() < 30 * DIA).length;
+      const t = (rTot.data && rTot.data[0]) || { total: 0, u7: 0, u30: 0 }
+      const total = Number(t.total) || 0
+      const u7 = Number(t.u7) || 0
+      const u30 = Number(t.u30) || 0
 
-      const publicados = coches.filter(c => c.publicado);
-      const cuenta = {};
-      publicados.forEach(c => { cuenta[String(c.id)] = 0; });
-      limpias.forEach(v => { const k = String(v.vehiculo_id); if (k in cuenta) cuenta[k]++; });
+      const cuenta = {}
+      ;(rCoche.data || []).forEach((x) => {
+        cuenta[String(x.coche_id)] = Number(x.n) || 0
+      })
 
-      const ranking = publicados.map(c => ({
-        coche: c,
-        n: cuenta[String(c.id)],
-        dias: Math.floor((ahora - new Date(c.created_at).getTime()) / DIA),
-      })).sort((a, b) => b.n - a.n);
+      const publicados = coches.filter((c) => c.publicado)
+      const ranking = publicados
+        .map((c) => ({
+          coche: c,
+          n: cuenta[String(c.id)] || 0,
+          dias: Math.floor((ahora - new Date(c.created_at).getTime()) / DIA),
+        }))
+        .sort((a, b) => b.n - a.n)
 
-      const masVisto = ranking[0] && ranking[0].n > 0 ? ranking[0] : null;
-      const menosVisto = ranking.length ? ranking[ranking.length - 1] : null;
+      const masVisto = ranking[0] && ranking[0].n > 0 ? ranking[0] : null
+      const menosVisto = ranking.length ? ranking[ranking.length - 1] : null
 
       document.getElementById('cards').innerHTML =
         cardNum(total, 'Visitas totales', ROJO) +
         cardNum(u7, 'Últimos 7 días') +
         cardNum(u30, 'Últimos 30 días') +
-        cardTexto(masVisto ? `${masVisto.coche.marca} ${masVisto.coche.modelo}` : '—', 'Coche más visto') +
-        cardTexto(menosVisto ? `${menosVisto.coche.marca} ${menosVisto.coche.modelo}` : '—', 'Coche menos visto');
-      document.querySelectorAll('#cards .dc-num[data-num]').forEach(animarNumero);
+        cardTexto(
+          masVisto ? `${masVisto.coche.marca} ${masVisto.coche.modelo}` : '—',
+          'Coche más visto',
+        ) +
+        cardTexto(
+          menosVisto
+            ? `${menosVisto.coche.marca} ${menosVisto.coche.modelo}`
+            : '—',
+          'Coche menos visto',
+        )
+      document
+        .querySelectorAll('#cards .dc-num[data-num]')
+        .forEach(animarNumero)
 
-      const porDia = {};
-      limpias.forEach(v => { const k = v.created_at.slice(0, 10); porDia[k] = (porDia[k] || 0) + 1; });
-      const labels = [], valores = [];
+      const porDia = {}
+      ;(rDia.data || []).forEach((d) => {
+        porDia[String(d.dia).slice(0, 10)] = Number(d.n) || 0
+      })
+
+      const labels = [],
+        valores = []
       for (let i = 29; i >= 0; i--) {
-        const d = new Date(ahora - i * DIA);
-        labels.push(d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
-        valores.push(porDia[d.toISOString().slice(0, 10)] || 0);
+        const d = new Date(ahora - i * DIA)
+        labels.push(
+          d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
+        )
+        valores.push(porDia[d.toISOString().slice(0, 10)] || 0)
       }
       new Chart(document.getElementById('chartVistas'), {
         type: 'bar',
-        data: { labels, datasets: [{ data: valores, backgroundColor: ROJO, borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-      });
+        data: {
+          labels,
+          datasets: [{ data: valores, backgroundColor: ROJO, borderWidth: 0 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      })
 
-      const maxV = ranking[0]?.n || 0;
-      document.getElementById('ranking').innerHTML = ranking.length ? ranking.map((r, i) => {
-        const pct = maxV ? Math.round((r.n / maxV) * 100) : 0;
-        const medalla = i < 3 ? `style="background:${MEDALLAS[i]};color:#2c2c2a"` : '';
-        return `
+      const maxV = ranking[0]?.n || 0
+      document.getElementById('ranking').innerHTML = ranking.length
+        ? ranking
+            .map((r, i) => {
+              const pct = maxV ? Math.round((r.n / maxV) * 100) : 0
+              const medalla =
+                i < 3 ? `style="background:${MEDALLAS[i]};color:#2c2c2a"` : ''
+              return `
         <div class="stat-row" style="--delay:${i * 45}ms">
           <span class="stat-pos" ${medalla}>${i + 1}</span>
           <img src="${r.coche.fotos?.[0] ?? ''}" alt="" loading="lazy" />
@@ -219,55 +501,91 @@ async function cargarConsejo({ total, u7, u30, ranking }, forzar = false) {
           </div>
           <div class="stat-vistas"><strong>${fmt(r.n)}</strong><span>${r.n === 1 ? 'visita' : 'visitas'}</span></div>
           <a class="stat-link" href="/vehiculos/${r.coche.slug}" target="_blank" rel="noopener">Ver</a>
-        </div>`;
-      }).join('') : '<p class="stat-vacio">Aún no hay coches publicados con visitas.</p>';
+        </div>`
+            })
+            .join('')
+        : '<p class="stat-vacio">Aún no hay coches publicados con visitas.</p>'
       requestAnimationFrame(() => {
-        document.querySelectorAll('.stat-barra-fill').forEach(b => { b.style.width = b.dataset.pct + '%'; });
-      });
+        document.querySelectorAll('.stat-barra-fill').forEach((b) => {
+          b.style.width = b.dataset.pct + '%'
+        })
+      })
 
       // ───── MOTOR DE SUGERENCIAS ─────
-      const totalPub = ranking.reduce((s, r) => s + r.n, 0);
-      const media = ranking.length ? totalPub / ranking.length : 0;
+      const totalPub = ranking.reduce((s, r) => s + r.n, 0)
+      const media = ranking.length ? totalPub / ranking.length : 0
 
-      const preciosMarca = {};
-      publicados.forEach(c => { (preciosMarca[c.marca] ??= []).push(c.precio || 0); });
-      const mediaMarca = {};
+      const preciosMarca = {}
+      publicados.forEach((c) => {
+        ;(preciosMarca[c.marca] ??= []).push(c.precio || 0)
+      })
+      const mediaMarca = {}
       for (const m in preciosMarca) {
-        const a = preciosMarca[m];
-        mediaMarca[m] = a.reduce((x, y) => x + y, 0) / a.length;
+        const a = preciosMarca[m]
+        mediaMarca[m] = a.reduce((x, y) => x + y, 0) / a.length
       }
-      const cuentaMarca = (m) => publicados.filter(c => c.marca === m).length;
+      const cuentaMarca = (m) => publicados.filter((c) => c.marca === m).length
 
-      const PRIOS = { alta: 3, media: 2, baja: 1 };
-      const COLOR = { alta: '#e11d2a', media: '#f59e0b', baja: '#3b82f6' };
-      const ETIQUETA = { alta: 'Urgente', media: 'Revisar', baja: 'Aviso' };
+      const PRIOS = { alta: 3, media: 2, baja: 1 }
+      const COLOR = { alta: '#e11d2a', media: '#f59e0b', baja: '#3b82f6' }
+      const ETIQUETA = { alta: 'Urgente', media: 'Revisar', baja: 'Aviso' }
 
       function evaluar(r) {
-        const c = r.coche, n = r.n, dias = r.dias;
-        const baja5 = `bajada orientativa a ${fmt(Math.round(c.precio * 0.95))} € (−5%)`;
+        const c = r.coche,
+          n = r.n,
+          dias = r.dias
+        const baja5 = `bajada orientativa a ${fmt(Math.round(c.precio * 0.95))} € (−5%)`
 
         if (dias >= 14 && n === 0)
-          return { prio: 'alta', titulo: 'Nadie lo está viendo', motivo: `${dias} días publicado y 0 visitas`, accion: `Casi seguro que falla la primera foto, el título o el precio: nada invita al clic. Prueba una foto frontal potente y una ${baja5}.` };
+          return {
+            prio: 'alta',
+            titulo: 'Nadie lo está viendo',
+            motivo: `${dias} días publicado y 0 visitas`,
+            accion: `Casi seguro que falla la primera foto, el título o el precio: nada invita al clic. Prueba una foto frontal potente y una ${baja5}.`,
+          }
 
         if (dias >= 21 && media > 0 && n >= media * 1.6)
-          return { prio: 'media', titulo: 'Se ve mucho pero no se cierra', motivo: `${fmt(n)} visitas en ${dias} días (muy por encima de tu media)`, accion: 'El anuncio funciona; el freno suele ser el precio o el seguimiento. Llama tú a los interesados u ofrece financiación.' };
+          return {
+            prio: 'media',
+            titulo: 'Se ve mucho pero no se cierra',
+            motivo: `${fmt(n)} visitas en ${dias} días (muy por encima de tu media)`,
+            accion:
+              'El anuncio funciona; el freno suele ser el precio o el seguimiento. Llama tú a los interesados u ofrece financiación.',
+          }
 
         if (dias >= 30 && n < Math.max(media, 1))
-          return { prio: 'media', titulo: 'Pierde fuelle', motivo: `${dias} días y solo ${fmt(n)} ${n === 1 ? 'visita' : 'visitas'} (tu media es ${media.toFixed(1)})`, accion: `Una ${baja5} suele reactivar las visitas de golpe.` };
+          return {
+            prio: 'media',
+            titulo: 'Pierde fuelle',
+            motivo: `${dias} días y solo ${fmt(n)} ${n === 1 ? 'visita' : 'visitas'} (tu media es ${media.toFixed(1)})`,
+            accion: `Una ${baja5} suele reactivar las visitas de golpe.`,
+          }
 
-        const mm = mediaMarca[c.marca];
+        const mm = mediaMarca[c.marca]
         if (mm && cuentaMarca(c.marca) >= 2 && c.precio > mm * 1.25)
-          return { prio: 'baja', titulo: 'Caro frente a tus similares', motivo: `Un ${Math.round((c.precio / mm - 1) * 100)}% por encima de tu media de ${c.marca} (${fmt(Math.round(mm))} €)`, accion: 'Si el equipamiento o el estado no lo justifican, acércalo a tus otros modelos de la marca.' };
+          return {
+            prio: 'baja',
+            titulo: 'Caro frente a tus similares',
+            motivo: `Un ${Math.round((c.precio / mm - 1) * 100)}% por encima de tu media de ${c.marca} (${fmt(Math.round(mm))} €)`,
+            accion:
+              'Si el equipamiento o el estado no lo justifican, acércalo a tus otros modelos de la marca.',
+          }
 
-        return null;
+        return null
       }
 
       const sugerencias = ranking
-        .map(r => { const s = evaluar(r); return s ? { ...s, coche: r.coche } : null; })
+        .map((r) => {
+          const s = evaluar(r)
+          return s ? { ...s, coche: r.coche } : null
+        })
         .filter(Boolean)
-        .sort((a, b) => PRIOS[b.prio] - PRIOS[a.prio]);
+        .sort((a, b) => PRIOS[b.prio] - PRIOS[a.prio])
 
-      document.getElementById('sugerencias').innerHTML = sugerencias.length ? sugerencias.map(s => `
+      document.getElementById('sugerencias').innerHTML = sugerencias.length
+        ? sugerencias
+            .map(
+              (s) => `
         <div class="sug-row" style="--sug:${COLOR[s.prio]}">
           <img src="${s.coche.fotos?.[0] ?? ''}" alt="" loading="lazy" />
           <div class="sug-info">
@@ -277,17 +595,23 @@ async function cargarConsejo({ total, u7, u30, ranking }, forzar = false) {
             <div class="sug-accion">${s.accion}</div>
           </div>
           <div class="sug-precio"><b>${fmt(s.coche.precio)} €</b></div>
-        </div>`).join('') : '<p class="stat-vacio">Ninguna alerta ahora mismo: tu stock se mueve bien.</p>';
+        </div>`,
+            )
+            .join('')
+        : '<p class="stat-vacio">Ninguna alerta ahora mismo: tu stock se mueve bien.</p>'
 
-      cargarConsejo({ total, u7, u30, ranking });
+      cargarConsejo({ total, u7, u30, ranking })
     }
 
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) { window.location.href = '/admin/login'; return; }
-      document.getElementById('gate').hidden = true;
-      document.getElementById('panel').hidden = false;
-      init();
-    })();
+    ;(async () => {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) {
+        window.location.href = '/admin/login'
+        return
+      }
+      document.getElementById('gate').hidden = true
+      document.getElementById('panel').hidden = false
+      init()
+    })()
   </script>
 </Admin>
