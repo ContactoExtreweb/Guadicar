@@ -39,6 +39,7 @@ function mapRow(r) {
     precioAnterior: r.precio_anterior,
     certificado: r.certificado,
     reservado: r.reservado,
+    precioOculto: r.precio_oculto || r.reservado,
     destacado: r.destacado,
     ocasionSemana: r.ocasion_semana,
     fotos: r.fotos ?? [],

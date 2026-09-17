@@ -2795,3 +2795,8 @@ button {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Precio oculto */
+.car-price-consultar { font-family: var(--font-h); font-size: 1.15rem; font-weight: 800; color: var(--red); }
+.price-consultar { font-family: var(--font-h); font-size: 1.9rem; font-weight: 800; color: #fff; letter-spacing: -1px; line-height: 1.1; }
+.ar-precio-oculto { font-size: .8rem; font-weight: 700; color: var(--muted); white-space: nowrap; }

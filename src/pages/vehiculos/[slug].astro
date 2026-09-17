@@ -11,7 +11,9 @@ const v = await getVehiculo(slug)
 if (!v) return Astro.redirect('/404')
 
 const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`
-const desc = `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
+const desc = v.precioOculto
+  ? `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. Precio a consultar. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
+  : `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
 
 // Datos estructurados del coche para Google (rich results)
 const schemaCoche = {
@@ -264,22 +266,31 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
         </div>
 
         <div class='ficha-precio'>
-          <div class='price-main'>
-            <span class='price-num'>{fmt(v.precio)}</span><span
-              class='price-cur'>€</span
-            >
-            {
-              v.precioAnterior && (
-                <span class='price-old'>{fmt(v.precioAnterior)}€</span>
-              )
-            }
-          </div>
-          <div class='price-fin'>
-            Financiación desde <strong>{v.cuota}€/mes</strong>
-          </div>
+          {
+            v.precioOculto ? (
+              <>
+                <div class='price-consultar'>Precio a consultar</div>
+                <div class='price-fin'>
+                  Llámanos y te informamos sin compromiso
+                </div>
+              </>
+            ) : (
+              <>
+                <div class='price-main'>
+                  <>
+                    <span class='price-num'>{fmt(v.precio)}</span>
+                    <span class='price-cur'>€</span>
+                  </>
+                </div>
+                <div class='price-fin'>
+                  Financiación desde <strong>{v.cuota}€/mes</strong>
+                </div>
+              </>
+            )
+          }
         </div>
 
-        <Calculadora precio={v.precio} />
+        {!v.precioOculto && <Calculadora precio={v.precio} />}
 
         <div class='ficha-ctas'>
           <a href={`/contacto?coche=${v.slug}`} class='hero-btn-main'

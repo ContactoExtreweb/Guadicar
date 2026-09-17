@@ -132,16 +132,28 @@ const publicados = (await getVehiculos())
               <span class='car-tag'>{ocasion.cambio}</span>
             </div>
             <div class='price-box price-box--lg'>
-              <div class='price-main'>
+              {ocasion.precioOculto ? (
                 <>
-                  <span class='price-num'>{fmt(ocasion.precio)}</span>
-                  <span class='price-cur'>€</span>
+                  <div class='price-consultar' style='color:var(--text);'>
+                    Precio a consultar
+                  </div>
+                  <div class='price-fin'>
+                    Llámanos y te informamos sin compromiso
+                  </div>
                 </>
-              </div>
-              <div class='price-fin'>
-                Financiación desde <strong>{ocasion.cuota}€/mes</strong>
-              </div>
+              ) : (
+                <>
+                  <div class='price-main'>
+                    <span class='price-num'>{fmt(ocasion.precio)}</span>
+                    <span class='price-cur'>€</span>
+                  </div>
+                  <div class='price-fin'>
+                    Financiación desde <strong>{ocasion.cuota}€/mes</strong>
+                  </div>
+                </>
+              )}
             </div>
+
             <a
               href={`/vehiculos/${ocasion.slug}`}
               class='hero-btn-main'
@@ -165,6 +177,7 @@ const publicados = (await getVehiculos())
               <h2 class='s-title'>Vehículos destacados</h2>
             </>
           </div>
+
           <a
             href='/vehiculos'
             style='font-size:0.82rem;font-weight:700;color:var(--red);display:flex;align-items:center;gap:0.3rem;'
@@ -194,20 +207,26 @@ const publicados = (await getVehiculos())
                   <span class='car-tag'>{c.combustible}</span>
                 </div>
                 <div class='car-price-row'>
-                  <div class='car-price-main'>
-                    <span class='car-price'>
-                      {fmt(c.precio)}
-                      <span style='font-size:1rem;'>€</span>
-                    </span>
-                    {c.precioAnterior && (
-                      <span class='car-price-old'>
-                        {fmt(c.precioAnterior)}€
-                      </span>
-                    )}
-                  </div>
-                  <div class='car-price-fin'>
-                    Desde <strong>{c.cuota}€/mes</strong>
-                  </div>
+                  {c.precioOculto ? (
+                    <div class='car-price-consultar'>Precio a consultar</div>
+                  ) : (
+                    <>
+                      <div class='car-price-main'>
+                        <span class='car-price'>
+                          {fmt(c.precio)}
+                          <span style='font-size:1rem;'>€</span>
+                        </span>
+                        {c.precioAnterior && (
+                          <span class='car-price-old'>
+                            {fmt(c.precioAnterior)}€
+                          </span>
+                        )}
+                      </div>
+                      <div class='car-price-fin'>
+                        Desde <strong>{c.cuota}€/mes</strong>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <span class='btn-card'>Ver ficha</span>
               </div>
@@ -227,6 +246,7 @@ const publicados = (await getVehiculos())
               <h2 class='s-title'>Últimas incorporaciones</h2>
             </>
           </div>
+
           <a
             href='/vehiculos'
             style='font-size:0.82rem;font-weight:700;color:var(--red);display:flex;align-items:center;gap:0.3rem;'
@@ -256,20 +276,26 @@ const publicados = (await getVehiculos())
                   <span class='car-tag'>{c.combustible}</span>
                 </div>
                 <div class='car-price-row'>
-                  <div class='car-price-main'>
-                    <span class='car-price'>
-                      {fmt(c.precio)}
-                      <span style='font-size:1rem;'>€</span>
-                    </span>
-                    {c.precioAnterior && (
-                      <span class='car-price-old'>
-                        {fmt(c.precioAnterior)}€
-                      </span>
-                    )}
-                  </div>
-                  <div class='car-price-fin'>
-                    Desde <strong>{c.cuota}€/mes</strong>
-                  </div>
+                  {c.precioOculto ? (
+                    <div class='car-price-consultar'>Precio a consultar</div>
+                  ) : (
+                    <>
+                      <div class='car-price-main'>
+                        <span class='car-price'>
+                          {fmt(c.precio)}
+                          <span style='font-size:1rem;'>€</span>
+                        </span>
+                        {c.precioAnterior && (
+                          <span class='car-price-old'>
+                            {fmt(c.precioAnterior)}€
+                          </span>
+                        )}
+                      </div>
+                      <div class='car-price-fin'>
+                        Desde <strong>{c.cuota}€/mes</strong>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <span class='btn-card'>Ver ficha</span>
               </div>
