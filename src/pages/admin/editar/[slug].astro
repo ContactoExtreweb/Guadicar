@@ -3,25 +3,21 @@ export const prerender = false;
 import Admin from '../../../layouts/Admin.astro';
 import AdminNav from '../../../components/AdminNav.astro';
 import FormVehiculo from '../../../components/FormVehiculo.astro';
-import { supabase } from '../../../lib/supabase.js';
 
+// Los datos NO se cargan aquí: esta página se genera en el servidor, que no
+// tiene la sesión del panel. Con la clave pública solo se ven los coches
+// publicados, así que los ocultos no se podían editar y los datos privados
+// salían vacíos. Ahora los carga el navegador con la sesión del admin
+// (ver FormVehiculo.astro).
 const { slug } = Astro.params;
-// Cargamos datos públicos + privados juntos (el privado solo lo verá el admin por RLS)
-const { data: pub } = await supabase.from('vehiculos').select('*').eq('slug', slug).maybeSingle();
-const { data: priv } = pub ? await supabase.from('vehiculos_privado').select('*').eq('vehiculo_id', pub.id).maybeSingle() : { data: null };
-const vehiculo = pub ? { ...pub, ...(priv ?? {}) } : null;
 ---
 <Admin title="Editar vehículo · GuadiCar">
   <div id="gate" class="admin-gate">Comprobando acceso…</div>
   <div id="panel" hidden>
     <AdminNav activo="vehiculos" />
     <main class="admin-main">
-      {vehiculo ? (
-        <>
-          <h1 class="fv-title">Editar: {vehiculo.marca} {vehiculo.modelo}</h1>
-          <FormVehiculo vehiculo={vehiculo} />
-        </>
-      ) : <p class="admin-msg">No se encontró el vehículo.</p>}
+      <h1 class="fv-title" id="fv-titulo">Editar vehículo</h1>
+      <FormVehiculo slug={slug} />
     </main>
   </div>
   <script>

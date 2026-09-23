@@ -1,10 +1,18 @@
 ---
-const { vehiculo = null } = Astro.props
+// En edición se recibe el `slug` y los datos los carga el navegador con la
+// sesión del panel (el servidor no la tiene). `vehiculo` se mantiene por si
+// alguna página aún pasa el objeto entero.
+const { vehiculo = null, slug = '' } = Astro.props
 const v = vehiculo ?? {}
-const esEdicion = !!vehiculo
+const esEdicion = !!vehiculo || !!slug
 ---
 
-<form id='form-vehiculo' data-edicion={esEdicion} data-id={v.id ?? ''}>
+<form
+  id='form-vehiculo'
+  data-edicion={esEdicion}
+  data-id={v.id ?? ''}
+  data-slug={slug}
+>
   <!-- Navegación de pasos -->
   <div class='fv-steps'>
     <button type='button' class='fv-step on' data-step='1'>1 · General</button>
@@ -416,7 +424,8 @@ const esEdicion = !!vehiculo
 
   const form = document.getElementById('form-vehiculo')
   const esEdicion = form.dataset.edicion === 'true'
-  const idEdicion = form.dataset.id
+  const slugEdicion = form.dataset.slug || ''
+  let idEdicion = form.dataset.id || ''
   let paso = 1
 
   // Navegación por pasos
@@ -649,11 +658,96 @@ const esEdicion = !!vehiculo
 
   pintarFotos()
 
+  // ───── CARGA DE DATOS EN EDICIÓN ─────
+  // Se hace aquí, en el navegador, porque es donde está la sesión del panel:
+  // así se ven también los coches ocultos y los datos privados.
+  const CAMPOS = [
+    'marca', 'modelo', 'version', 'anio', 'km', 'estado', 'carroceria',
+    'combustible', 'cambio', 'potencia_cv', 'descripcion', 'matriculacion',
+    'traccion', 'puertas', 'plazas', 'consumo', 'emisiones_co2', 'vel_maxima',
+    'aceleracion', 'peso_kg', 'deposito_l', 'maletero_l', 'largo_m', 'ancho_m',
+    'alto_m', 'precio', 'precio_anterior', 'slug',
+  ]
+  const BANDERAS = [
+    'certificado', 'destacado', 'ocasion_semana', 'publicado', 'reservado',
+  ]
+
+  const poner = (nombre, valor) => {
+    const el = form.elements[nombre]
+    if (!el) return
+    if (el.type === 'checkbox') el.checked = !!valor
+    else el.value = valor ?? ''
+  }
+
+  function rellenar(v, priv) {
+    idEdicion = v.id
+    CAMPOS.forEach((n) => poner(n, v[n]))
+    BANDERAS.forEach((n) => poner(n, v[n]))
+    // El campo de fecha solo acepta AAAA-MM-DD
+    poner('matriculacion', String(v.matriculacion ?? '').slice(0, 10))
+    poner('equipamiento', (v.equipamiento ?? []).join(', '))
+    poner('precio_compra', priv.precio_compra)
+    poner('gastos', priv.gastos)
+    poner('notas_internas', priv.notas_internas)
+
+    fotos = Array.isArray(v.fotos) ? [...v.fotos] : []
+    pintarFotos()
+
+    const titulo = document.getElementById('fv-titulo')
+    if (titulo) titulo.textContent = `Editar: ${v.marca} ${v.modelo}`
+  }
+
+  async function cargarVehiculo() {
+    const msg = document.getElementById('fv-msg')
+    const btn = document.getElementById('fv-save')
+    btn.disabled = true
+    msg.hidden = false
+    msg.className = 'fv-msg'
+    msg.textContent = 'Cargando los datos del vehículo…'
+
+    const { data: coche, error } = await supabase
+      .from('vehiculos')
+      .select('*')
+      .eq('slug', slugEdicion)
+      .maybeSingle()
+
+    if (error || !coche) {
+      msg.className = 'fv-msg error'
+      msg.textContent = error
+        ? 'No se pudieron cargar los datos: ' + error.message
+        : 'No se encontró el vehículo.'
+      return
+    }
+
+    const { data: priv, error: ePriv } = await supabase
+      .from('vehiculos_privado')
+      .select('*')
+      .eq('vehiculo_id', coche.id)
+      .maybeSingle()
+    if (ePriv) console.warn('No se pudo leer lo privado:', ePriv.message)
+
+    rellenar(coche, priv ?? {})
+    msg.hidden = true
+    btn.disabled = false
+  }
+
+  if (esEdicion && slugEdicion) cargarVehiculo()
+
   // Guardar
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
     const msg = document.getElementById('fv-msg')
     const btn = document.getElementById('fv-save')
+
+    // Si los datos aún no han llegado, guardar machacaría el coche con el
+    // formulario vacío.
+    if (esEdicion && !idEdicion) {
+      msg.hidden = false
+      msg.className = 'fv-msg error'
+      msg.textContent = 'Los datos del vehículo aún no se han cargado.'
+      return
+    }
+
     btn.disabled = true
     btn.textContent = 'Guardando…'
 
@@ -706,10 +800,19 @@ const esEdicion = !!vehiculo
     let error
 
     if (esEdicion) {
-      ;({ error } = await supabase
+      // Con .select() para enterarnos si no se actualizó ninguna fila: si una
+      // política RLS lo bloquea, Supabase no devuelve error.
+      const { data, error: e1 } = await supabase
         .from('vehiculos')
         .update(datos)
-        .eq('id', idEdicion))
+        .eq('id', idEdicion)
+        .select('id')
+      error = e1
+      if (!error && !data?.length)
+        error = {
+          message:
+            'No se guardó nada. Puede que la sesión haya caducado: vuelve a entrar en el panel.',
+        }
     } else {
       const { data, error: e2 } = await supabase
         .from('vehiculos')
@@ -737,8 +840,26 @@ const esEdicion = !!vehiculo
       gastos: num('gastos') || 0,
       notas_internas: form.notas_internas.value.trim() || null,
     }
-    if (priv.precio_compra !== null || priv.notas_internas || priv.gastos) {
-      await supabase.from('vehiculos_privado').upsert(priv)
+    // En edición se guarda siempre: los campos vienen cargados con lo que
+    // había, así que lo que se envía es justo lo que se ve en pantalla.
+    if (
+      esEdicion ||
+      priv.precio_compra !== null ||
+      priv.notas_internas ||
+      priv.gastos
+    ) {
+      const { error: ePriv } = await supabase
+        .from('vehiculos_privado')
+        .upsert(priv, { onConflict: 'vehiculo_id' })
+      if (ePriv) {
+        msg.hidden = false
+        msg.className = 'fv-msg error'
+        msg.textContent =
+          'El coche se guardó, pero los datos privados no: ' + ePriv.message
+        btn.disabled = false
+        btn.textContent = esEdicion ? 'Guardar cambios' : 'Crear vehículo'
+        return
+      }
     }
 
     if (form.avisar?.checked && datos.publicado && vehiculoId) {
