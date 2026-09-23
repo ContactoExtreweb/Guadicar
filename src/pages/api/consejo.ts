@@ -1,5 +1,6 @@
 export const prerender = false
 import type { APIRoute } from 'astro'
+import { esAdmin, noAutorizado } from '../../lib/apiAdmin.js'
 
 const MODELO = 'gemini-2.5-flash'
 
@@ -31,6 +32,10 @@ async function pedirAGemini(
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  // Solo desde el panel: cada llamada consume cuota de Gemini, la misma que
+  // usa el chatbot de la web.
+  if (!(await esAdmin(request))) return noAutorizado()
+
   const key = import.meta.env.GEMINI_API_KEY
   if (!key)
     return new Response(JSON.stringify({ error: 'Falta GEMINI_API_KEY' }), {

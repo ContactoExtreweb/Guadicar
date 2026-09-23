@@ -347,9 +347,13 @@ import AdminNav from '../../components/AdminNav.astro'
       box.classList.add('cargando')
       box.textContent = 'Analizando tus datos…'
       try {
+        const { data: sesion } = await supabase.auth.getSession()
         const r = await fetch('/api/consejo', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sesion.session?.access_token ?? ''}`,
+          },
           body: JSON.stringify({
             total,
             u7,

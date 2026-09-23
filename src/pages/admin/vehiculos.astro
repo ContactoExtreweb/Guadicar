@@ -187,9 +187,13 @@ import AdminNav from '../../components/AdminNav.astro'
         btn.disabled = true
         btn.textContent = 'Enviando…'
         try {
+          const { data: sesion } = await supabase.auth.getSession()
           const res = await fetch('/api/notificar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sesion.session?.access_token ?? ''}`,
+            },
             body: JSON.stringify({ vehiculoId: id, tipo }),
           })
           const data = await res.json()

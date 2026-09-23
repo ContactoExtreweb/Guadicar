@@ -14,4 +14,12 @@ export default defineConfig({
       filter: (page) => !page.includes('/admin'),
     }),
   ],
+  vite: {
+    define: {
+      // Netlify pone CONTEXT en el build: 'production' en main, 'branch-deploy'
+      // en las ramas. Lo dejamos fijado aquí para poder leerlo también en las
+      // funciones (ver src/lib/entorno.js).
+      __NETLIFY_CONTEXT__: JSON.stringify(process.env.CONTEXT ?? ''),
+    },
+  },
 })

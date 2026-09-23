@@ -743,9 +743,13 @@ const esEdicion = !!vehiculo
 
     if (form.avisar?.checked && datos.publicado && vehiculoId) {
       try {
+        const { data: sesion } = await supabase.auth.getSession()
         const res = await fetch('/api/notificar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sesion.session?.access_token ?? ''}`,
+          },
           body: JSON.stringify({
             vehiculoId,
             tipo: esEdicion ? 'bajada' : 'nuevo',
@@ -753,6 +757,8 @@ const esEdicion = !!vehiculo
         })
         const r = await res.json()
         console.log('Aviso:', r)
+        if (!res.ok) alert('El coche se guardó, pero el aviso falló: ' + (r.error || res.status))
+        else if (r.aviso) alert(r.aviso)
       } catch (err) {
         console.error('No se pudo enviar el aviso:', err)
       }
