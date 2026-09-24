@@ -1,0 +1,138 @@
+---
+// Página de baja de la newsletter. Es estática: el token se lee de la URL en
+// el navegador y la baja la hace /api/baja al pulsar el botón.
+import Base from '../layouts/Base.astro'
+---
+
+<Base
+  title='Darte de baja | GuadiCar'
+  description='Baja de los avisos por correo de GuadiCar Multimarcas.'
+  noindex
+  popupNewsletter={false}
+>
+  <section class='baja'>
+    <div class='baja-card'>
+      <h1>Darte de baja</h1>
+      <p id='baja-texto'>
+        Si confirmas, dejarás de recibir nuestros avisos de coches nuevos y
+        bajadas de precio.
+      </p>
+      <button id='baja-btn' class='hero-btn-main' type='button'
+        >Confirmar la baja</button
+      >
+      <p id='baja-msg' class='baja-msg' hidden></p>
+      <a href='/' class='baja-volver'>Volver a la web</a>
+    </div>
+  </section>
+
+  <style>
+    .baja {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9rem 1rem 4rem;
+      background: var(--gray);
+    }
+    .baja-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2.2rem 1.8rem;
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .baja-card h1 {
+      font-family: var(--font-h);
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .baja-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .baja-msg {
+      font-weight: 600;
+    }
+    .baja-msg.ok {
+      color: #0a7d33 !important;
+    }
+    .baja-msg.error {
+      color: #b91c1c !important;
+    }
+    .baja-volver {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    #baja-btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #baja-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  </style>
+
+  <script>
+    // @ts-nocheck
+    const t = new URLSearchParams(window.location.search).get('t') || ''
+    const btn = document.getElementById('baja-btn')
+    const msg = document.getElementById('baja-msg')
+    const texto = document.getElementById('baja-texto')
+
+    const mostrar = (clase, contenido) => {
+      msg.className = 'baja-msg ' + clase
+      msg.textContent = contenido
+      msg.hidden = false
+    }
+
+    if (!t) {
+      btn.hidden = true
+      texto.hidden = true
+      mostrar(
+        'error',
+        'Al enlace le falta información. Usa el enlace de baja de cualquiera de nuestros correos o escríbenos a ventas@guadicar.es y te damos de baja.',
+      )
+    }
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true
+      btn.textContent = 'Un momento…'
+      try {
+        const res = await fetch('/api/baja', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ t }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || '')
+        btn.hidden = true
+        texto.hidden = true
+        mostrar(
+          'ok',
+          data.prueba
+            ? 'Enlace de prueba: no se ha dado de baja a nadie.'
+            : 'Hecho. Ya no recibirás más avisos por correo.',
+        )
+      } catch (err) {
+        btn.disabled = false
+        btn.textContent = 'Confirmar la baja'
+        mostrar(
+          'error',
+          err.message ||
+            'No se pudo completar la baja. Inténtalo de nuevo o escríbenos a ventas@guadicar.es.',
+        )
+      }
+    })
+  </script>
+</Base>

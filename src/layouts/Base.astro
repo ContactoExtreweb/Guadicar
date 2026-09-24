@@ -19,6 +19,8 @@ const {
   image = '/logo.png',
   heroNav = false, // true en páginas con hero oscuro (inicio)
   solidNav = true, // true en páginas que siempre deben tener navbar sólido
+  noindex = false, // true en páginas que no deben salir en Google (p. ej. la baja)
+  popupNewsletter = true, // false donde no pinta ofrecer la suscripción
 } = Astro.props
 
 const SITE = Astro.site ?? new URL('https://guadicar.es')
@@ -88,6 +90,7 @@ const negocio = {
     <title>{title}</title>
     <meta name='description' content={description} />
     <link rel='canonical' href={canonical} />
+    {noindex && <meta name='robots' content='noindex, nofollow' />}
     <meta property='og:type' content='website' />
     <meta property='og:title' content={title} />
     <meta property='og:description' content={description} />
@@ -225,7 +228,7 @@ const negocio = {
         </div>
       </div>
     </footer>
-    <Newsletter variant='popup' />
+    {popupNewsletter && <Newsletter variant='popup' />}
     <CookieBanner />
     <script>
       document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../../lib/supabaseAdmin.js'
 import { esAdmin, noAutorizado } from '../../lib/apiAdmin.js'
-import { modoPruebas, CONTEXTO } from '../../lib/entorno.js'
+import { modoPruebas, esProduccion, CONTEXTO } from '../../lib/entorno.js'
 import { Resend } from 'resend'
 
 export const prerender = false
@@ -20,20 +20,20 @@ const json = (datos, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   })
 
-// Todos los suscriptores, en páginas de 1000
+// Todos los suscriptores (email + token de baja), en páginas de 1000
 async function traerSuscriptores() {
-  const emails = []
+  const subs = []
   for (let desde = 0; ; desde += PAGINA) {
     const { data, error } = await supabaseAdmin
       .from('suscriptores')
-      .select('email')
+      .select('email, token_baja')
       .order('email')
       .range(desde, desde + PAGINA - 1)
     if (error) throw new Error(error.message)
-    emails.push(...(data ?? []).map((s) => s.email))
+    subs.push(...(data ?? []))
     if (!data || data.length < PAGINA) break
   }
-  return emails
+  return subs
 }
 
 export async function POST({ request }) {
@@ -85,20 +85,25 @@ export async function POST({ request }) {
     }
 
     // 3) Traer suscriptores (todos, no solo los 1000 primeros)
-    let emails
+    let subs
     try {
-      emails = await traerSuscriptores()
+      subs = await traerSuscriptores()
     } catch (e) {
       console.error('[notificar] Error leyendo suscriptores:', e.message)
       return json({ error: 'Error leyendo suscriptores.' }, 500)
     }
 
-    // Validación básica de email + eliminar duplicados y vacíos
+    // Validación básica de email + eliminar duplicados y vacíos. Cada uno
+    // conserva su token para el enlace de baja.
     const emailValido = (e) =>
       typeof e === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)
-    let destinatarios = [
-      ...new Set(emails.map((e) => (e || '').toLowerCase().trim())),
-    ].filter(emailValido)
+    const porEmail = new Map()
+    for (const s of subs) {
+      const email = (s.email || '').toLowerCase().trim()
+      if (emailValido(email) && s.token_baja && !porEmail.has(email))
+        porEmail.set(email, s.token_baja)
+    }
+    let destinatarios = [...porEmail].map(([email, token]) => ({ email, token }))
 
     const suscriptores = destinatarios.length
 
@@ -115,7 +120,8 @@ export async function POST({ request }) {
           aviso: `Entorno "${CONTEXTO}": no se envía nada. Falta LEAD_EMAIL_TO para poder probar.`,
         })
       }
-      destinatarios = [prueba]
+      // Token ficticio: el enlace de baja del correo de prueba no borra a nadie
+      destinatarios = [{ email: prueba, token: 'prueba' }]
       aviso = `Entorno "${CONTEXTO}": prueba enviada solo a ${prueba}. En producción habría salido a ${suscriptores} suscriptor(es).`
     }
 
@@ -129,11 +135,12 @@ export async function POST({ request }) {
       })
     }
 
-    // 5) Construir el email (es igual para todos)
+    // 5) Construir el email (igual para todos salvo el enlace de baja)
     const url = `https://guadicar.es/vehiculos/${v.slug}`
     const titulo =
       tipo === 'bajada' ? '¡Bajada de precio!' : 'Nuevo vehículo disponible'
-    const html = emailHTML(v, url, titulo)
+    // En pruebas, los enlaces de baja apuntan a la propia rama para poder probarlos
+    const web = esProduccion ? 'https://guadicar.es' : new URL(request.url).origin
     const asunto =
       tipo === 'bajada'
         ? `📉 Bajada de precio: ${v.marca} ${v.modelo} ahora ${fmt(v.precio)}€`
@@ -149,12 +156,17 @@ export async function POST({ request }) {
       const lote = destinatarios.slice(i, i + LOTE)
       try {
         const envio = await resend.batch.send(
-          lote.map((email) => ({
+          lote.map(({ email, token }) => ({
             from: remitente,
             to: email,
             replyTo: 'ventas@guadicar.es',
             subject: asunto,
-            html,
+            html: emailHTML(v, url, titulo, `${web}/baja?t=${token}`),
+            // Botón "Cancelar suscripción" de Gmail/Outlook (baja en un clic)
+            headers: {
+              'List-Unsubscribe': `<${web}/api/baja?t=${token}>, <mailto:ventas@guadicar.es?subject=Baja>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
           })),
         )
         if (envio.error) {
@@ -180,7 +192,7 @@ export async function POST({ request }) {
   }
 }
 
-function emailHTML(v, url, titulo) {
+function emailHTML(v, url, titulo, enlaceBaja) {
   const fmtn = (n) => Number(n).toLocaleString('es-ES')
   const foto = v.fotos?.[0] || ''
   const precioAnt =
@@ -206,5 +218,9 @@ function emailHTML(v, url, titulo) {
         GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 722 496 124
       </div>
     </div>
+    <p style="max-width:520px;margin:14px auto 0;text-align:center;color:#888;font-size:11px;line-height:1.6;">
+      Recibes este correo porque te suscribiste a los avisos de guadicar.es.<br>
+      <a href="${enlaceBaja}" style="color:#888;">Darte de baja</a>
+    </p>
   </div>`
 }
