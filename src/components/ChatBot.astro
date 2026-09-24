@@ -1,13 +1,13 @@
 ---
 ---
 <div id="gc-chat">
-  <button id="gc-toggle" class="gc-toggle" aria-label="Abrir chat">
+  <button id="gc-toggle" class="gc-toggle" aria-label="Abrir el asistente virtual (inteligencia artificial)">
     <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
   </button>
 
   <div id="gc-panel" class="gc-panel" hidden>
     <div class="gc-head">
-      <div><strong>GuadiCar</strong><span>Asistente · te responde al momento</span></div>
+      <div><strong>GuadiCar</strong><span>Asistente virtual con IA · puede equivocarse</span></div>
       <button id="gc-close" class="gc-close" aria-label="Cerrar">✕</button>
     </div>
     <div id="gc-msgs" class="gc-msgs"></div>
@@ -17,6 +17,8 @@
       <input id="gc-lead-nombre" type="text" placeholder="Tu nombre" maxlength="80" required />
       <input id="gc-lead-tel" type="tel" placeholder="Tu teléfono" maxlength="20" required />
       <textarea id="gc-lead-msg" placeholder="¿Qué coche te interesa? (opcional)" maxlength="300" rows="2"></textarea>
+      <div class="nl-hp" aria-hidden="true"><input id="gc-lead-empresa" type="text" name="empresa" tabindex="-1" autocomplete="off" /></div>
+      <p class="gc-lead-legal">Usaremos tus datos solo para llamarte. <a href="/privacidad/" target="_blank">Privacidad</a></p>
       <div class="gc-lead-acciones">
         <button type="button" id="gc-lead-cancel" class="gc-lead-cancel">Cancelar</button>
         <button type="submit" class="gc-lead-enviar">Enviar</button>
@@ -104,6 +106,8 @@
   }
   .gc-lead-form input:focus, .gc-lead-form textarea:focus { border-color: var(--gc-red); }
   .gc-lead-acciones { display: flex; gap: .5rem; }
+  .gc-lead-legal { margin: 0; font-size: .72rem; color: var(--muted, #6b7280); }
+  .gc-lead-legal a { color: inherit; text-decoration: underline; }
   .gc-lead-acciones button { flex: 1; border: none; border-radius: 10px; padding: .6rem; font-family: inherit; font-weight: 600; cursor: pointer; }
   .gc-lead-cancel { background: #eee; color: #333; }
   .gc-lead-enviar { background: var(--gc-red); color: #fff; }
@@ -217,13 +221,17 @@
   // Restaurar conversación previa (persistencia entre páginas)
   historial.forEach(m => pintar(m.texto, m.rol === 'user' ? 'user' : 'bot'));
   refrescarLeadBtn();
-  if (sessionStorage.getItem(SS_OPEN) === '1') abrir();
+  // En ordenador se reabre al cambiar de página; en móvil no, porque ocupa
+  // casi toda la pantalla y tapaba la página a la que se acababa de ir (p. ej.
+  // la ficha de un coche enlazado desde el propio chat). La conversación se
+  // conserva igualmente.
+  if (sessionStorage.getItem(SS_OPEN) === '1' && !esMovil()) abrir();
 
   toggle.addEventListener('click', () => {
     abrir();
     if (!saludado) {
       saludado = true;
-      const g = '¡Hola! Soy el asistente de GuadiCar. ¿Buscas algún coche en concreto o tienes alguna duda?';
+      const g = '¡Hola! Soy el asistente virtual de GuadiCar: un sistema de inteligencia artificial, no una persona. Puedo equivocarme, así que para confirmar precios o disponibilidad te pongo en contacto con un comercial. ¿Buscas algún coche en concreto?';
       pintar(g, 'bot'); historial.push({ rol: 'model', texto: g }); guardar();
     }
     // Sin input.focus(): el teclado NO se abre solo
@@ -255,7 +263,9 @@
   });
 
   // Lead
+  let leadAbiertoEn = 0; // para la trampa de tiempo (envíos instantáneos = bot)
   leadBtn.addEventListener('click', () => {
+    leadAbiertoEn = Date.now();
     leadForm.hidden = false; leadBtn.style.display = 'none'; form.style.display = 'none';
     // Sin focus automático: el usuario toca el campo cuando quiera
   });
@@ -270,7 +280,8 @@
     const enviar = leadForm.querySelector('.gc-lead-enviar');
     enviar.disabled = true; enviar.textContent = 'Enviando…';
     try {
-      const r = await fetch('/api/lead-chatbot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, telefono, mensaje }) });
+      const empresa = document.getElementById('gc-lead-empresa')?.value || '';
+      const r = await fetch('/api/lead-chatbot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, telefono, mensaje, empresa, ts: leadAbiertoEn }) });
       const data = await r.json();
       if (data.ok) {
         leadForm.hidden = true; form.style.display = 'flex';

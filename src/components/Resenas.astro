@@ -2,8 +2,8 @@
 // ⚠️ SUSTITUYE estos datos por las reseñas REALES de vuestra ficha de Google.
 // Copia el nombre, el texto y las estrellas tal cual aparecen en Google.
 const RESUMEN = {
-  nota: 4.8,                    // ← vuestra nota media real en Google
-  total: 10,                    // ← número real de reseñas
+  nota: 5.0,                    // ← vuestra nota media real en Google
+  total: 11,                    // ← número real de reseñas
   urlGoogle: 'https://www.google.com/maps/place/GUADICAR+multimarcas/@38.9678152,-5.8003009,17z/data=!4m8!3m7!1s0xd145997839be259:0xd6d2f4ad782b7333!8m2!3d38.9678152!4d-5.8003009!9m1!1b1!16s%2Fg%2F11mf47z2m5?entry=ttu&g_ep=EgoyMDI2MDUzMS4wIKXMDSoASAFQAw%3D%3D',
 };
 
@@ -22,7 +22,7 @@ const colores = ['#cc1c1c', '#1d4ed8', '#0a7d33', '#9333ea', '#d97706', '#0891b2
     <span class="tag" style="color:var(--red);">Opiniones reales</span>
     <h2 class="s-title">Lo que dicen nuestros clientes</h2>
     <div class="rs-resumen">
-      <div class="rs-nota">{RESUMEN.nota.toLocaleString('es-ES')}</div>
+      <div class="rs-nota">{RESUMEN.nota.toLocaleString('es-ES', { minimumFractionDigits: 1 })}</div>
       <div>
         <div class="rs-estrellas-top">
           {Array.from({ length: 5 }).map((_, i) => <span class={i < Math.round(RESUMEN.nota) ? 'on' : ''}>★</span>)}

@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '../../lib/supabaseAdmin.js'
+import { esAdmin, noAutorizado } from '../../lib/apiAdmin.js'
+import { modoPruebas, esProduccion, CONTEXTO } from '../../lib/entorno.js'
 import { Resend } from 'resend'
 
 export const prerender = false
@@ -6,16 +8,42 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY)
 
 const fmt = (n) => Number(n).toLocaleString('es-ES')
 
-// Pequeña pausa entre envíos para respetar el límite de Resend (evita errores 429)
+// Pequeña pausa entre lotes para respetar el límite de Resend (evita errores 429)
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+const PAGINA = 1000 // Supabase nunca devuelve más de 1000 filas por consulta
+const LOTE = 100 // máximo de correos por llamada al envío por lotes de Resend
+
+const json = (datos, status = 200) =>
+  new Response(JSON.stringify(datos), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+
+// Todos los suscriptores (email + token de baja), en páginas de 1000
+async function traerSuscriptores() {
+  const subs = []
+  for (let desde = 0; ; desde += PAGINA) {
+    const { data, error } = await supabaseAdmin
+      .from('suscriptores')
+      .select('email, token_baja')
+      .order('email')
+      .range(desde, desde + PAGINA - 1)
+    if (error) throw new Error(error.message)
+    subs.push(...(data ?? []))
+    if (!data || data.length < PAGINA) break
+  }
+  return subs
+}
 
 export async function POST({ request }) {
   try {
+    // Solo desde el panel: esto manda correos a todos los suscriptores
+    if (!(await esAdmin(request))) return noAutorizado()
+
     const { vehiculoId, tipo } = await request.json() // tipo: 'nuevo' | 'bajada'
 
-    if (!vehiculoId) {
-      return new Response(JSON.stringify({ error: 'Falta el vehículo.' }), { status: 400 })
-    }
+    if (!vehiculoId) return json({ error: 'Falta el vehículo.' }, 400)
 
     // 1) Traer el coche
     const { data: v, error: ev } = await supabaseAdmin
@@ -23,76 +51,148 @@ export async function POST({ request }) {
       .select('*')
       .eq('id', vehiculoId)
       .maybeSingle()
-    if (ev || !v) {
-      return new Response(JSON.stringify({ error: 'Vehículo no encontrado.' }), { status: 404 })
-    }
+    if (ev || !v) return json({ error: 'Vehículo no encontrado.' }, 404)
 
-    // 2) Traer suscriptores
-    const { data: subs, error: es } = await supabaseAdmin
-      .from('suscriptores')
-      .select('email')
-    if (es) {
-      return new Response(JSON.stringify({ error: 'Error leyendo suscriptores.' }), { status: 500 })
+    // 2) No avisar de coches que no se pueden ver o cuyo precio está oculto:
+    //    el correo lleva el precio y el enlace a la ficha.
+    if (!v.publicado) {
+      return json(
+        { error: 'Este coche está oculto. Publícalo antes de avisar.' },
+        400,
+      )
     }
-    if (!subs.length) {
-      return new Response(
-        JSON.stringify({ ok: true, enviados: 0, fallos: 0, aviso: 'No hay suscriptores.' }),
-        { status: 200 },
+    if (v.precio_oculto || v.reservado) {
+      return json(
+        {
+          error: v.reservado
+            ? 'Este coche está reservado, así que su precio no se muestra. Quita la reserva antes de avisar.'
+            : 'Este coche tiene el precio oculto y el correo lo mostraría. Muestra el precio antes de avisar.',
+        },
+        400,
       )
     }
 
-    // 3) Construir el email (una sola vez, es igual para todos)
+    // No anunciar una bajada que no existe: el asunto la anuncia y el correo
+    // tacha el precio anterior.
+    if (tipo === 'bajada' && !(v.precio_anterior && v.precio_anterior > v.precio)) {
+      return json(
+        {
+          error:
+            'Este coche no tiene ninguna bajada de precio. Pon el precio anterior (mayor que el actual) al editarlo, o avisa de él como novedad.',
+        },
+        400,
+      )
+    }
+
+    // 3) Traer suscriptores (todos, no solo los 1000 primeros)
+    let subs
+    try {
+      subs = await traerSuscriptores()
+    } catch (e) {
+      console.error('[notificar] Error leyendo suscriptores:', e.message)
+      return json({ error: 'Error leyendo suscriptores.' }, 500)
+    }
+
+    // Validación básica de email + eliminar duplicados y vacíos. Cada uno
+    // conserva su token para el enlace de baja.
+    const emailValido = (e) =>
+      typeof e === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)
+    const porEmail = new Map()
+    for (const s of subs) {
+      const email = (s.email || '').toLowerCase().trim()
+      if (emailValido(email) && s.token_baja && !porEmail.has(email))
+        porEmail.set(email, s.token_baja)
+    }
+    let destinatarios = [...porEmail].map(([email, token]) => ({ email, token }))
+
+    const suscriptores = destinatarios.length
+
+    // 4) Fuera de producción no se escribe a nadie de verdad
+    let aviso
+    if (modoPruebas) {
+      const prueba = (import.meta.env.LEAD_EMAIL_TO || '').trim()
+      if (!prueba) {
+        return json({
+          ok: true,
+          enviados: 0,
+          fallos: 0,
+          suscriptores,
+          aviso: `Entorno "${CONTEXTO}": no se envía nada. Falta LEAD_EMAIL_TO para poder probar.`,
+        })
+      }
+      // Token ficticio: el enlace de baja del correo de prueba no borra a nadie
+      destinatarios = [{ email: prueba, token: 'prueba' }]
+      aviso = `Entorno "${CONTEXTO}": prueba enviada solo a ${prueba}. En producción habría salido a ${suscriptores} suscriptor(es).`
+    }
+
+    if (!destinatarios.length) {
+      return json({
+        ok: true,
+        enviados: 0,
+        fallos: 0,
+        suscriptores,
+        aviso: 'No hay suscriptores.',
+      })
+    }
+
+    // 5) Construir el email (igual para todos salvo el enlace de baja)
     const url = `https://guadicar.es/vehiculos/${v.slug}`
-    const titulo = tipo === 'bajada' ? '¡Bajada de precio!' : 'Nuevo vehículo disponible'
-    const html = emailHTML(v, tipo, url, titulo)
+    const titulo =
+      tipo === 'bajada' ? '¡Bajada de precio!' : 'Nuevo vehículo disponible'
+    // En pruebas, los enlaces de baja apuntan a la propia rama para poder probarlos
+    const web = esProduccion ? 'https://guadicar.es' : new URL(request.url).origin
     const asunto =
       tipo === 'bajada'
         ? `📉 Bajada de precio: ${v.marca} ${v.modelo} ahora ${fmt(v.precio)}€`
         : `🚗 Nuevo en GuadiCar: ${v.marca} ${v.modelo}`
 
-    // 4) Envío individual a cada suscriptor (dominio guadicar.es verificado en Resend)
+    // 6) Envío por lotes: una llamada por cada 100 correos, para no agotar
+    //    el tiempo de la función cuando la lista crece.
     const remitente = 'GuadiCar <ventas@guadicar.es>'
-
-    // Validación básica de email + eliminar duplicados y vacíos
-    const emailValido = (e) => typeof e === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)
-    const destinatarios = [...new Set(
-      subs.map((s) => (s.email || '').toLowerCase().trim()).filter(emailValido),
-    )]
-
     let enviados = 0
     let fallos = 0
 
-    for (const email of destinatarios) {
+    for (let i = 0; i < destinatarios.length; i += LOTE) {
+      const lote = destinatarios.slice(i, i + LOTE)
       try {
-        const envio = await resend.emails.send({
-          from: remitente,
-          to: email,
-          replyTo: 'ventas@guadicar.es',
-          subject: asunto,
-          html,
-        })
+        const envio = await resend.batch.send(
+          lote.map(({ email, token }) => ({
+            from: remitente,
+            to: email,
+            replyTo: 'ventas@guadicar.es',
+            subject: asunto,
+            html: emailHTML(v, url, titulo, `${web}/baja?t=${token}`),
+            // Botón "Cancelar suscripción" de Gmail/Outlook (baja en un clic)
+            headers: {
+              'List-Unsubscribe': `<${web}/api/baja?t=${token}>, <mailto:ventas@guadicar.es?subject=Baja>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          })),
+        )
         if (envio.error) {
-          fallos++
-          console.error('[notificar] Fallo a', email, ':', envio.error.message)
+          fallos += lote.length
+          console.error('[notificar] Fallo en un lote:', envio.error.message)
         } else {
-          enviados++
+          enviados += envio.data?.data?.length ?? lote.length
         }
       } catch (err) {
-        fallos++
-        console.error('[notificar] Excepción a', email, ':', err)
+        fallos += lote.length
+        console.error('[notificar] Excepción en un lote:', err)
       }
-      await sleep(550) // ~2 envíos/seg, dentro del límite de Resend
+      if (i + LOTE < destinatarios.length) await sleep(600)
     }
 
-    console.log(`[notificar] Coche ${v.slug} (${tipo}) → enviados:${enviados} fallos:${fallos}`)
-    return new Response(JSON.stringify({ ok: true, enviados, fallos }), { status: 200 })
+    console.log(
+      `[notificar] Coche ${v.slug} (${tipo}) → enviados:${enviados} fallos:${fallos} entorno:${CONTEXTO}`,
+    )
+    return json({ ok: true, enviados, fallos, suscriptores, aviso })
   } catch (e) {
     console.error('Error en /api/notificar:', e)
-    return new Response(JSON.stringify({ error: 'Error inesperado.' }), { status: 500 })
+    return json({ error: 'Error inesperado.' }, 500)
   }
 }
 
-function emailHTML(v, tipo, url, titulo) {
+function emailHTML(v, url, titulo, enlaceBaja) {
   const fmtn = (n) => Number(n).toLocaleString('es-ES')
   const foto = v.fotos?.[0] || ''
   const precioAnt =
@@ -118,5 +218,9 @@ function emailHTML(v, tipo, url, titulo) {
         GuadiCar Multimarcas · Villanueva de la Serena (Badajoz) · 722 496 124
       </div>
     </div>
+    <p style="max-width:520px;margin:14px auto 0;text-align:center;color:#888;font-size:11px;line-height:1.6;">
+      Recibes este correo porque te suscribiste a los avisos de guadicar.es.<br>
+      <a href="${enlaceBaja}" style="color:#888;">Darte de baja</a>
+    </p>
   </div>`
 }

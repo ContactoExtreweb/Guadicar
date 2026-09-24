@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Foto próximamente">
+  <rect width="800" height="600" fill="#f2f2f4"/>
+  <g fill="none" stroke="#b8b8bf" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" transform="translate(220 190)">
+    <path d="M20 150l40-95a40 40 0 0 1 37-25h166a40 40 0 0 1 37 25l40 95"/>
+    <path d="M10 150h340v70a20 20 0 0 1-20 20h-20a40 40 0 0 1-80 0H130a40 40 0 0 1-80 0H30a20 20 0 0 1-20-20z"/>
+  </g>
+  <text x="400" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#8a8a93">Foto próximamente</text>
+</svg>

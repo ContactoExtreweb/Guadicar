@@ -2,8 +2,10 @@
 export const prerender = false
 import Base from '../../layouts/Base.astro'
 import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js'
+import { cachearEnCDN } from '../../lib/cache.js'
 
 const vehiculos = await getVehiculos()
+cachearEnCDN(Astro.response.headers)
 const unicos = (arr: any[]) => [...new Set(arr.filter(Boolean))] as any[]
 const marcas = unicos(vehiculos.map((v: any) => v.marca)).sort()
 const carrocerias = unicos(vehiculos.map((v: any) => v.carroceria)).sort()
@@ -205,7 +207,7 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
               >
                 <div class='car-img'>
                   <img
-                    src={c.fotos[0]}
+                    src={c.fotos[0] || '/placeholder-coche.svg'}
                     alt={`${c.marca} ${c.modelo}`}
                     loading='lazy'
                   />
@@ -240,7 +242,7 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
                           )}
                         </div>
                         <div class='car-price-fin'>
-                          Desde <strong>{c.cuota}€/mes</strong>
+                          Desde <strong>{c.cuota}€/mes*</strong>
                         </div>
                       </>
                     )}

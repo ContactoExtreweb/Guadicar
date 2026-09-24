@@ -127,30 +127,35 @@ import AdminNav from '../../components/AdminNav.astro';
       if (error) { document.getElementById('subsaludo').textContent = 'Error al cargar datos: ' + error.message; return; }
 
       const total = v.length;
-      const publicados = v.filter(x => x.publicado).length;
+      // Los ocultos suelen ser coches ya vendidos: el valor, las medias y los
+      // gráficos se calculan solo con los publicados (lo que hay a la venta).
+      const enVenta = v.filter(x => x.publicado);
+      const publicados = enVenta.length;
       const ocultos = total - publicados;
-      const valorStock = v.reduce((s, x) => s + (x.precio || 0), 0);
-      const precioMedio = total ? Math.round(valorStock / total) : 0;
-      const anioMedio = total ? Math.round(v.reduce((s, x) => s + (x.anio || 0), 0) / total) : 0;
+      const valorStock = enVenta.reduce((s, x) => s + (x.precio || 0), 0);
+      const conPrecio = enVenta.filter(x => x.precio > 0);
+      const precioMedio = conPrecio.length ? Math.round(conPrecio.reduce((s, x) => s + x.precio, 0) / conPrecio.length) : 0;
+      const conAnio = enVenta.filter(x => x.anio);
+      const anioMedio = conAnio.length ? Math.round(conAnio.reduce((s, x) => s + x.anio, 0) / conAnio.length) : 0;
 
       document.getElementById('subsaludo').textContent =
-        `Tienes ${total} ${total === 1 ? 'vehículo' : 'vehículos'} en tu inventario. ¡Vamos a vender algún coche hoy!`;
+        `Tienes ${publicados} ${publicados === 1 ? 'vehículo' : 'vehículos'} a la venta. ¡Vamos a vender algún coche hoy!`;
 
       document.getElementById('cards').innerHTML =
         tarjeta(total, 'Vehículos totales') +
         tarjeta(publicados, 'Publicados', '#0a7d33') +
         tarjeta(ocultos, 'Ocultos', '#9a6700') +
-        tarjeta(fmt(valorStock) + ' €', 'Valor del stock', ROJO) +
+        tarjeta(fmt(valorStock) + ' €', 'Valor del stock a la venta', ROJO) +
         tarjeta(fmt(precioMedio) + ' €', 'Precio medio') +
         tarjeta(anioMedio || '—', 'Año medio');
 
-      const marcas = agrupar(v, 'marca');
+      const marcas = agrupar(enVenta, 'marca');
       pintarChart('chartMarca', 'bar', Object.keys(marcas), Object.values(marcas), ROJO);
 
-      const comb = agrupar(v, 'combustible');
+      const comb = agrupar(enVenta, 'combustible');
       pintarChart('chartComb', 'doughnut', Object.keys(comb), Object.values(comb), PALETA);
 
-      const est = agrupar(v, 'estado');
+      const est = agrupar(enVenta, 'estado');
       const mapEst = { ocasion: 'Ocasión', km0: 'Km 0', nuevo: 'Nuevo' };
       pintarChart('chartEstado', 'doughnut', Object.keys(est).map(k => mapEst[k] || k), Object.values(est), PALETA);
     }

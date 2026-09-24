@@ -1,15 +1,7 @@
 import { supabase } from './supabase.js'
 
-const TAE = 7.99,
-  MESES = 96
-export function computeCuota(
-  precio,
-  { entrada = 0, meses = MESES, tae = TAE } = {},
-) {
-  const capital = Math.max(precio - entrada, 0)
-  const r = tae / 100 / 12
-  return Math.round((capital * r) / (1 - Math.pow(1 + r, -meses)))
-}
+import { computeCuota } from './financiacion.js'
+export { computeCuota, ejemploFinanciacion, TAE, TIN, MESES } from './financiacion.js'
 
 export const fmt = (n) => Number(n).toLocaleString('es-ES')
 
@@ -61,6 +53,8 @@ function mapRow(r) {
     ivaDeducible: r.iva_deducible,
     descripcion: r.descripcion,
     cuota: computeCuota(r.precio),
+    createdAt: r.created_at,
+    updatedAt: r.updated_at ?? r.created_at,
   }
 }
 
@@ -86,6 +80,23 @@ export async function getVehiculo(slug) {
     .maybeSingle()
   if (error || !data) return null
   return mapRow(data)
+}
+
+// Los últimos publicados que no son destacados (para la home), sin traer
+// el catálogo entero
+export async function getUltimos(n = 4) {
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('*')
+    .eq('publicado', true)
+    .not('destacado', 'is', true)
+    .order('created_at', { ascending: false })
+    .limit(n)
+  if (error) {
+    console.error('Error cargando últimos vehículos:', error.message)
+    return []
+  }
+  return data.map(mapRow)
 }
 
 export async function getDestacados(n = 4) {
