@@ -1,51 +1,16 @@
 import { supabaseAdmin } from '../../lib/supabaseAdmin.js'
-import { Resend } from 'resend'
+import {
+  esc,
+  telefonoValido,
+  nombreSospechoso,
+  mensajeSospechoso,
+  emailValido,
+  okFalso,
+  trampaBot,
+  avisarLead,
+} from '../../lib/leads.js'
 
 export const prerender = false
-
-const resend = new Resend(import.meta.env.RESEND_API_KEY)
-
-/* ── Utilidades ───────────────────────────────────────────── */
-
-// Escapa HTML: impide que se cuelen enlaces o etiquetas en el email
-const esc = (s) =>
-  String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-
-// Teléfono: español (9 dígitos empezando por 6/7/8/9) o internacional con +
-function telefonoValido(tel) {
-  const limpio = String(tel).replace(/[\s.\-()]/g, '')
-  if (/^\+\d{8,15}$/.test(limpio)) return true
-  return /^[6789]\d{8}$/.test(limpio.replace(/^(0034|34)/, ''))
-}
-
-// Nombres aleatorios tipo "czQUDEldAeDbtCisHbxVjgV"
-function nombreSospechoso(nombre) {
-  const n = String(nombre).trim()
-  if (n.length < 2 || n.length > 60) return true
-  if (/https?:|www\.|[<>]|\d/i.test(n)) return true
-  // muchas alternancias minúscula→MAYÚSCULA dentro de una palabra = cadena aleatoria
-  return (n.match(/[a-záéíóúüñ][A-ZÁÉÍÓÚÜÑ]/g) || []).length > 2
-}
-
-// Mensajes con varios enlaces o código = spam
-function mensajeSospechoso(msg) {
-  const m = String(msg ?? '')
-  if (m.length > 2000) return true
-  if (/\[url=|<a\s|<script/i.test(m)) return true
-  return (m.match(/https?:\/\/|www\./gi) || []).length >= 2
-}
-
-const emailValido = (e) =>
-  /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(String(e).trim())
-
-// Respuesta silenciosa para bots: les decimos "ok" para que no reintenten
-const okFalso = () =>
-  new Response(JSON.stringify({ ok: true }), { status: 200 })
 
 /* ── Endpoint ─────────────────────────────────────────────── */
 
@@ -54,20 +19,11 @@ export async function POST({ request }) {
     const body = await request.json()
     const { nombre, telefono, email, mensaje, vehiculo_nombre, tipo } = body
 
-    // 1) Honeypot: si viene relleno, es un bot
-    if (String(body.empresa || '').trim() !== '') {
-      console.warn('[lead] Bloqueado por honeypot')
+    // 1) y 2) Honeypot y tiempo: si parece un bot, "ok" falso
+    const bot = trampaBot(body, 3000)
+    if (bot) {
+      console.warn('[lead] Bloqueado:', bot)
       return okFalso()
-    }
-
-    // 2) Tiempo: envío instantáneo = bot
-    const ts = Number(body.ts)
-    if (ts) {
-      const transcurrido = Date.now() - ts
-      if (transcurrido >= 0 && transcurrido < 3000) {
-        console.warn('[lead] Bloqueado: enviado en', transcurrido, 'ms')
-        return okFalso()
-      }
     }
 
     // 3) Contenido
@@ -129,13 +85,12 @@ export async function POST({ request }) {
     // 5) Aviso por email (si falla, el lead ya está guardado igualmente)
     try {
       const esCarta = tipo === 'carta'
-      await resend.emails.send({
-        from: 'GuadiCar Web <ventas@guadicar.es>',
-        to: 'ventas@guadicar.es',
+      const quien = String(nombre).trim().slice(0, 60)
+      await avisarLead({
         replyTo: email && emailValido(email) ? String(email).trim() : undefined,
-        subject: esCarta
-          ? `🔍 Nueva búsqueda "a la carta" de ${esc(nombre)}`
-          : `📩 Nuevo contacto web de ${esc(nombre)}`,
+        asunto: esCarta
+          ? `🔍 Nueva búsqueda "a la carta" de ${quien}`
+          : `📩 Nuevo contacto web de ${quien}`,
         html: `
           <h2>${esCarta ? 'Solicitud de coche a la carta' : 'Nuevo mensaje de contacto'}</h2>
           <p><b>Nombre:</b> ${esc(nombre)}</p>

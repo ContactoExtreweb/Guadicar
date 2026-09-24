@@ -17,6 +17,8 @@
       <input id="gc-lead-nombre" type="text" placeholder="Tu nombre" maxlength="80" required />
       <input id="gc-lead-tel" type="tel" placeholder="Tu teléfono" maxlength="20" required />
       <textarea id="gc-lead-msg" placeholder="¿Qué coche te interesa? (opcional)" maxlength="300" rows="2"></textarea>
+      <div class="nl-hp" aria-hidden="true"><input id="gc-lead-empresa" type="text" name="empresa" tabindex="-1" autocomplete="off" /></div>
+      <p class="gc-lead-legal">Usaremos tus datos solo para llamarte. <a href="/privacidad" target="_blank">Privacidad</a></p>
       <div class="gc-lead-acciones">
         <button type="button" id="gc-lead-cancel" class="gc-lead-cancel">Cancelar</button>
         <button type="submit" class="gc-lead-enviar">Enviar</button>
@@ -104,6 +106,8 @@
   }
   .gc-lead-form input:focus, .gc-lead-form textarea:focus { border-color: var(--gc-red); }
   .gc-lead-acciones { display: flex; gap: .5rem; }
+  .gc-lead-legal { margin: 0; font-size: .72rem; color: var(--muted, #6b7280); }
+  .gc-lead-legal a { color: inherit; text-decoration: underline; }
   .gc-lead-acciones button { flex: 1; border: none; border-radius: 10px; padding: .6rem; font-family: inherit; font-weight: 600; cursor: pointer; }
   .gc-lead-cancel { background: #eee; color: #333; }
   .gc-lead-enviar { background: var(--gc-red); color: #fff; }
@@ -255,7 +259,9 @@
   });
 
   // Lead
+  let leadAbiertoEn = 0; // para la trampa de tiempo (envíos instantáneos = bot)
   leadBtn.addEventListener('click', () => {
+    leadAbiertoEn = Date.now();
     leadForm.hidden = false; leadBtn.style.display = 'none'; form.style.display = 'none';
     // Sin focus automático: el usuario toca el campo cuando quiera
   });
@@ -270,7 +276,8 @@
     const enviar = leadForm.querySelector('.gc-lead-enviar');
     enviar.disabled = true; enviar.textContent = 'Enviando…';
     try {
-      const r = await fetch('/api/lead-chatbot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, telefono, mensaje }) });
+      const empresa = document.getElementById('gc-lead-empresa')?.value || '';
+      const r = await fetch('/api/lead-chatbot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, telefono, mensaje, empresa, ts: leadAbiertoEn }) });
       const data = await r.json();
       if (data.ok) {
         leadForm.hidden = true; form.style.display = 'flex';
