@@ -61,6 +61,8 @@ function mapRow(r) {
     ivaDeducible: r.iva_deducible,
     descripcion: r.descripcion,
     cuota: computeCuota(r.precio),
+    createdAt: r.created_at,
+    updatedAt: r.updated_at ?? r.created_at,
   }
 }
 

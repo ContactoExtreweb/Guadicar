@@ -15,10 +15,13 @@ export async function GET() {
   const urls = coches
     .filter((c) => c.slug)
     .map((c) => {
-      const fecha = c.created_at ? new Date(c.created_at).toISOString() : new Date().toISOString();
+      // Fecha real del coche. Antes salía siempre "ahora" (mapRow no traía
+      // las fechas) y Google aprende a ignorar un lastmod que no es fiable.
+      const lastmod = c.updatedAt
+        ? `\n    <lastmod>${new Date(c.updatedAt).toISOString()}</lastmod>`
+        : '';
       return `  <url>
-    <loc>${SITE}/vehiculos/${c.slug}</loc>
-    <lastmod>${fecha}</lastmod>
+    <loc>${SITE}/vehiculos/${c.slug}</loc>${lastmod}
     <changefreq>weekly</changefreq>
   </url>`;
     })

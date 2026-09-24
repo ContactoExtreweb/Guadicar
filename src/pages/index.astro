@@ -113,7 +113,7 @@ const publicados = (await getVehiculos())
         <div class='ocasion-card reveal'>
           <div class='ocasion-img'>
             <img
-              src={ocasion.fotos?.[0] || '/placeholder-coche.jpg'}
+              src={ocasion.fotos?.[0] || '/placeholder-coche.svg'}
               alt={`${ocasion.marca} ${ocasion.modelo}`}
             />
             {ocasion.certificado && (
@@ -190,7 +190,7 @@ const publicados = (await getVehiculos())
             <a href={`/vehiculos/${c.slug}`} class='car-card reveal'>
               <div class='car-img'>
                 <img
-                  src={c.fotos?.[0] || '/placeholder-coche.jpg'}
+                  src={c.fotos?.[0] || '/placeholder-coche.svg'}
                   alt={`${c.marca} ${c.modelo}`}
                 />
                 <div class='car-img-overlay' />
@@ -259,7 +259,7 @@ const publicados = (await getVehiculos())
             <a href={`/vehiculos/${c.slug}`} class='car-card reveal'>
               <div class='car-img'>
                 <img
-                  src={c.fotos?.[0] || '/placeholder-coche.jpg'}
+                  src={c.fotos?.[0] || '/placeholder-coche.svg'}
                   alt={`${c.marca} ${c.modelo}`}
                 />
                 <div class='car-img-overlay' />

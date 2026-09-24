@@ -205,7 +205,7 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
               >
                 <div class='car-img'>
                   <img
-                    src={c.fotos[0]}
+                    src={c.fotos[0] || '/placeholder-coche.svg'}
                     alt={`${c.marca} ${c.modelo}`}
                     loading='lazy'
                   />

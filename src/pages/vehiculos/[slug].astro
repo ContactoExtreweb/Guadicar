@@ -7,8 +7,18 @@ import Calculadora from '../../components/Calculadora.astro'
 const { slug } = Astro.params
 const v = await getVehiculo(slug)
 
-// Si el coche no existe (o se vendió y se despublicó), 404 limpio
-if (!v) return Astro.redirect('/404')
+// Si el coche no existe (o se vendió y se despublicó), se muestra la página
+// 404 con estado 404 de verdad. Antes era una redirección a /404, que responde
+// 200: Google lo tomaba como página válida y no retiraba la URL del coche.
+// (Astro.rewrite no sirve: no deja pasar de una página dinámica a una estática,
+// así que se pide el HTML del 404 y se devuelve con el estado correcto.)
+if (!v) {
+  const pagina404 = await fetch(new URL('/404', Astro.url))
+  return new Response(await pagina404.text(), {
+    status: 404,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  })
+}
 
 const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`
 const desc = v.precioOculto
@@ -51,29 +61,31 @@ const schemaCoche = {
   ...(v.traccion && { driveWheelConfiguration: v.traccion }),
   image: v.fotos,
   itemCondition: 'https://schema.org/UsedCondition',
-  offers: {
-    '@type': 'Offer',
-    price: v.precio,
-    priceCurrency: 'EUR',
-    availability: v.reservado
-      ? 'https://schema.org/OutOfStock'
-      : 'https://schema.org/InStock',
-    itemCondition: 'https://schema.org/UsedCondition',
-    url: `https://guadicar.es/vehiculos/${v.slug}`,
-    seller: {
-      '@type': 'AutoDealer',
-      name: 'GuadiCar Multimarcas',
-      telephone: '+34722496124',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Polígono Cagancha, 39',
-        addressLocality: 'Villanueva de la Serena',
-        addressRegion: 'Badajoz',
-        postalCode: '06700',
-        addressCountry: 'ES',
+  // Sin oferta si el precio está oculto: si no, el precio (o un 0) acabaría
+  // en el código de la página y en los resultados de Google.
+  ...(!v.precioOculto && {
+    offers: {
+      '@type': 'Offer',
+      price: v.precio,
+      priceCurrency: 'EUR',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/UsedCondition',
+      url: `https://guadicar.es/vehiculos/${v.slug}`,
+      seller: {
+        '@type': 'AutoDealer',
+        name: 'GuadiCar Multimarcas',
+        telephone: '+34722496124',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Polígono Cagancha, 39',
+          addressLocality: 'Villanueva de la Serena',
+          addressRegion: 'Badajoz',
+          postalCode: '06700',
+          addressCountry: 'ES',
+        },
       },
     },
-  },
+  }),
 }
 
 const schemaBreadcrumb = {
@@ -117,7 +129,7 @@ const ic = {
 const fotos = Array.isArray(v.fotos) ? v.fotos : []
 ---
 
-<Base title={titulo} description={desc} image={v.fotos[0]}>
+<Base title={titulo} description={desc} image={v.fotos[0] ?? '/logo.png'}>
   <section class='ficha'>
     <div data-vehiculo-id={v.id}></div>
     <!-- Migas de pan (bueno para SEO y navegación) -->
