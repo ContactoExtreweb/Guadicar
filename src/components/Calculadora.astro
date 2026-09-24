@@ -1,8 +1,10 @@
 ---
+import { TAE, TIN } from '../lib/financiacion.js';
 const { precio = 20000 } = Astro.props;
+const pct = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2 });
 const plazos = [120, 108, 96, 84, 72, 60, 48, 36, 24, 12, 6];
 ---
-<div class="calc" data-precio={precio}>
+<div class="calc" data-precio={precio} data-tae={TAE}>
   <button class="calc-toggle" type="button">
     <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
     Calcular cuota
@@ -30,7 +32,8 @@ const plazos = [120, 108, 96, 84, 72, 60, 48, 36, 24, 12, 6];
       <div class="calc-cuota"><span class="calc-cuota-num">—</span><span class="calc-cuota-mes">/mes</span></div>
       <div class="calc-detalle">
         <span>A financiar: <strong class="calc-capital">—</strong></span>
-        <span>TAE <strong>7,99%</strong></span>
+        <span>Total a pagar: <strong class="calc-total">—</strong></span>
+        <span>TIN <strong>{pct(TIN)} %</strong> · TAE <strong>{pct(TAE)} %</strong></span>
       </div>
     </div>
     <p class="calc-aviso">Cálculo orientativo. No constituye una oferta vinculante. Sujeto a aprobación de la entidad financiera.</p>
@@ -56,7 +59,7 @@ const plazos = [120, 108, 96, 84, 72, 60, 48, 36, 24, 12, 6];
   .calc-result { background:var(--black); border-radius:12px; padding:1.2rem; text-align:center; }
   .calc-cuota-num { font-family:var(--font-h); font-size:2.4rem; font-weight:800; color:#fff; }
   .calc-cuota-mes { color:rgba(255,255,255,.6); font-weight:600; }
-  .calc-detalle { display:flex; justify-content:space-between; margin-top:.6rem; font-size:.78rem; color:rgba(255,255,255,.7); }
+  .calc-detalle { display:flex; flex-wrap:wrap; gap:.3rem 1rem; justify-content:space-between; margin-top:.6rem; font-size:.78rem; color:rgba(255,255,255,.7); }
   .calc-detalle strong { color:#fff; }
   .calc-aviso { font-size:.7rem; color:var(--muted); margin-top:.8rem; line-height:1.5; text-align:center; }
 </style>
@@ -64,7 +67,7 @@ const plazos = [120, 108, 96, 84, 72, 60, 48, 36, 24, 12, 6];
 <script>
   document.querySelectorAll<HTMLElement>('.calc').forEach(calc => {
     const precio = Number(calc.dataset.precio);
-    const TAE = 7.99;
+    const TAE = Number(calc.dataset.tae);
     const $ = (s: string) => calc.querySelector(s) as HTMLElement;
     const toggle = $('.calc-toggle'), panel = $('.calc-panel');
     const entrada = $('.calc-entrada') as HTMLInputElement;
@@ -76,10 +79,12 @@ const plazos = [120, 108, 96, 84, 72, 60, 48, 36, 24, 12, 6];
       let ent = Number(entrada.value) || 0;
       if (ent > precio) { ent = precio; entrada.value = String(precio); }
       const capital = Math.max(precio - ent, 0);
-      const r = TAE / 100 / 12;
+      // Interés mensual que corresponde a la TAE (no TAE/12)
+      const r = Math.pow(1 + TAE / 100, 1 / 12) - 1;
       const cuota = capital === 0 ? 0 : capital * r / (1 - Math.pow(1 + r, -meses));
       $('.calc-capital').textContent = fmt(capital) + ' €';
       $('.calc-cuota-num').textContent = fmt(cuota) + ' €';
+      $('.calc-total').textContent = fmt(Math.round(cuota) * meses + ent) + ' €';
     };
 
     toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; recalc(); });

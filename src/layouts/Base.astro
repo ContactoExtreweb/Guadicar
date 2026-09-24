@@ -12,7 +12,9 @@ import '@fontsource/montserrat/600.css'
 import '@fontsource/montserrat/700.css'
 import '@fontsource/montserrat/800.css'
 import '@fontsource/montserrat/900.css'
+import { computeCuota, MESES, TIN, TAE } from '../lib/financiacion.js'
 // @ts-check
+const pct = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2 })
 const {
   title = 'GuadiCar Multimarcas — Vehículos de Ocasión y Km0 en Villanueva de la Serena',
   description = 'Concesionario multimarca en Villanueva de la Serena (Badajoz). Vehículos de ocasión, Km0 y nuevos con garantía y financiación. 35 años de experiencia.',
@@ -24,7 +26,18 @@ const {
 } = Astro.props
 
 const SITE = Astro.site ?? new URL('https://guadicar.es')
-const canonical = new URL(Astro.url.pathname, SITE).href
+// Una sola URL por página para Google. Netlify sirve las páginas estáticas con
+// barra final (/contacto -> /contacto/), y así están en el sitemap; las fichas
+// de coche van sin barra, que es como están indexadas. Antes /vehiculos y
+// /vehiculos/ se declaraban cada una como canónica: contenido duplicado.
+const ruta = Astro.url.pathname
+const esFicha = /^\/vehiculos\/[^/]+\/?$/.test(ruta)
+const rutaCanonica = esFicha
+  ? ruta.replace(/\/$/, '')
+  : ruta.endsWith('/')
+    ? ruta
+    : ruta + '/'
+const canonical = new URL(rutaCanonica, SITE).href
 
 // Datos estructurados para SEO local (Google)
 const negocio = {
@@ -41,11 +54,9 @@ const negocio = {
     latitude: 38.9678152,
     longitude: -5.8003009,
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '5.0',
-    reviewCount: '11',
-  },
+  // Sin aggregateRating: Google no acepta valoraciones que el propio negocio
+  // pone sobre sí mismo en su web, y un número fijo se queda desfasado. Las
+  // estrellas en Google salen de la ficha de Google Business.
   sameAs: [
     'https://www.instagram.com/guadicar_multimarcas',
     'https://www.facebook.com/profile.php?id=61569940076321',
@@ -108,14 +119,14 @@ const negocio = {
 
         <ul class='nav-links'>
           <li><a href='/'>Inicio</a></li>
-          <li><a href='/vehiculos'>Vehículos</a></li>
-          <li><a href='/carta'>A la carta</a></li>
-          <li><a href='/servicios'>Servicios</a></li>
-          <li><a href='/nosotros'>Nosotros</a></li>
-          <li><a href='/contacto'>Contacto</a></li>
+          <li><a href='/vehiculos/'>Vehículos</a></li>
+          <li><a href='/carta/'>A la carta</a></li>
+          <li><a href='/servicios/'>Servicios</a></li>
+          <li><a href='/nosotros/'>Nosotros</a></li>
+          <li><a href='/contacto/'>Contacto</a></li>
         </ul>
 
-        <a href='/contacto' class='nav-cta'>Contactar</a>
+        <a href='/contacto/' class='nav-cta'>Contactar</a>
 
         <button class='nav-burger' id='nav-burger' aria-label='Abrir menú'>
           <span></span><span></span><span></span>
@@ -129,11 +140,11 @@ const negocio = {
       <img src='/logo.png' alt='GuadiCar' class='nav-overlay-logo' />
       <nav class='nav-overlay-links'>
         <a href='/'>Inicio</a>
-        <a href='/vehiculos'>Vehículos</a>
-        <a href='/carta'>A la carta</a>
-        <a href='/servicios'>Servicios</a>
-        <a href='/nosotros'>Nosotros</a>
-        <a href='/contacto'>Contacto</a>
+        <a href='/vehiculos/'>Vehículos</a>
+        <a href='/carta/'>A la carta</a>
+        <a href='/servicios/'>Servicios</a>
+        <a href='/nosotros/'>Nosotros</a>
+        <a href='/contacto/'>Contacto</a>
       </nav>
       <div class='nav-overlay-contacto'>
         <span>CONTÁCTANOS</span>
@@ -165,9 +176,9 @@ const negocio = {
         </div>
         <div class='footer-links'>
           <div class='footer-legal'>
-            <a href='/aviso-legal'>Aviso legal</a>
-            <a href='/privacidad'>Política de privacidad</a>
-            <a href='/cookies'>Política de cookies</a>
+            <a href='/aviso-legal/'>Aviso legal</a>
+            <a href='/privacidad/'>Política de privacidad</a>
+            <a href='/cookies/'>Política de cookies</a>
             <button
               type='button'
               class='footer-legal-btn'
@@ -177,9 +188,9 @@ const negocio = {
           </div>
           <div class='footer-col'>
             <h4>Empresa</h4><ul>
-              <li><a href='/servicios'>Servicios</a></li><li>
-                <a href='/nosotros'>Nosotros</a>
-              </li><li><a href='/contacto'>Contacto</a></li>
+              <li><a href='/servicios/'>Servicios</a></li><li>
+                <a href='/nosotros/'>Nosotros</a>
+              </li><li><a href='/contacto/'>Contacto</a></li>
             </ul>
           </div>
           <div class='footer-col'>
@@ -197,6 +208,13 @@ const negocio = {
           </div>
         </div>
       </div>
+      <p class='footer-financiacion'>
+        *Cuotas orientativas a {MESES} meses sin entrada, TIN {pct(TIN)} %, TAE{' '}
+        {pct(TAE)} %. Por ejemplo, para 15.000 €: {MESES} cuotas de{' '}
+        {computeCuota(15000).toLocaleString('es-ES')} €, importe total adeudado{' '}
+        {(computeCuota(15000) * MESES).toLocaleString('es-ES')} €. Financiación
+        sujeta a aprobación de la entidad financiera.
+      </p>
       <div class='footer-bottom'>
         <div class='footer-copy'>
           © 2026 GuadiCar Multimarcas · Todos los derechos reservados ·
@@ -249,14 +267,19 @@ const negocio = {
         window.addEventListener('scroll', updateNav, { passive: true })
         updateNav()
 
-        // Marcar enlace activo
-        const page = window.location.pathname
+        // Marcar enlace activo (sin tener en cuenta la barra final)
+        const sinBarra = (s: string) => s.replace(/\/+$/, '') || '/'
+        const page = sinBarra(window.location.pathname)
         document
           .querySelectorAll('.nav-links a, .nav-overlay-links a')
           .forEach((a) => {
             const href = a.getAttribute('href')
             if (!href) return
-            if (href === page || (href !== '/' && page.startsWith(href)))
+            const destino = sinBarra(href)
+            if (
+              destino === page ||
+              (destino !== '/' && page.startsWith(destino + '/'))
+            )
               a.classList.add('active')
           })
 

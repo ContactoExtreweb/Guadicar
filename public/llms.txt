@@ -18,5 +18,5 @@ GuadiCar Multimarcas es un referente en la compra-venta de vehículos de ocasió
 - Financiación al 7.99%.
 
 ## Enlaces útiles
-- [Catálogo de Vehículos](https://guadicar.es/vehiculos)
-- [Contacto](https://guadicar.es/contacto)
+- [Catálogo de Vehículos](https://guadicar.es/vehiculos/)
+- [Contacto](https://guadicar.es/contacto/)

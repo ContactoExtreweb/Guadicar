@@ -2,6 +2,8 @@
 // En edición se recibe el `slug` y los datos los carga el navegador con la
 // sesión del panel (el servidor no la tiene). `vehiculo` se mantiene por si
 // alguna página aún pasa el objeto entero.
+import { MARCAS } from '../lib/marcas.js'
+
 const { vehiculo = null, slug = '' } = Astro.props
 const v = vehiculo ?? {}
 const esEdicion = !!vehiculo || !!slug
@@ -33,8 +35,18 @@ const esEdicion = !!vehiculo || !!slug
     >
     <br /><br />
     <div class='fv-grid'>
-      <label>Marca *<input name='marca' value={v.marca ?? ''} required /></label
+      <label
+        >Marca *<input
+          name='marca'
+          value={v.marca ?? ''}
+          list='marcas-lista'
+          autocomplete='off'
+          required
+        /></label
       >
+      <datalist id='marcas-lista'>
+        {MARCAS.map((m) => <option value={m} />)}
+      </datalist>
       <label
         >Modelo *<input name='modelo' value={v.modelo ?? ''} required /></label
       >
@@ -425,6 +437,7 @@ const esEdicion = !!vehiculo || !!slug
   // @ts-nocheck
   import { supabase } from '../lib/supabaseBrowser.js'
   import { refrescarWeb } from '../lib/refrescarWeb.js'
+  import { normalizarMarca } from '../lib/marcas.js'
 
   const form = document.getElementById('form-vehiculo')
   const esEdicion = form.dataset.edicion === 'true'
@@ -482,6 +495,14 @@ const esEdicion = !!vehiculo || !!slug
   ;['marca', 'modelo', 'anio'].forEach((n) =>
     form[n].addEventListener('input', autoSlug),
   )
+
+  // Al salir del campo, la marca se pone en su forma oficial si se reconoce
+  // ("VOLKSWAGEN" -> "Volkswagen"). Las erratas se preguntan al guardar.
+  form.marca.addEventListener('blur', () => {
+    const nm = normalizarMarca(form.marca.value)
+    if (!nm.sugerencia && nm.marca && nm.marca !== form.marca.value)
+      form.marca.value = nm.marca
+  })
 
   // ───── SUBIDA DE FOTOS ─────
   const dropzone = document.getElementById('dropzone')
@@ -752,6 +773,18 @@ const esEdicion = !!vehiculo || !!slug
       msg.textContent = 'Los datos del vehículo aún no se han cargado.'
       return
     }
+
+    // Marca siempre escrita igual (si no, el filtro del catálogo la duplica)
+    const nm = normalizarMarca(form.marca.value)
+    let marca = nm.marca
+    if (
+      nm.sugerencia &&
+      confirm(
+        `¿Querías decir "${nm.sugerencia}"?\n\nAceptar = usar "${nm.sugerencia}"\nCancelar = dejar "${nm.marca}"`,
+      )
+    )
+      marca = nm.sugerencia
+    form.marca.value = marca
 
     btn.disabled = true
     btn.textContent = 'Guardando…'

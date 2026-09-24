@@ -2,10 +2,14 @@
 // Ficha completa de un vehículo. La usa src/pages/vehiculos/[slug].astro, que
 // es quien carga el coche y decide si mostrar esto o el "no encontrado".
 import Base from '../layouts/Base.astro'
-import { badgeDe, fmt } from '../lib/coches.js'
+import { badgeDe, fmt, ejemploFinanciacion } from '../lib/coches.js'
 import Calculadora from './Calculadora.astro'
 
 const { v } = Astro.props
+
+// Ejemplo representativo que acompaña a la cuota (Ley 16/2011, art. 9)
+const ej = v.precioOculto ? null : ejemploFinanciacion(v.precio)
+const pct = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2 })
 
 const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`
 const desc = v.precioOculto
@@ -89,7 +93,7 @@ const schemaBreadcrumb = {
       '@type': 'ListItem',
       position: 2,
       name: 'Vehículos',
-      item: 'https://guadicar.es/vehiculos',
+      item: 'https://guadicar.es/vehiculos/',
     },
     {
       '@type': 'ListItem',
@@ -121,7 +125,7 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
     <div data-vehiculo-id={v.id}></div>
     <!-- Migas de pan (bueno para SEO y navegación) -->
     <nav class='breadcrumb'>
-      <a href='/'>Inicio</a> › <a href='/vehiculos'>Vehículos</a> › <span
+      <a href='/'>Inicio</a> › <a href='/vehiculos/'>Vehículos</a> › <span
         >{v.marca} {v.modelo}</span
       >
     </nav>
@@ -284,6 +288,15 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
                 <div class='price-fin'>
                   Financiación desde <strong>{v.cuota}€/mes</strong>
                 </div>
+                {ej && (
+                  <p class='price-ejemplo'>
+                    Ejemplo financiando {fmt(ej.importe)} € a {ej.meses} meses
+                    sin entrada: {ej.meses} cuotas de {fmt(ej.cuota)} €. TIN{' '}
+                    {pct(ej.tin)} %, TAE {pct(ej.tae)} %. Importe total adeudado:{' '}
+                    {fmt(ej.totalAdeudado)} €. Cálculo orientativo, sujeto a
+                    aprobación de la entidad financiera.
+                  </p>
+                )}
               </>
             )
           }
@@ -292,7 +305,7 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
         {!v.precioOculto && <Calculadora precio={v.precio} />}
 
         <div class='ficha-ctas'>
-          <a href={`/contacto?coche=${v.slug}`} class='hero-btn-main'
+          <a href={`/contacto/?coche=${v.slug}`} class='hero-btn-main'
             >Me interesa este coche</a
           >
         </div>
@@ -944,6 +957,12 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
     .ficha-precio .price-fin {
       color: rgba(255, 255, 255, 0.7);
       margin-top: 0.3rem;
+    }
+    .ficha-precio .price-ejemplo {
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 0.7rem;
+      line-height: 1.45;
+      margin: 0.6rem 0 0;
     }
     .ficha-ctas {
       display: flex;

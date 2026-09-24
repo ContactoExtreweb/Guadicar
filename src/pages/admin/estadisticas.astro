@@ -406,7 +406,7 @@ import AdminNav from '../../components/AdminNav.astro'
         supabase
           .from('vehiculos')
           .select(
-            'id, slug, marca, modelo, fotos, precio, created_at, publicado',
+            'id, slug, marca, modelo, fotos, precio, created_at, publicado, reservado',
           ),
       ])
       const fallo = rDia.error || rCoche.error || rTot.error || rCoches.error
@@ -535,6 +535,9 @@ import AdminNav from '../../components/AdminNav.astro'
       const ETIQUETA = { alta: 'Urgente', media: 'Revisar', baja: 'Aviso' }
 
       function evaluar(r) {
+        // Un coche reservado ya tiene comprador: no tiene sentido sugerir
+        // bajarle el precio ni cambiarle la foto
+        if (r.coche.reservado) return null
         const c = r.coche,
           n = r.n,
           dias = r.dias

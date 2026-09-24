@@ -1,15 +1,7 @@
 import { supabase } from './supabase.js'
 
-const TAE = 7.99,
-  MESES = 96
-export function computeCuota(
-  precio,
-  { entrada = 0, meses = MESES, tae = TAE } = {},
-) {
-  const capital = Math.max(precio - entrada, 0)
-  const r = tae / 100 / 12
-  return Math.round((capital * r) / (1 - Math.pow(1 + r, -meses)))
-}
+import { computeCuota } from './financiacion.js'
+export { computeCuota, ejemploFinanciacion, TAE, TIN, MESES } from './financiacion.js'
 
 export const fmt = (n) => Number(n).toLocaleString('es-ES')
 

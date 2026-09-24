@@ -2824,3 +2824,13 @@ button {
   color: inherit;
   text-decoration: underline;
 }
+
+/* Nota legal de las cuotas "desde X €/mes*" (Ley 16/2011) */
+.footer-financiacion {
+  max-width: 1200px;
+  margin: 1.2rem auto 0;
+  padding: 0 1.5rem;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  opacity: 0.55;
+}

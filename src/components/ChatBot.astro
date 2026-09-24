@@ -18,7 +18,7 @@
       <input id="gc-lead-tel" type="tel" placeholder="Tu teléfono" maxlength="20" required />
       <textarea id="gc-lead-msg" placeholder="¿Qué coche te interesa? (opcional)" maxlength="300" rows="2"></textarea>
       <div class="nl-hp" aria-hidden="true"><input id="gc-lead-empresa" type="text" name="empresa" tabindex="-1" autocomplete="off" /></div>
-      <p class="gc-lead-legal">Usaremos tus datos solo para llamarte. <a href="/privacidad" target="_blank">Privacidad</a></p>
+      <p class="gc-lead-legal">Usaremos tus datos solo para llamarte. <a href="/privacidad/" target="_blank">Privacidad</a></p>
       <div class="gc-lead-acciones">
         <button type="button" id="gc-lead-cancel" class="gc-lead-cancel">Cancelar</button>
         <button type="submit" class="gc-lead-enviar">Enviar</button>
@@ -221,7 +221,11 @@
   // Restaurar conversación previa (persistencia entre páginas)
   historial.forEach(m => pintar(m.texto, m.rol === 'user' ? 'user' : 'bot'));
   refrescarLeadBtn();
-  if (sessionStorage.getItem(SS_OPEN) === '1') abrir();
+  // En ordenador se reabre al cambiar de página; en móvil no, porque ocupa
+  // casi toda la pantalla y tapaba la página a la que se acababa de ir (p. ej.
+  // la ficha de un coche enlazado desde el propio chat). La conversación se
+  // conserva igualmente.
+  if (sessionStorage.getItem(SS_OPEN) === '1' && !esMovil()) abrir();
 
   toggle.addEventListener('click', () => {
     abrir();
