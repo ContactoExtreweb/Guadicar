@@ -1,13 +1,13 @@
 ---
 ---
 <div id="gc-chat">
-  <button id="gc-toggle" class="gc-toggle" aria-label="Abrir chat">
+  <button id="gc-toggle" class="gc-toggle" aria-label="Abrir el asistente virtual (inteligencia artificial)">
     <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5.6A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
   </button>
 
   <div id="gc-panel" class="gc-panel" hidden>
     <div class="gc-head">
-      <div><strong>GuadiCar</strong><span>Asistente · te responde al momento</span></div>
+      <div><strong>GuadiCar</strong><span>Asistente virtual con IA · puede equivocarse</span></div>
       <button id="gc-close" class="gc-close" aria-label="Cerrar">✕</button>
     </div>
     <div id="gc-msgs" class="gc-msgs"></div>
@@ -227,7 +227,7 @@
     abrir();
     if (!saludado) {
       saludado = true;
-      const g = '¡Hola! Soy el asistente de GuadiCar. ¿Buscas algún coche en concreto o tienes alguna duda?';
+      const g = '¡Hola! Soy el asistente virtual de GuadiCar: un sistema de inteligencia artificial, no una persona. Puedo equivocarme, así que para confirmar precios o disponibilidad te pongo en contacto con un comercial. ¿Buscas algún coche en concreto?';
       pintar(g, 'bot'); historial.push({ rol: 'model', texto: g }); guardar();
     }
     // Sin input.focus(): el teclado NO se abre solo
