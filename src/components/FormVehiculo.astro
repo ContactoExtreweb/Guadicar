@@ -400,7 +400,10 @@ const esEdicion = !!vehiculo || !!slug
       >
       <label class='fv-check fv-check--avisar'
         ><input type='checkbox' name='avisar' /> 📣 Avisar a los suscriptores de este
-        vehículo</label
+        vehículo <small
+          >Se envía como bajada de precio si el precio anterior es mayor que el
+          actual; si no, como novedad.</small
+        ></label
       >
     </div>
   </section>
@@ -873,7 +876,12 @@ const esEdicion = !!vehiculo || !!slug
           },
           body: JSON.stringify({
             vehiculoId,
-            tipo: esEdicion ? 'bajada' : 'nuevo',
+            // Bajada solo si el precio anterior es mayor que el actual; si no,
+            // se anuncia como novedad.
+            tipo:
+              datos.precio_anterior && datos.precio_anterior > datos.precio
+                ? 'bajada'
+                : 'nuevo',
           }),
         })
         const r = await res.json()

@@ -52,6 +52,112 @@ import AdminNav from '../../components/AdminNav.astro'
     </main>
   </div>
 
+  <div id='aviso-modal' class='av-modal' hidden>
+    <div class='av-card'>
+      <h2>Avisar a los suscriptores</h2>
+      <p class='av-coche' id='av-nombre'></p>
+      <p class='av-nota' id='av-nota' hidden></p>
+      <div class='av-ops'>
+        <button type='button' class='av-op' data-tipo='nuevo'>
+          🚗 Es una novedad
+          <small>«Nuevo en GuadiCar»</small>
+        </button>
+        <button type='button' class='av-op' data-tipo='bajada' id='av-bajada'>
+          📉 Ha bajado de precio
+          <small id='av-bajada-info'></small>
+        </button>
+      </div>
+      <button type='button' class='av-cancelar' id='av-cancelar'>Cancelar</button>
+    </div>
+  </div>
+
+  <style>
+    .av-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
+    }
+    .av-modal[hidden] {
+      display: none;
+    }
+    .av-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.6rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-lg);
+    }
+    .av-card h2 {
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0;
+    }
+    .av-coche {
+      font-weight: 700;
+      margin: 0.3rem 0 1rem;
+    }
+    .av-nota {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 9px;
+      padding: 0.7rem 0.8rem;
+      margin: 0 0 1rem;
+    }
+    .av-ops {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .av-op {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      text-align: left;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 0.9rem 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .av-op small {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .av-op:hover:not(:disabled) {
+      border-color: var(--red);
+    }
+    .av-op:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .av-cancelar {
+      width: 100%;
+      margin-top: 1rem;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.6rem;
+    }
+  </style>
+
   <script>
     // @ts-nocheck
     import { supabase } from '../../lib/supabaseBrowser.js'
@@ -120,7 +226,7 @@ import AdminNav from '../../components/AdminNav.astro'
       const { data, error } = await supabase
         .from('vehiculos')
         .select(
-          'id, slug, marca, modelo, precio, anio, km, fotos, publicado, estado, combustible, precio_oculto, reservado',
+          'id, slug, marca, modelo, precio, precio_anterior, anio, km, fotos, publicado, estado, combustible, precio_oculto, reservado',
         )
         .order('created_at', { ascending: false })
       document.getElementById('cargando').hidden = true
@@ -176,39 +282,104 @@ import AdminNav from '../../components/AdminNav.astro'
         cargar()
       }
       if (btn.dataset.accion === 'avisar') {
-        const id = btn.dataset.id
-        const nombre = btn.dataset.nombre
-        const tipo = confirm(
-          `Vas a avisar a los suscriptores sobre "${nombre}".\n\nAceptar = BAJADA DE PRECIO 📉\nCancelar = lo dejo`,
-        )
-          ? 'bajada'
-          : null
-        if (!tipo) return
-        btn.disabled = true
-        btn.textContent = 'Enviando…'
-        try {
-          const { data: sesion } = await supabase.auth.getSession()
-          const res = await fetch('/api/notificar', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${sesion.session?.access_token ?? ''}`,
-            },
-            body: JSON.stringify({ vehiculoId: id, tipo }),
-          })
-          const data = await res.json()
-          if (!res.ok) throw new Error(data.error)
-          alert(
-            data.aviso || `✅ Aviso enviado a ${data.enviados} suscriptor(es).`,
-          )
-        } catch (err) {
-          alert('Error al enviar: ' + err.message)
-        } finally {
-          btn.disabled = false
-          btn.textContent = '📣 Avisar'
-        }
+        abrirAviso(TODOS.find((v) => String(v.id) === String(id)))
       }
     }
+
+    // ───── AVISO A SUSCRIPTORES ─────
+    const modal = document.getElementById('aviso-modal')
+    let cocheAviso = null
+
+    // Guardamos el contenido original de los botones para poder dejarlos como
+    // estaban después de un envío
+    const HTML_OPS = new Map(
+      [...modal.querySelectorAll('.av-op')].map((b) => [
+        b.dataset.tipo,
+        b.innerHTML,
+      ]),
+    )
+    function restaurarOps() {
+      modal.querySelectorAll('.av-op').forEach((b) => {
+        b.innerHTML = HTML_OPS.get(b.dataset.tipo)
+        b.disabled = false
+      })
+    }
+
+    function abrirAviso(v) {
+      if (!v) return
+      cocheAviso = v
+      restaurarOps()
+      document.getElementById('av-nombre').textContent =
+        `${v.marca} ${v.modelo}`
+
+      const nota = document.getElementById('av-nota')
+      const opNuevo = modal.querySelector('[data-tipo="nuevo"]')
+      const opBajada = document.getElementById('av-bajada')
+      const info = document.getElementById('av-bajada-info')
+
+      // El correo enseña el precio y enlaza a la ficha, así que hay casos en
+      // los que no se puede mandar.
+      let impedimento = ''
+      if (!v.publicado) impedimento = 'Este coche está oculto: publícalo antes de avisar.'
+      else if (v.reservado) impedimento = 'Está reservado, así que su precio no se muestra. Quita la reserva antes de avisar.'
+      else if (v.precio_oculto) impedimento = 'Tiene el precio oculto y el correo lo mostraría. Muestra el precio antes de avisar.'
+
+      nota.textContent = impedimento
+      nota.hidden = !impedimento
+
+      // "Bajada de precio" solo si de verdad ha bajado: el correo lo dice en el
+      // asunto y tacha el precio anterior.
+      const bajada = v.precio_anterior && v.precio_anterior > v.precio
+      info.textContent = bajada
+        ? `De ${fmt(v.precio_anterior)} € a ${fmt(v.precio)} €`
+        : 'Necesita un precio anterior mayor que el actual (se pone al editar el coche)'
+
+      opNuevo.disabled = !!impedimento
+      opBajada.disabled = !!impedimento || !bajada
+      modal.hidden = false
+    }
+
+    function cerrarAviso() {
+      modal.hidden = true
+      cocheAviso = null
+      restaurarOps()
+    }
+
+    async function enviarAviso(tipo, boton) {
+      if (!cocheAviso) return
+      const ops = [...modal.querySelectorAll('.av-op')]
+      ops.forEach((b) => (b.disabled = true))
+      boton.textContent = 'Enviando…'
+      try {
+        const { data: sesion } = await supabase.auth.getSession()
+        const res = await fetch('/api/notificar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sesion.session?.access_token ?? ''}`,
+          },
+          body: JSON.stringify({ vehiculoId: cocheAviso.id, tipo }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Error ' + res.status)
+        alert(data.aviso || `✅ Aviso enviado a ${data.enviados} suscriptor(es).`)
+        cerrarAviso()
+      } catch (err) {
+        alert('Error al enviar: ' + err.message)
+        // Volvemos a dejar el diálogo como estaba, con las mismas opciones
+        if (cocheAviso) abrirAviso(cocheAviso)
+      }
+    }
+
+    modal.querySelectorAll('.av-op').forEach((b) =>
+      b.addEventListener('click', () => enviarAviso(b.dataset.tipo, b)),
+    )
+    document
+      .getElementById('av-cancelar')
+      .addEventListener('click', cerrarAviso)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) cerrarAviso()
+    })
 
     ;(async () => {
       const { data } = await supabase.auth.getSession()

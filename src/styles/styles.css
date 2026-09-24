@@ -39,7 +39,8 @@ body {
   font-family: var(--font);
   background: var(--white);
   color: var(--text);
-  overflow-x: clip();
+  /* clip (sin paréntesis): recorta igual que hidden pero no rompe position:sticky */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 img {
@@ -1745,6 +1746,8 @@ button {
 }
 .ar-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.4rem;
 }
 .ar-btn {
@@ -1911,10 +1914,20 @@ button {
   }
   .ar-actions {
     grid-area: actions;
+    /* En rejilla de dos columnas: cinco botones en fila se salían de la pantalla */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
   }
   .ar-actions .ar-btn {
-    flex: 1;
+    width: 100%;
     text-align: center;
+    padding: 0.6rem 0.4rem;
+    white-space: normal;
+  }
+  /* Es el último y va solo: que ocupe la fila entera */
+  .ar-actions .ar-btn.avisar {
+    grid-column: 1 / -1;
   }
 }
 /* ───── CENTRO DE TRABAJO (Resumen) ───── */

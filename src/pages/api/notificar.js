@@ -72,6 +72,18 @@ export async function POST({ request }) {
       )
     }
 
+    // No anunciar una bajada que no existe: el asunto la anuncia y el correo
+    // tacha el precio anterior.
+    if (tipo === 'bajada' && !(v.precio_anterior && v.precio_anterior > v.precio)) {
+      return json(
+        {
+          error:
+            'Este coche no tiene ninguna bajada de precio. Pon el precio anterior (mayor que el actual) al editarlo, o avisa de él como novedad.',
+        },
+        400,
+      )
+    }
+
     // 3) Traer suscriptores (todos, no solo los 1000 primeros)
     let emails
     try {
