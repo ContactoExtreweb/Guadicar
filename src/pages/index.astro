@@ -5,18 +5,22 @@ import Resenas from '../components/Resenas.astro'
 import {
   getDestacados,
   getOcasionSemana,
-  getVehiculos,
+  getUltimos,
   fmt,
   badgeDe,
 } from '../lib/coches.js'
+import { cachearEnCDN } from '../lib/cache.js'
 
 export const prerender = false // para mostrar los coches reales y que se actualice al añadirlos
 
-const destacados = await getDestacados() // coches marcados como "destacado" en el panel
-const ocasion = await getOcasionSemana() // coche marcado como "ocasión de la semana"
-const publicados = (await getVehiculos())
-  .filter((c) => !c.destacado)
-  .slice(0, 4) // mostramos 4 coches publicados sin marcar.
+// Las tres consultas a la vez, y solo los 4 últimos en vez del catálogo entero
+const [destacados, ocasion, publicados] = await Promise.all([
+  getDestacados(), // coches marcados como "destacado" en el panel
+  getOcasionSemana(), // coche marcado como "ocasión de la semana"
+  getUltimos(4), // 4 coches publicados sin marcar como destacados
+])
+
+cachearEnCDN(Astro.response.headers)
 ---
 
 <Base

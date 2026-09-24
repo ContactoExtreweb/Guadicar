@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import { getVehiculos } from '../lib/coches.js';
+import { cachearEnCDN } from '../lib/cache.js';
 
 export async function GET() {
   const SITE = 'https://guadicar.es';
@@ -32,10 +33,7 @@ export async function GET() {
 ${urls}
 </urlset>`;
 
-  return new Response(xml, {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600',
-    },
-  });
+  const headers = new Headers({ 'Content-Type': 'application/xml; charset=utf-8' });
+  cachearEnCDN(headers);
+  return new Response(xml, { headers });
 }

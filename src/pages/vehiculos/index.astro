@@ -2,8 +2,10 @@
 export const prerender = false
 import Base from '../../layouts/Base.astro'
 import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js'
+import { cachearEnCDN } from '../../lib/cache.js'
 
 const vehiculos = await getVehiculos()
+cachearEnCDN(Astro.response.headers)
 const unicos = (arr: any[]) => [...new Set(arr.filter(Boolean))] as any[]
 const marcas = unicos(vehiculos.map((v: any) => v.marca)).sort()
 const carrocerias = unicos(vehiculos.map((v: any) => v.carroceria)).sort()

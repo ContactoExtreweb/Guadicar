@@ -90,6 +90,23 @@ export async function getVehiculo(slug) {
   return mapRow(data)
 }
 
+// Los últimos publicados que no son destacados (para la home), sin traer
+// el catálogo entero
+export async function getUltimos(n = 4) {
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('*')
+    .eq('publicado', true)
+    .not('destacado', 'is', true)
+    .order('created_at', { ascending: false })
+    .limit(n)
+  if (error) {
+    console.error('Error cargando últimos vehículos:', error.message)
+    return []
+  }
+  return data.map(mapRow)
+}
+
 export async function getDestacados(n = 4) {
   const { data, error } = await supabase
     .from('vehiculos')

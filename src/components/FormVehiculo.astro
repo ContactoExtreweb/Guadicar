@@ -424,6 +424,7 @@ const esEdicion = !!vehiculo || !!slug
 <script>
   // @ts-nocheck
   import { supabase } from '../lib/supabaseBrowser.js'
+  import { refrescarWeb } from '../lib/refrescarWeb.js'
 
   const form = document.getElementById('form-vehiculo')
   const esEdicion = form.dataset.edicion === 'true'
@@ -628,7 +629,8 @@ const esEdicion = !!vehiculo || !!slug
       const { error } = await supabase.storage
         .from('coches')
         .upload(nombre, optimizada, {
-          cacheControl: '3600',
+          // Nombre único por foto: se puede cachear un año sin riesgo
+          cacheControl: '31536000',
           upsert: false,
           contentType: 'image/jpeg',
         })
@@ -892,6 +894,8 @@ const esEdicion = !!vehiculo || !!slug
         console.error('No se pudo enviar el aviso:', err)
       }
     }
+    // Que el cambio se vea ya en la web (la caché del CDN dura una hora)
+    await refrescarWeb()
     window.location.href = '/admin/vehiculos'
   })
 </script>

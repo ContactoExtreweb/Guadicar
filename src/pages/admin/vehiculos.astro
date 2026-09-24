@@ -161,6 +161,7 @@ import AdminNav from '../../components/AdminNav.astro'
   <script>
     // @ts-nocheck
     import { supabase } from '../../lib/supabaseBrowser.js'
+    import { refrescarWeb } from '../../lib/refrescarWeb.js'
 
     const fmt = (n) => Number(n).toLocaleString('es-ES')
     let TODOS = []
@@ -249,11 +250,15 @@ import AdminNav from '../../components/AdminNav.astro'
       const id = btn.closest('.admin-row').dataset.id
       if (btn.dataset.accion === 'toggle') {
         const nuevo = btn.dataset.pub !== 'true'
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('vehiculos')
           .update({ publicado: nuevo })
           .eq('id', id)
+          .select('id')
         if (error) return alert('Error: ' + error.message)
+        if (!data?.length)
+          return alert('No se cambió nada. Puede que la sesión haya caducado: vuelve a entrar.')
+        await refrescarWeb()
         cargar()
       }
       if (btn.dataset.accion === 'precio') {
@@ -268,6 +273,7 @@ import AdminNav from '../../components/AdminNav.astro'
           return alert(
             'No se actualizó: falta la política UPDATE en vehiculos (RLS).',
           )
+        await refrescarWeb()
         cargar()
       }
       if (btn.dataset.accion === 'borrar') {
@@ -277,8 +283,15 @@ import AdminNav from '../../components/AdminNav.astro'
           )
         )
           return
-        const { error } = await supabase.from('vehiculos').delete().eq('id', id)
+        const { data, error } = await supabase
+          .from('vehiculos')
+          .delete()
+          .eq('id', id)
+          .select('id')
         if (error) return alert('Error: ' + error.message)
+        if (!data?.length)
+          return alert('No se borró nada. Puede que la sesión haya caducado: vuelve a entrar.')
+        await refrescarWeb()
         cargar()
       }
       if (btn.dataset.accion === 'avisar') {
