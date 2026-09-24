@@ -23,10 +23,24 @@ Implicaciones prácticas:
   `@astrojs/netlify` 7→8 con *breaking changes* que se decidió **no aplicar**. Si se
   hace algún día: rama aparte, `npm run build` limpio en local, probar panel + subida
   de fotos + los tres formularios + fichas, y solo entonces fusionar. Ojo con la
-  versión mínima de Node (en Netlify hay `NODE_VERSION=20`; Astro 7 podría exigir 22).
+  versión mínima de Node: `package.json` ya exige Node ≥ 22.12 (Astro 6).
 - **Probar antes de desplegar.** Los créditos de Netlify son limitados y cada build
   fallido los consume.
 - **Nunca commitear `.env`** ni claves. Las claves viven solo en variables de entorno.
+
+### Flujo de trabajo (desde septiembre 2026)
+
+- `main` = producción. **Todo se hace en la rama `desarrollo`**, que Netlify
+  despliega aparte en `https://desarrollo--eguadicar.netlify.app`.
+- Orden: probar en local (`npm run dev`) → push a `desarrollo` → probar en la URL
+  de la rama → pull request a `main` → fusionar (eso publica en producción).
+- **La rama usa la misma base de datos que producción.** Lo que se crea o edita
+  probando, se crea o edita de verdad: probar con coches ocultos de prueba.
+- **Modo pruebas** (`src/lib/entorno.js`): fuera de producción (rama y local) los
+  avisos a suscriptores y los avisos de leads van solo a `LEAD_EMAIL_TO`, con
+  `[PRUEBA]` en el asunto. Se decide por la variable `CONTEXT` de Netlify, que se
+  fija en el build. `MODO_PRUEBAS=1` en producción corta los envíos si hiciera falta.
+- Los SQL que se ejecutan en Supabase se guardan en `sql/` con su estado.
 
 ---
 
@@ -34,7 +48,7 @@ Implicaciones prácticas:
 
 | Pieza | Detalle |
 |---|---|
-| Framework | **Astro 5** (`output: 'static'` + adaptador `@astrojs/netlify`) |
+| Framework | **Astro 6** (`output: 'static'` + adaptador `@astrojs/netlify` 7) |
 | Base de datos | **Supabase** (Postgres + Auth + Storage), proyecto `ujmxhcxaputqzcvqwyjn` |
 | Hosting | **Netlify**, cuenta `extrewebguadicar`, sitio `eguadicar.netlify.app` |
 | Dominio | **guadicar.es** (DNS gestionado en **Plesk/Kinetica**) |
@@ -58,13 +72,15 @@ PUBLIC_SUPABASE_URL          # NO marcar como secret
 PUBLIC_SUPABASE_ANON_KEY     # NO marcar como secret
 SUPABASE_SERVICE_KEY         # service_role, secreta
 RESEND_API_KEY
-LEAD_EMAIL_TO                # contactoextreweb@gmail.com
+LEAD_EMAIL_TO                # contactoextreweb@gmail.com — buzón de pruebas (modo pruebas)
 GEMINI_API_KEY
-NODE_VERSION=20
+NODE_VERSION                 # ≥ 22 (Astro 6 exige Node 22.12+)
+MODO_PRUEBAS                 # opcional: =1 corta los envíos reales también en producción
 ```
 
 Las variables **solo se aplican al re-desplegar** (Deploys → *Clear cache and deploy
-site*). Las `PUBLIC_` marcadas como *secret* rompen el build de Astro.
+site*): Astro las **incrusta en el build** (`import.meta.env.X` acaba como texto en la
+función). Las `PUBLIC_` marcadas como *secret* rompen el build de Astro.
 
 ---
 
@@ -77,7 +93,9 @@ src/
 │   └── Admin.astro         # layout del panel
 ├── components/
 │   ├── FormVehiculo.astro  # alta Y edición de coches (compartido) — compresión de fotos aquí
-│   ├── ChatBot.astro       # chat con Gemini
+│   ├── FichaVehiculo.astro # la ficha completa (la usa vehiculos/[slug].astro)
+│   ├── NoEncontrado.astro  # contenido del 404 (lo usan 404.astro y la ficha)
+│   ├── ChatBot.astro       # chat con Gemini (avisa de que es IA)
 │   ├── Newsletter.astro    # 3 variantes: section / footer / popup
 │   ├── Resenas.astro       # reseñas de Google (estáticas)
 │   ├── CookieBanner.astro
@@ -87,21 +105,31 @@ src/
 │   ├── supabase.js         # cliente anon, servidor
 │   ├── supabaseBrowser.js  # cliente navegador
 │   ├── supabaseAdmin.js    # service_role — SOLO en /api
-│   └── coches.js           # getVehiculos, getVehiculo, getDestacados, getOcasionSemana, mapRow, fmt, badgeDe, computeCuota
+│   ├── coches.js           # getVehiculos, getVehiculo, getUltimos, getDestacados, getOcasionSemana, mapRow, fmt, badgeDe
+│   ├── financiacion.js     # TAE, TIN, computeCuota, ejemploFinanciacion (Ley 16/2011)
+│   ├── entorno.js          # producción o pruebas (modo pruebas)
+│   ├── apiAdmin.js         # esAdmin(request): valida el token del panel en /api
+│   ├── leads.js            # antispam, validación y aviso por correo de leads
+│   ├── cache.js            # cabeceras de caché del CDN (etiqueta "coches")
+│   ├── refrescarWeb.js     # desde el panel: purga la caché tras un cambio
+│   └── marcas.js           # lista oficial de marcas + normalización
 ├── pages/
 │   ├── index.astro         # home
 │   ├── vehiculos/index.astro    # catálogo con filtros
-│   ├── vehiculos/[slug].astro   # ficha
+│   ├── vehiculos/[slug].astro   # carga el coche: ficha, o 404 real si no existe
 │   ├── carta.astro contacto.astro servicios.astro nosotros.astro
 │   ├── aviso-legal.astro privacidad.astro cookies.astro
+│   ├── baja.astro          # confirmación de baja de la newsletter
 │   ├── sitemap-coches.xml.js    # sitemap dinámico de fichas
 │   ├── api/
 │   │   ├── lead.js         # contacto + "a la carta"
 │   │   ├── lead-chatbot.ts # leads del chatbot (nombre distinto: /api/lead ya estaba ocupado)
 │   │   ├── suscribir.js    # newsletter
-│   │   ├── notificar.js    # avisos a suscriptores (coche nuevo / bajada de precio)
+│   │   ├── baja.js         # baja de la newsletter (POST; también el "un clic" de Gmail)
+│   │   ├── notificar.js    # avisos a suscriptores — SOLO panel (token)
+│   │   ├── purgar.js       # vacía la caché del CDN — SOLO panel (token)
 │   │   ├── chat.ts         # chatbot Gemini
-│   │   └── consejo.ts      # "Consejo de hoy" del panel
+│   │   └── consejo.ts      # "Consejo de hoy" del panel — SOLO panel (token)
 │   └── admin/
 │       ├── index.astro     # dashboard (Chart.js, tareas, notas, contactos)
 │       ├── vehiculos.astro # listado con acciones
@@ -112,8 +140,17 @@ src/
 └── styles/styles.css       # ~2700 líneas, CSS global
 ```
 
+Fuera de `src/`: `public/_headers` (cabeceras de seguridad de Netlify) y `sql/`
+(SQL ejecutados y pendientes, con su estado).
+
 **`FormVehiculo.astro` lo usan `nuevo.astro` y `editar/[slug].astro`.** Todo lo de
-subida y compresión de fotos vive ahí: se arregla una vez y vale para los dos.
+subida y compresión de fotos vive ahí: se arregla una vez y vale para los dos. En
+edición **los datos los carga el navegador** con la sesión del panel (el servidor
+no la tiene y, por RLS, no vería los coches ocultos ni `vehiculos_privado`).
+
+**Endpoints del panel** (`notificar`, `consejo`, `purgar`): el panel manda
+`Authorization: Bearer <access_token>` de la sesión de Supabase y el endpoint lo
+valida con `esAdmin()`. Cualquier endpoint nuevo que haga algo privado, igual.
 
 ---
 
@@ -124,7 +161,7 @@ subida y compresión de fotos vive ahí: se arregla una vez y vale para los dos.
 | `vehiculos` | catálogo público (`id` es **uuid**) |
 | `vehiculos_privado` | precio de compra, gastos, notas internas (solo admin) |
 | `leads` | contacto, "a la carta" y chatbot (columna `tipo`) |
-| `suscriptores` | newsletter (email único) |
+| `suscriptores` | newsletter (email único, `token_baja` uuid para el enlace de baja) |
 | `vistas` | contador de visitas por ficha |
 | `tareas` / `notas` / `contactos` | centro de trabajo del dashboard |
 
@@ -147,6 +184,21 @@ tarde y es el primer sitio donde se nota si falta algo.
 
 Regla del precio oculto: `precioOculto: r.precio_oculto || r.reservado`. Un coche
 reservado oculta el precio automáticamente sin tocar datos.
+
+### RLS — estado actual (septiembre 2026)
+
+- Las políticas de admin comprueban solo `auth.role() = 'authenticated'`, no qué
+  usuario es. Por eso **el registro de usuarios en Supabase debe seguir
+  DESACTIVADO** (Authentication → Sign In / Providers → "Allow new users to sign
+  up"). Estaba activado y cualquiera podía crearse una cuenta y leer leads,
+  suscriptores y precios de compra. Mejora pendiente: atar las políticas al UID
+  del cliente.
+- Lectura pública: solo `vehiculos` con `publicado = true` y el bucket `coches`.
+- Inserción pública: `vistas` (contador) y, hasta ejecutar
+  `sql/2026-09-quitar-insert-publico-leads.sql`, también `leads`.
+- `suscriptores` no tiene política DELETE: la baja la hace `/api/baja` con la
+  clave de servicio.
+- `vehiculos_privado`: clave primaria `vehiculo_id`, con `ON DELETE CASCADE`.
 
 ### RLS — la trampa que más tiempo costó
 
@@ -171,9 +223,8 @@ visitas del panel se congeló un día exacto porque `vistas` pasó de 1000 filas
 Solución aplicada: **agregar en la base de datos**, no en el navegador. Funciones RPC
 creadas: `vistas_por_dia(dias int)`, `vistas_por_coche()`, `vistas_totales()`.
 
-> ⚠️ **Sigue latente en `notificar.js`**: hace `select('email')` sobre `suscriptores`
-> sin límite. Con pocos suscriptores da igual, pero si pasan de 1000 los avisos se
-> enviarían solo a los primeros mil, en silencio. Paginar cuando la lista crezca.
+`notificar.js` ya lee los suscriptores en páginas de 1000 con `.range()`. Queda
+latente en la bandeja de leads del panel (`select('*')` sin paginar).
 
 ---
 
@@ -195,20 +246,28 @@ medallas, coche más y menos visto, motor de sugerencias por reglas, "Consejo de
 generado con Gemini y cacheado por día en localStorage); bandeja de leads.
 
 ### Correos (Resend)
-- `lead.js` → avisos de contacto y "a la carta" a **ventas@guadicar.es**, con
-  `replyTo` al email del cliente que escribió.
-- `notificar.js` → avisos de coche nuevo y bajada de precio a los suscriptores.
-  **Envío individual** (no bcc) desde `ventas@guadicar.es`, con `sleep(550ms)` entre
-  envíos para no chocar con el límite de Resend, validación y deduplicación de
-  direcciones, y contador de enviados/fallos.
-- `suscribir.js` → alta en la newsletter.
-
-El `MODO_PRUEBAS` de `notificar.js` **ya está desactivado**: los envíos son reales.
+- `lead.js` y `lead-chatbot.ts` → avisos de contacto, "a la carta" y chatbot a
+  **ventas@guadicar.es** (en pruebas, a `LEAD_EMAIL_TO`), con `replyTo` al cliente.
+  Comparten validaciones y envío en `src/lib/leads.js`.
+- `notificar.js` → avisos a suscriptores, **por lotes de 100** (`resend.batch.send`)
+  para no agotar el tiempo de la función. Cada correo lleva su enlace de baja
+  personal y las cabeceras `List-Unsubscribe`. El tipo (novedad / bajada) se elige
+  en el panel, y "bajada" solo se permite si `precio_anterior > precio`. No deja
+  avisar de coches ocultos, reservados o con precio oculto.
+- `suscribir.js` → alta en la newsletter. `baja.js` + `/baja` → baja.
 
 ### Chatbot
 Anclado al stock real (responde con enlace a la ficha del coche), resuelve dudas
-generales, deriva a "Quiero que me llamen" y guarda el lead. Con guardarraíles y
-límite por IP (best-effort: en serverless la memoria se reinicia).
+generales, deriva a "Quiero que me llamen" y guarda el lead (con antispam y aviso
+por correo). Avisa de que es una IA (Reglamento Europeo de IA, art. 50). No recibe
+el precio de coches con precio oculto o reservados. Límite por IP best-effort.
+
+### Caché en el CDN de Netlify
+Home, catálogo, fichas y sitemap de coches se cachean 1 hora en Netlify (etiqueta
+`coches`, ver `src/lib/cache.js`). El panel la purga (`/api/purgar`) al guardar,
+ocultar, borrar o cambiar el precio de un coche. **Si se cambia algo de un coche
+directamente en Supabase, tarda hasta una hora en verse** (o guardar cualquier
+coche desde el panel, o redesplegar).
 
 ---
 
@@ -273,7 +332,21 @@ nadie cuele enlaces de phishing en el correo que recibe el cliente.
   falsas alarmas. **Pero un error TS real rompe el script entero en silencio.**
 - `overflow-x: hidden` en `body` **rompe `position: sticky`**. Usar `overflow-x: clip`,
   que recorta igual pero no crea contenedor de scroll. Así se arregló la barra de
-  filtros del catálogo.
+  filtros del catálogo. **Sin paréntesis**: estuvo meses como `clip()`, que es CSS
+  inválido y el navegador ignoraba.
+- `Astro.rewrite('/404')` **no funciona** desde una página dinámica hacia una
+  estática (error ForbiddenRewrite), y pedir `/404` con `fetch` al propio servidor
+  se queda colgado en local. El 404 de las fichas se resuelve renderizando
+  `NoEncontrado.astro` con `Astro.response.status = 404`.
+- Astro rechaza por defecto los POST de formulario que vienen de otro dominio
+  (`security.checkOrigin`). Está desactivado en `astro.config.mjs` porque bloqueaba
+  la baja en un clic de Gmail/Outlook; los endpoints solo aceptan JSON y los del
+  panel exigen el token en cabecera.
+- Netlify sirve las páginas estáticas **con barra final** (`/contacto` → 301 →
+  `/contacto/`) y no se puede cambiar con redirecciones. Enlaces internos y
+  canonical van con barra; las fichas de coche, sin barra.
+- En local, si `npm run dev` dice "Port 4321 is in use", hay un servidor viejo
+  colgado: cerrarlo antes de probar o las pruebas irán contra él.
 - Listeners que se reañaden en cada repintado se acumulan y duplican acciones. En el
   reordenado de fotos se usa asignación directa (`item.ondrop = ...`) en vez de
   `addEventListener`.
@@ -313,20 +386,32 @@ robots.txt, canonical, schema AutoDealer + Car + BreadcrumbList) · anti-spam ·
 precio oculto · sello RESERVADO · imágenes huérfanas limpiadas · web antigua
 deshabilitada.
 
+Revisión de septiembre 2026 (rama `desarrollo`): endpoints del panel cerrados con
+token · avisos por lotes con enlace de baja · edición de coches ocultos y datos
+privados arreglada · leads del chatbot con antispam y aviso por correo · aviso de IA
+en el chat · 404 real para coches retirados · precio oculto fuera de los datos para
+Google y del chatbot · sitemap con fechas reales · caché en el CDN con purga ·
+canonical unificado · marcas normalizadas en el formulario · ejemplo representativo
+de financiación · cabeceras de seguridad · registro de Supabase desactivado.
+
+### Pendiente — al fusionar `desarrollo` a `main`
+
+1. Tras el despliegue de producción: ejecutar
+   `sql/2026-09-quitar-insert-publico-leads.sql`.
+2. Probar un "Avisar" real: el mensaje **no** debe mencionar "Entorno…".
+3. Dejar un lead de prueba en el chatbot de la web real → debe llegar a ventas@.
+4. Cuando se quiera: `sql/2026-09-normalizar-marcas.sql` (marcas ya guardadas).
+
 ### Pendiente — técnico
 
-1. **Normalización de marcas.** El cliente escribe la marca a mano y entran variantes
-   (`VOLKSWAGEN` / `Volkswagen` / `Wolkvagen`) que ensucian el filtro del catálogo. Se
-   preparó un `datalist` + normalización con distancia de Levenshtein para
-   `FormVehiculo.astro`, más SQL para limpiar lo existente. **Confirmar si se aplicó.**
-2. **Verificar `lead-chatbot.ts`.** El destinatario de `lead.js` se cambió a
-   `ventas@guadicar.es`, pero el endpoint del chatbot es otro archivo y **no se
-   revisó**. Si sigue apuntando al correo viejo, esos leads no le llegan al cliente.
-3. **Paginar `suscriptores`** en `notificar.js` (límite de 1000 filas).
-4. **Analítica real** (Plausible o Umami). El contador propio solo cuenta fichas de
+1. **Atar las políticas RLS al UID del cliente** en vez de a "cualquier usuario
+   autenticado" (hoy depende de que el registro siga desactivado).
+2. **Analítica real** (Plausible o Umami). El contador propio solo cuenta fichas de
    coche, no home ni catálogo, y se rompió una vez sin que nadie se enterara hasta que
    el cliente se quejó.
-5. **Astro 6→7** cuando haya tiempo y con el procedimiento de la sección 1.
+3. **Astro 6→7** cuando haya tiempo y con el procedimiento de la sección 1. Además
+   corrige un aviso de seguridad de Astro que `npm audit` marca como crítico.
+4. Miniaturas de fotos (hoy la galería usa la foto de 1400 px también como miniatura).
 
 ### Pendiente — SEO
 
