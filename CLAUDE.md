@@ -394,13 +394,12 @@ Google y del chatbot · sitemap con fechas reales · caché en el CDN con purga 
 canonical unificado · marcas normalizadas en el formulario · ejemplo representativo
 de financiación · cabeceras de seguridad · registro de Supabase desactivado.
 
-### Pendiente — al fusionar `desarrollo` a `main`
+### Fusión a `main` del 24/09/2026 — comprobado en producción
 
-1. Tras el despliegue de producción: ejecutar
-   `sql/2026-09-quitar-insert-publico-leads.sql`.
-2. Probar un "Avisar" real: el mensaje **no** debe mencionar "Entorno…".
-3. Dejar un lead de prueba en el chatbot de la web real → debe llegar a ventas@.
-4. Cuando se quiera: `sql/2026-09-normalizar-marcas.sql` (marcas ya guardadas).
+- "Avisar" real enviado a 10 suscriptores (sin modo pruebas). ✅
+- Lead del chatbot llega al panel. ✅
+- `sql/2026-09-normalizar-marcas.sql` ejecutado (15 coches corregidos). ✅
+- `sql/2026-09-quitar-insert-publico-leads.sql`: ver su línea de ESTADO.
 
 ### Pendiente — técnico
 

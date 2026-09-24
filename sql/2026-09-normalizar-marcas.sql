@@ -1,6 +1,6 @@
 -- Unifica cómo están escritas las marcas (VOLKSWAGEN / Volkswagen -> Volkswagen)
 -- con la misma lista que usa el formulario (src/lib/marcas.js).
--- ESTADO: pendiente. Se puede ejecutar en cualquier momento.
+-- ESTADO: ejecutado el 24/09/2026 (15 coches corregidos).
 
 -- 1) Ver cómo están ahora
 select marca, count(*) from public.vehiculos group by marca order by marca;
