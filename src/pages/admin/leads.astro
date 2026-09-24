@@ -215,7 +215,7 @@ import AdminNav from '../../components/AdminNav.astro'
         p.push(
           'hasta ' + Number(l.carta_presupuesto).toLocaleString('es-ES') + ' €',
         )
-      if (l.carta_anio_min) p.push('desde ' + l.carta_anio_min)
+      if (l.carta_anio_min) p.push('desde ' + esc(l.carta_anio_min))
       if (l.carta_km_max) p.push('máx ' + esc(l.carta_km_max) + ' km')
       if (Array.isArray(l.carta_equipamiento) && l.carta_equipamiento.length)
         p.push('equip.: ' + l.carta_equipamiento.map(esc).join(', '))
@@ -338,15 +338,20 @@ import AdminNav from '../../components/AdminNav.astro'
 
       if (accion === 'estado') {
         const nuevo = btn.getAttribute('data-estado')
-        const { error } = await supabase
+        const { data: cambiados, error } = await supabase
           .from('leads')
           .update({ estado: nuevo })
           .eq('id', id)
+          .select('id')
         if (error) {
           alert('No se pudo actualizar: ' + error.message)
           return
         }
-        const l = leads.find((x) => x.id === id)
+        if (!cambiados?.length) {
+          alert('No se cambió nada. Puede que la sesión haya caducado: vuelve a entrar.')
+          return
+        }
+        const l = leads.find((x) => String(x.id) === String(id))
         if (l) l.estado = nuevo
         actualizarContador()
         render()
@@ -369,7 +374,7 @@ import AdminNav from '../../components/AdminNav.astro'
           )
           return
         }
-        leads = leads.filter((x) => x.id !== id)
+        leads = leads.filter((x) => String(x.id) !== String(id))
         actualizarContador()
         render()
       }
