@@ -194,8 +194,9 @@ reservado oculta el precio automáticamente sin tocar datos.
   suscriptores y precios de compra. Mejora pendiente: atar las políticas al UID
   del cliente.
 - Lectura pública: solo `vehiculos` con `publicado = true` y el bucket `coches`.
-- Inserción pública: `vistas` (contador) y, hasta ejecutar
-  `sql/2026-09-quitar-insert-publico-leads.sql`, también `leads`.
+- Inserción pública: solo `vistas` (contador). Los leads se guardan desde los
+  endpoints con la clave de servicio; la política pública de `leads` se quitó el
+  24/09/2026 (`sql/2026-09-quitar-insert-publico-leads.sql`).
 - `suscriptores` no tiene política DELETE: la baja la hace `/api/baja` con la
   clave de servicio.
 - `vehiculos_privado`: clave primaria `vehiculo_id`, con `ON DELETE CASCADE`.
@@ -399,7 +400,8 @@ de financiación · cabeceras de seguridad · registro de Supabase desactivado.
 - "Avisar" real enviado a 10 suscriptores (sin modo pruebas). ✅
 - Lead del chatbot llega al panel. ✅
 - `sql/2026-09-normalizar-marcas.sql` ejecutado (15 coches corregidos). ✅
-- `sql/2026-09-quitar-insert-publico-leads.sql`: ver su línea de ESTADO.
+- `sql/2026-09-quitar-insert-publico-leads.sql` ejecutado. ✅
+- Quitados los avisos de "datos pendientes" de aviso legal y privacidad. ✅
 
 ### Pendiente — técnico
 
