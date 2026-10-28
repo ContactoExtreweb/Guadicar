@@ -2930,3 +2930,9 @@ button {
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
+
+/* Pie: enlace para dejar reseña */
+.footer-valora span {
+  color: #fbbf24;
+  letter-spacing: 1px;
+}

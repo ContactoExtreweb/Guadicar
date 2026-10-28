@@ -98,7 +98,8 @@ src/
 │   ├── NoEncontrado.astro  # contenido del 404 (lo usan 404.astro y la ficha)
 │   ├── ChatBot.astro       # chat con Gemini (avisa de que es IA)
 │   ├── Newsletter.astro    # 3 variantes: section / footer / popup
-│   ├── Resenas.astro       # reseñas de Google (estáticas)
+│   ├── Resenas.astro       # carrusel de reseñas de la home + botón "Valóranos"
+│   ├── TarjetaResena.astro # tarjeta de una reseña (carrusel y /opiniones)
 │   ├── CookieBanner.astro
 │   ├── Calculadora.astro   # simulador de cuota en la ficha
 │   └── AdminNav.astro
@@ -113,7 +114,8 @@ src/
 │   ├── leads.js            # antispam, validación y aviso por correo de leads
 │   ├── cache.js            # cabeceras de caché del CDN (etiqueta "coches")
 │   ├── refrescarWeb.js     # desde el panel: purga la caché tras un cambio
-│   └── marcas.js           # lista oficial de marcas + normalización
+│   ├── marcas.js           # lista oficial de marcas + normalización
+│   └── resenas.js          # reseñas de Google (texto literal), nota, total y enlaces
 ├── pages/
 │   ├── index.astro         # home
 │   ├── vehiculos/index.astro    # catálogo con filtros
@@ -122,6 +124,7 @@ src/
 │   ├── aviso-legal.astro privacidad.astro cookies.astro
 │   ├── baja.astro          # confirmación de baja de la newsletter
 │   ├── coches-segunda-mano-villanueva-de-la-serena.astro  # página SEO con stock real
+│   ├── opiniones.astro     # todas las reseñas + "Valóranos en Google"
 │   ├── sitemap-coches.xml.js    # sitemap dinámico de fichas
 │   ├── api/
 │   │   ├── lead.js         # contacto + "a la carta"
@@ -489,6 +492,12 @@ es cuestión de meses (dominio nuevo compitiendo contra Flexicar y portales).
   depende de código: que pidan la reseña en la entrega del coche, con QR o enlace.
   Enlace corto listo: **guadicar.es/resena** → formulario de reseña de Google
   (redirección 302 en `public/_redirects`, Place ID `ChIJWeKbg5dZFA0RM3MreK300tY`).
+  Tarjeta A6 imprimible con el QR en `material/qr-resenas-a6.png`. En la web: carrusel
+  en la home, página `/opiniones` y "Valóranos en Google" en el pie.
+- **Reseñas en la web** (14 a octubre 2026): se copian a mano en `src/lib/resenas.js`,
+  con el texto literal de Google. Al llegar reseñas nuevas, añadirlas ahí. Faltan los
+  textos completos de Azucena Tapia y Juan Carlos De La Natividad (salen cortados).
+  Sin schema de valoración (Google no admite el que pone el propio negocio).
 - Responder a todas las reseñas.
 - Vídeo de instalaciones y frase de empresa para la home.
 
