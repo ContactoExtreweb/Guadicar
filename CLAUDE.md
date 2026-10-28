@@ -487,6 +487,8 @@ es cuestión de meses (dominio nuevo compitiendo contra Flexicar y portales).
 - **Reseñas de Google**: tienen 5,0 con solo **11 reseñas**; la competencia del mismo
   polígono tiene 54, 62 y 107. Es lo que más impacto tendría en el mapa local, y no
   depende de código: que pidan la reseña en la entrega del coche, con QR o enlace.
+  Enlace corto listo: **guadicar.es/resena** → formulario de reseña de Google
+  (redirección 302 en `public/_redirects`, Place ID `ChIJWeKbg5dZFA0RM3MreK300tY`).
 - Responder a todas las reseñas.
 - Vídeo de instalaciones y frase de empresa para la home.
 
