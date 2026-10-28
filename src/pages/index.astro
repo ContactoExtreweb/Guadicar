@@ -27,39 +27,41 @@ cachearEnCDN(Astro.response.headers)
   heroNav={false}
   title='GuadiCar Multimarcas — Coches de Ocasión y Km0 en Villanueva de la Serena (Badajoz)'
 >
-  <section class='home-intro'>
-    <div class='intro-grid'>
-      <div class='intro-text'>
-        <span class='intro-eyebrow'
-          >● Concesionario multimarca · Villanueva de la Serena</span
+  <!-- Hero: vídeo de las instalaciones a pantalla completa. El vídeo arranca por
+       JS (no con autoplay) para respetar "reducir movimiento" y el ahorro de
+       datos; si no arranca, se queda la portada. -->
+  <section id='hero' class='hv'>
+    <video
+      class='hv-video'
+      muted
+      loop
+      playsinline
+      preload='none'
+      poster='/hero/hero-poster.jpg'
+      aria-hidden='true'
+    >
+      <source
+        src='/hero/hero-movil.mp4'
+        type='video/mp4'
+        media='(max-width: 700px)'
+      />
+      <source src='/hero/hero.mp4' type='video/mp4' />
+    </video>
+    <div class='hv-velo' aria-hidden='true'></div>
+
+    <div class='hv-centro'>
+      <h1 class='hv-titulo'>
+        <span class='hv-eyebrow'
+          >Coches de segunda mano en Villanueva de la Serena</span
         >
-        <h1>Tu próximo coche está en <em>GuadiCar</em></h1>
-        <p class='intro-lead'>
-          Más de 35 años ayudando a nuestros vecinos a encontrar el coche que
-          necesitan. Vehículos de ocasión y Km0 revisados uno a uno, sin letra
-          pequeña y con atención personal de principio a fin.
-        </p>
-      </div>
-
-      <div class='intro-media'>
-        <div class='intro-foto'>
-          <img
-            src='/guadicar-instalaciones.jpg'
-            alt='Instalaciones de GuadiCar Multimarcas'
-            onerror="this.style.display='none';this.parentElement.classList.add('sin-foto')"
-          />
-          <div class='intro-foto-ph'>🚗</div>
-          <div class='intro-logo-chip'>
-            <img src='/logo.png' alt='GuadiCar Multimarcas' />
-          </div>
-          <div class='intro-foto-badge'>
-            <strong>GuadiCar Multimarcas</strong>
-            <span>Polígono Cagancha · Villanueva de la Serena</span>
-          </div>
-        </div>
-      </div>
-
-      <div class='intro-ctas'>
+        Tu próximo coche está en <em>GuadiCar</em>
+      </h1>
+      <p class='hv-lead'>
+        Concesionario multimarca con más de 35 años ayudando a nuestros vecinos
+        a encontrar el coche que necesitan. Vehículos de ocasión y Km0 revisados
+        uno a uno, sin letra pequeña y con atención personal de principio a fin.
+      </p>
+      <div class='hv-ctas'>
         <a href='/vehiculos/' class='hero-btn-main'
           >Ver coches disponibles
           <svg
@@ -68,10 +70,11 @@ cachearEnCDN(Astro.response.headers)
             fill='none'
             stroke='currentColor'
             stroke-width='2.5'
-            viewBox='0 0 24 24'><path d='M5 12h14M12 5l7 7-7 7'></path></svg
+            viewBox='0 0 24 24'
+            aria-hidden='true'><path d='M5 12h14M12 5l7 7-7 7'></path></svg
           >
         </a>
-        <a href='tel:+34722496124' class='intro-btn-tel'>
+        <a href='tel:+34722496124' class='hv-tel'>
           <svg
             width='18'
             height='18'
@@ -79,6 +82,7 @@ cachearEnCDN(Astro.response.headers)
             stroke='currentColor'
             stroke-width='2'
             viewBox='0 0 24 24'
+            aria-hidden='true'
             ><path
               d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z'
             ></path></svg
@@ -86,22 +90,46 @@ cachearEnCDN(Astro.response.headers)
           <span><small>Contacta al</small><strong>722 49 61 24</strong></span>
         </a>
       </div>
+      <a href='/contacto/' class='hv-ubicacion'
+        >Polígono Cagancha, 39 · Villanueva de la Serena (Badajoz)</a
+      >
     </div>
 
-    <div class='intro-confianza'>
-      <div class='ic-item'>
-        <strong>+35</strong><span>años en el sector</span>
-      </div>
-      <div class='ic-item'>
-        <strong>1 año</strong><span>de garantía mínima</span>
-      </div>
-      <div class='ic-item'>
-        <strong>100%</strong><span>coches certificados y revisados</span>
-      </div>
-      <div class='ic-item'>
+    <ul class='hv-confianza'>
+      <li><strong>+35</strong><span>años en el sector</span></li>
+      <li><strong>1 año</strong><span>de garantía mínima</span></li>
+      <li><strong>100%</strong><span>coches certificados y revisados</span></li>
+      <li>
         <strong>Atención</strong><span>personalizada de principio a fin</span>
+      </li>
+    </ul>
+
+    <button type='button' class='hv-pausa' aria-label='Pausar el vídeo' hidden>
+      <svg class='hv-i-pausa' viewBox='0 0 24 24' aria-hidden='true'
+        ><rect x='6' y='5' width='4' height='14' rx='1'></rect><rect
+          x='14'
+          y='5'
+          width='4'
+          height='14'
+          rx='1'></rect></svg
+      >
+      <svg class='hv-i-play' viewBox='0 0 24 24' aria-hidden='true'
+        ><path d='M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z'
+        ></path></svg
+      >
+    </button>
+  </section>
+
+  <!-- Coches que este visitante vio hace poco (se guardan en su navegador al
+       abrir una ficha). Oculto si no hay ninguno. -->
+  <section class='section section--white' id='vistos' hidden>
+    <div class='s-header--row'>
+      <div>
+        <span class='tag'>Para ti</span>
+        <h2 class='s-title'>Continúa donde lo dejaste</h2>
       </div>
     </div>
+    <div class='cars-grid' id='vistos-grid'></div>
   </section>
 
   {
@@ -346,345 +374,310 @@ cachearEnCDN(Astro.response.headers)
   </div>
 
   <style>
-    @property --aura-ang {
-      syntax: '<angle>';
-      inherits: false;
-      initial-value: 0deg;
-    }
-
-    .home-intro {
-      background: linear-gradient(180deg, var(--gray) 0%, #fff 100%);
-      padding: 7.5rem 1.5rem 3.5rem;
-      overflow: hidden;
-    }
-
-    /* PC: texto + botones a la izquierda, imagen a la derecha */
-    .intro-grid {
-      max-width: 1150px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1.05fr;
-      grid-template-areas:
-        'texto media'
-        'botones media';
-      column-gap: 3.5rem;
-      row-gap: 1.6rem;
-      align-items: center;
-    }
-    .intro-text {
-      grid-area: texto;
-      align-self: end;
-    }
-    .intro-ctas {
-      grid-area: botones;
-      align-self: start;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 1rem;
-    }
-    .intro-media {
-      grid-area: media;
+    /* ───── HERO CON VÍDEO ───── */
+    .hv {
       position: relative;
-    }
-
-    .intro-eyebrow {
-      display: inline-block;
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: var(--red);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
-    }
-    .intro-text h1 {
-      font-family: var(--font-h);
-      font-size: clamp(2.1rem, 4vw, 3.1rem);
-      font-weight: 800;
-      line-height: 1.08;
-      letter-spacing: -1.5px;
-      margin: 0 0 1.2rem;
-      color: var(--text);
-    }
-    .intro-text h1 em {
-      font-style: normal;
-      color: var(--red);
-    }
-    .intro-lead {
-      font-size: 1.05rem;
-      line-height: 1.7;
-      color: var(--muted);
-      margin: 0;
-      max-width: 540px;
-    }
-
-    .intro-btn-tel {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.7rem 1.2rem 0.7rem 0.9rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: #fff;
-      color: var(--text);
-      text-decoration: none;
-      transition:
-        border-color 0.15s ease,
-        transform 0.15s ease,
-        box-shadow 0.15s ease;
-    }
-    .intro-btn-tel:hover {
-      border-color: var(--red);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
-    }
-    .intro-btn-tel svg {
-      color: var(--red);
-      flex: 0 0 auto;
-    }
-    .intro-btn-tel span {
+      isolation: isolate;
+      min-height: 100vh;
+      min-height: 100svh; /* en móvil, sin contar las barras del navegador */
       display: flex;
       flex-direction: column;
-      line-height: 1.1;
-    }
-    .intro-btn-tel small {
-      font-size: 0.68rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
-    .intro-btn-tel strong {
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-    }
-
-    /* Foto + aura roja girando por detrás */
-    .intro-media::before {
-      content: '';
-      position: absolute;
-      inset: -14px;
-      z-index: 0;
-      border-radius: 28px;
-      background: conic-gradient(
-        from var(--aura-ang),
-        rgba(204, 28, 28, 0) 0deg,
-        rgba(204, 28, 28, 0) 200deg,
-        rgba(204, 28, 28, 0.45) 290deg,
-        rgba(255, 95, 95, 0.9) 325deg,
-        rgba(204, 28, 28, 0.45) 360deg
-      );
-      filter: blur(22px);
-      opacity: 0.7;
-      animation: intro-aura 14s linear infinite;
-    }
-    .intro-foto {
-      position: relative;
-      z-index: 1;
-      border-radius: var(--radius-lg);
+      padding: 7.5rem 1.5rem 1.5rem;
+      color: #fff;
       overflow: hidden;
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border);
-      aspect-ratio: 4 / 3;
-      background: #f0f0f2;
+      background: #0d0d0d url('/hero/hero-poster.jpg') center / cover no-repeat;
     }
-    .intro-foto img {
+    .hv-video {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
+      object-position: center;
     }
-    .intro-foto-ph {
-      display: none;
+    /* Velo oscuro: que el texto se lea sobre cualquier plano del vídeo y que
+       la baja resolución (1024 px) no se note en pantallas grandes */
+    .hv-velo {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.6) 75%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.15) 35%, rgba(0, 0, 0, 0.8) 100%);
     }
-    .intro-foto.sin-foto {
+
+    .hv-centro {
+      margin: auto;
+      max-width: 920px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.4rem;
+      text-align: center;
+    }
+    .hv-titulo {
+      margin: 0;
+      font-family: var(--font-h);
+      font-size: clamp(2.3rem, 6.4vw, 5.2rem);
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+      text-shadow: 0 2px 30px rgba(0, 0, 0, 0.35);
+    }
+    .hv-titulo em {
+      font-style: normal;
+      color: var(--red);
+    }
+    .hv-eyebrow {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: repeating-linear-gradient(
-        45deg,
-        #f4f4f6,
-        #f4f4f6 14px,
-        #eeeef1 14px,
-        #eeeef1 28px
-      );
+      gap: 0.6rem;
+      margin-bottom: 1.1rem;
+      font-family: var(--font);
+      font-size: clamp(0.7rem, 1.3vw, 0.82rem);
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      line-height: 1.4;
+      text-transform: uppercase;
+      text-shadow: none;
+      color: rgba(255, 255, 255, 0.88);
     }
-    .intro-foto.sin-foto .intro-foto-ph {
-      display: block;
-      font-size: 3.5rem;
-      opacity: 0.4;
+    .hv-eyebrow::before {
+      content: '';
+      flex: 0 0 auto;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 0 4px rgba(204, 28, 28, 0.3);
     }
-    .intro-logo-chip {
-      position: absolute;
-      top: 0.9rem;
-      left: 0.9rem;
-      z-index: 3;
-      background: rgba(13, 13, 13, 0.78);
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 0.5rem 0.8rem;
+    .hv-lead {
+      max-width: 640px;
+      margin: 0;
+      font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+      line-height: 1.65;
+      color: rgba(255, 255, 255, 0.85);
     }
-    .intro-logo-chip img {
-      display: block;
-      height: 26px;
-      width: auto;
+    .hv-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-top: 0.4rem;
     }
-    .intro-foto-badge {
-      position: absolute;
-      left: 1.2rem;
-      bottom: 1.2rem;
-      z-index: 3;
-      background: rgba(13, 13, 13, 0.82);
-      backdrop-filter: blur(5px);
+    .hv-tel {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.4rem;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
       color: #fff;
-      padding: 0.8rem 1.1rem;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: left;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
-    .intro-foto-badge strong {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 800;
+    .hv-tel:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.6);
     }
-    .intro-foto-badge span {
+    .hv-tel small {
       display: block;
-      font-size: 0.78rem;
-      opacity: 0.8;
-      margin-top: 0.15rem;
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+    .hv-tel strong {
+      font-size: 1.05rem;
+    }
+    .hv-ubicacion {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .hv-ubicacion:hover {
+      color: #fff;
+      text-decoration: underline;
     }
 
-    /* Franja de confianza */
-    .intro-confianza {
-      max-width: 1150px;
-      margin: 3rem auto 0;
+    /* Datos de confianza: barra de cristal al pie del hero */
+    .hv-confianza {
+      width: min(1100px, 100%);
+      margin: 2.5rem auto 0;
+      padding: 0;
+      list-style: none;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(14px);
     }
-    .ic-item {
+    .hv-confianza li {
+      padding: 1.1rem 1rem;
       text-align: center;
     }
-    .ic-item strong {
+    .hv-confianza li + li {
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .hv-confianza strong {
       display: block;
       font-family: var(--font-h);
-      font-size: 1.9rem;
+      font-size: clamp(1.25rem, 2.3vw, 1.7rem);
       font-weight: 800;
-      color: var(--red);
-      line-height: 1;
-      letter-spacing: -1px;
     }
-    .ic-item span {
+    .hv-confianza span {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    /* Pausa: obligatorio dar control sobre un vídeo que se mueve solo */
+    .hv-pausa {
+      position: absolute;
+      top: 6rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      cursor: pointer;
+    }
+    .hv-pausa[hidden] {
+      display: none;
+    }
+    .hv-pausa svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+    .hv-pausa .hv-i-play,
+    .hv-pausa.pausado .hv-i-pausa {
+      display: none;
+    }
+    .hv-pausa.pausado .hv-i-play {
       display: block;
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 0.35rem;
-      font-weight: 500;
     }
 
-    /* Animaciones de entrada (suaves y escalonadas) */
-    @keyframes introUp {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
+    /* Entrada escalonada del contenido */
+    @media (prefers-reduced-motion: no-preference) {
+      .hv-centro > *,
+      .hv-confianza {
+        animation: hvEntra 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
       }
-      to {
-        opacity: 1;
-        transform: none;
+      .hv-centro > :nth-child(2) {
+        animation-delay: 0.12s;
       }
-    }
-    @keyframes intro-aura {
-      to {
-        --aura-ang: 360deg;
+      .hv-centro > :nth-child(3) {
+        animation-delay: 0.24s;
       }
-    }
-    .intro-text,
-    .intro-ctas,
-    .intro-media,
-    .intro-confianza {
-      animation: introUp 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
-    }
-    .intro-media {
-      animation-delay: 0.12s;
-    }
-    .intro-ctas {
-      animation-delay: 0.24s;
-    }
-    .intro-confianza {
-      animation-delay: 0.3s;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .intro-media::before,
-      .intro-text,
-      .intro-ctas,
-      .intro-media,
-      .intro-confianza {
-        animation: none;
+      .hv-centro > :nth-child(4) {
+        animation-delay: 0.36s;
+      }
+      .hv-confianza {
+        animation-delay: 0.5s;
+      }
+      @keyframes hvEntra {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
       }
     }
 
-    /* MÓVIL: texto → imagen → botones */
-    @media (max-width: 860px) {
-      .home-intro {
-        padding: 6.5rem 1.2rem 2.5rem;
+    @media (max-width: 700px) {
+      .hv {
+        padding: 6.2rem 1rem 1rem;
       }
-      .intro-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1.6rem;
+      /* Más oscuro arriba: en vertical el letrero de la fachada queda justo
+         detrás del titular */
+      .hv-velo {
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.72) 0%,
+          rgba(0, 0, 0, 0.5) 45%,
+          rgba(0, 0, 0, 0.82) 100%
+        );
       }
-      .intro-text {
-        order: 1;
-        text-align: center;
+      .hv-centro {
+        gap: 0.9rem;
       }
-      .intro-media {
-        order: 2;
+      .hv-titulo {
+        font-size: clamp(2.05rem, 9.5vw, 2.6rem);
       }
-      .intro-ctas {
-        order: 3;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+      .hv-eyebrow {
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.1em;
+      }
+      .hv-lead {
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+      .hv-ctas {
         width: 100%;
-        gap: 0.8rem;
-        margin-top: 0.4rem;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-top: 0.2rem;
       }
-      .intro-ctas .hero-btn-main,
-      .intro-ctas .intro-btn-tel {
-        width: 100%;
+      .hv-ctas > * {
         justify-content: center;
-        text-align: center;
       }
-      .intro-eyebrow {
-        display: inline-flex;
+      .hv-ctas .hero-btn-main {
+        padding: 0.85rem 1.5rem;
+        font-size: 1rem;
       }
-      .intro-lead {
-        margin-left: auto;
-        margin-right: auto;
+      .hv-tel {
+        padding: 0.5rem 1.2rem;
       }
-      .intro-confianza {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem 1rem;
-        margin-top: 2rem;
+      .hv-confianza {
+        margin-top: 1.2rem;
+        grid-template-columns: 1fr 1fr;
       }
+      .hv-confianza li {
+        padding: 0.65rem 0.5rem;
+      }
+      .hv-confianza li + li {
+        border-left: none;
+      }
+      .hv-confianza li:nth-child(even) {
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .hv-confianza li:nth-child(n + 3) {
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .hv-confianza span {
+        font-size: 0.72rem;
+      }
+      .hv-pausa {
+        top: 5.6rem;
+        right: 1rem;
+        width: 36px;
+        height: 36px;
+      }
+    }
 
-      /* Overlays de la imagen: ocultar logo-chip y reducir el badge */
-      .intro-logo-chip {
-        display: none;
+    /* Móvil en horizontal / pantallas bajas: menos aire para que quepa */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .hv {
+        padding-top: 5.5rem;
       }
-      .intro-foto-badge {
-        left: 0.7rem;
-        bottom: 0.7rem;
-        padding: 0.45rem 0.7rem;
-        border-radius: 8px;
+      .hv-titulo {
+        font-size: clamp(1.9rem, 5vw, 2.6rem);
       }
-      .intro-foto-badge strong {
-        font-size: 0.75rem;
+      .hv-lead {
+        font-size: 0.9rem;
       }
-      .intro-foto-badge span {
-        font-size: 0.65rem;
+      .hv-confianza {
+        margin-top: 1.2rem;
       }
     }
 
@@ -844,4 +837,106 @@ cachearEnCDN(Astro.response.headers)
       }
     }
   </style>
+
+  <script>
+    // @ts-nocheck
+    // ── Vídeo del hero ──
+    // Solo arranca si el visitante no pidió reducir movimiento ni ahorrar
+    // datos; si no, se queda la portada.
+    const video = document.querySelector('.hv-video')
+    const pausa = document.querySelector('.hv-pausa')
+    const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const ahorro = navigator.connection?.saveData
+
+    if (video && !reducir && !ahorro) {
+      video.preload = 'auto'
+      video
+        .play()
+        .then(() => (pausa.hidden = false))
+        .catch(() => {}) // navegador sin autoplay: se queda la portada
+      pausa.addEventListener('click', () =>
+        video.paused ? video.play() : video.pause(),
+      )
+      const reflejar = () => {
+        pausa.classList.toggle('pausado', video.paused)
+        pausa.setAttribute(
+          'aria-label',
+          video.paused ? 'Reproducir el vídeo' : 'Pausar el vídeo',
+        )
+      }
+      video.addEventListener('play', reflejar)
+      video.addEventListener('pause', reflejar)
+    }
+
+    // ── Continúa donde lo dejaste ──
+    // La ficha guarda en este navegador los últimos coches vistos
+    // (gc_vistos). Aquí se piden sus datos actuales a Supabase: así el precio
+    // es el de hoy y los coches ya vendidos (despublicados) no aparecen.
+    const esc = (s) =>
+      String(s ?? '').replace(
+        /[&<>"']/g,
+        (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+      )
+    const fmt = (n) => Number(n).toLocaleString('es-ES')
+
+    ;(async () => {
+      let slugs = []
+      try {
+        slugs = JSON.parse(localStorage.getItem('gc_vistos') || '[]')
+      } catch {}
+      if (!Array.isArray(slugs) || !slugs.length) return
+
+      const url = import.meta.env.PUBLIC_SUPABASE_URL
+      const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+      const lista = slugs.map(encodeURIComponent).join(',')
+      const res = await fetch(
+        `${url}/rest/v1/vehiculos?select=slug,marca,modelo,anio,km,fotos,precio,precio_oculto,reservado&publicado=eq.true&slug=in.(${lista})`,
+        { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+      ).catch(() => null)
+      if (!res?.ok) return
+      const coches = await res.json()
+
+      // Mismo orden que se vieron; los que ya no están publicados se olvidan
+      const porSlug = new Map(coches.map((c) => [c.slug, c]))
+      const vigentes = slugs.filter((s) => porSlug.has(s))
+      try {
+        localStorage.setItem('gc_vistos', JSON.stringify(vigentes))
+      } catch {}
+      if (!vigentes.length) return
+
+      document.getElementById('vistos-grid').innerHTML = vigentes
+        .slice(0, 4)
+        .map((s) => {
+          const c = porSlug.get(s)
+          const oculto = c.precio_oculto || c.reservado
+          return `
+          <a href="/vehiculos/${esc(c.slug)}" class="car-card">
+            <div class="car-img">
+              <img src="${esc(c.fotos?.[0] || '/placeholder-coche.svg')}" alt="${esc(c.marca)} ${esc(c.modelo)}" loading="lazy" />
+              <div class="car-img-overlay"></div>
+              ${c.reservado ? '<div class="car-reservado">Reservado</div>' : ''}
+            </div>
+            <div class="car-body">
+              <div class="car-brand">${esc(c.marca)}</div>
+              <div class="car-name">${esc(c.modelo)}</div>
+              <div class="car-tags">
+                ${c.anio ? `<span class="car-tag">${esc(c.anio)}</span>` : ''}
+                ${c.km != null ? `<span class="car-tag">${fmt(c.km)} km</span>` : ''}
+              </div>
+              <div class="car-price-row">
+                ${
+                  oculto
+                    ? '<div class="car-price-consultar">Precio a consultar</div>'
+                    : `<div class="car-price-main"><span class="car-price">${fmt(c.precio)}<span style="font-size:1rem;">€</span></span></div>`
+                }
+              </div>
+              <span class="btn-card">Ver ficha</span>
+            </div>
+          </a>`
+        })
+        .join('')
+      document.getElementById('vistos').hidden = false
+    })()
+  </script>
 </Base>

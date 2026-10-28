@@ -122,7 +122,7 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
 
 <Base title={titulo} description={desc} image={v.fotos[0] ?? '/logo.png'}>
   <section class='ficha'>
-    <div data-vehiculo-id={v.id}></div>
+    <div data-vehiculo-id={v.id} data-slug={v.slug}></div>
     <!-- Migas de pan (bueno para SEO y navegación) -->
     <nav class='breadcrumb'>
       <a href='/'>Inicio</a> › <a href='/vehiculos/'>Vehículos</a> › <span
@@ -1671,6 +1671,17 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
     // del cliente completo (unos 200 KB que se descargaban solo para esto).
     const el = document.querySelector('[data-vehiculo-id]')
     const id = el?.getAttribute('data-vehiculo-id')
+
+    // "Continúa donde lo dejaste" de la home: últimos 8 coches vistos en este
+    // navegador, el más reciente primero
+    const slug = el?.getAttribute('data-slug')
+    if (slug) {
+      try {
+        const vistos = JSON.parse(localStorage.getItem('gc_vistos') || '[]')
+        const nuevos = [slug, ...vistos.filter((s: string) => s !== slug)].slice(0, 8)
+        localStorage.setItem('gc_vistos', JSON.stringify(nuevos))
+      } catch {}
+    }
 
     // Si en este navegador hay una sesión del panel, eres tú: no se cuenta.
     // (Es la clave donde el panel guarda la sesión: sb-<proyecto>-auth-token)

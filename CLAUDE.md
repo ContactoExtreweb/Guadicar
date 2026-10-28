@@ -239,6 +239,20 @@ filtro, orden por precio/año/km, contador en vivo en el botón); ficha con gale
 con siluetas SVG acotadas; "a la carta"; servicios; nosotros; contacto con mapa;
 newsletter; chatbot; banner de cookies; tres páginas legales.
 
+### Hero de la home (octubre 2026)
+Vídeo a pantalla completa (`100svh`) con el contenido centrado y los datos de
+confianza en una barra de cristal. Vídeos en `public/hero/`: bucle de 17 s
+recortado de `instalaciones_guadicar.mp4` con ffmpeg (fachada, exposición, faro,
+Mercedes y dos aéreas), `hero.mp4` (1024 px, 1,7 MB), `hero-movil.mp4` (640 px,
+560 KB, elegido con `<source media>`) y `hero-poster.jpg`. Arranca por JS solo si no
+hay "reducir movimiento" ni ahorro de datos; tiene botón de pausa. Para regenerarlo:
+`trim` de 33.2-36.4, 10.0-12.4, 40.6-43.4, 12.6-14.9, 29.2-32.4 y 59.0-62.5 s +
+`concat`, libx264 CRF 26 (móvil: 640×360, CRF 29), `-movflags +faststart`, sin audio.
+
+"Continúa donde lo dejaste": la ficha guarda en `localStorage` (`gc_vistos`) los
+últimos 8 coches vistos y la home pide sus datos actuales a Supabase (los
+despublicados desaparecen solos). Declarado en la política de cookies.
+
 ### Panel de admin
 Login (Supabase Auth); dashboard con métricas y gráficos Chart.js + tareas/notas/
 clientes; gestión de vehículos (listado con filtros y acciones Editar / Ocultar /
@@ -431,7 +445,8 @@ porque la web dice "ocasión" y "Km0" en todas partes, y "segunda mano" casi no
 aparece. Acciones acordadas, **sin aplicar todavía**:
 
 - Meter "segunda mano" de forma natural en title, H1 y meta description de home y
-  catálogo.
+  catálogo. **Hecho solo el H1 de la home** (octubre 2026); falta title y meta de
+  la home, y title, H1 y meta del catálogo.
 - Crear una página específica `/coches-segunda-mano-villanueva-de-la-serena`.
 
 Matiz importante para no malinterpretar los datos: el 3,5 de "concesionarios
