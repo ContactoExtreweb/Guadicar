@@ -1,2 +1,4 @@
 https://guadicar.com/*    https://guadicar.es/:splat    301!
 https://www.guadicar.com/*    https://guadicar.es/:splat    301!
+# Enlace corto para pedir reseñas (QR en la entrega del coche). 302 para poder cambiarlo.
+/resena    https://search.google.com/local/writereview?placeid=ChIJWeKbg5dZFA0RM3MreK300tY    302

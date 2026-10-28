@@ -1,0 +1,143 @@
+---
+// Página para la búsqueda "coches segunda mano Villanueva de la Serena", donde
+// la web posicionaba peor (ver CLAUDE.md, SEO). Muestra el stock real.
+export const prerender = false
+import Base from '../layouts/Base.astro'
+import TarjetaCoche from '../components/TarjetaCoche.astro'
+import { getVehiculos } from '../lib/coches.js'
+import { cachearEnCDN } from '../lib/cache.js'
+
+const coches = await getVehiculos()
+const recientes = coches.slice(0, 8)
+
+cachearEnCDN(Astro.response.headers)
+---
+
+<Base
+  title='Comprar coche de segunda mano en Villanueva de la Serena | GuadiCar'
+  description='¿Buscas un coche de segunda mano en Villanueva de la Serena o Don Benito? En GuadiCar todos se entregan revisados y certificados, con garantía mínima de 1 año y financiación a medida.'
+>
+  <header class='cat-hero'>
+    <span class='tag' style='color:var(--red);'>Villanueva de la Serena · Badajoz</span
+    >
+    <h1>Coches de segunda mano en Villanueva de la Serena</h1>
+    <p>
+      {coches.length} coches de segunda mano, ocasión y Km0 listos para entregar,
+      a un paso de Don Benito.
+    </p>
+  </header>
+
+  <section class='section section--white sm-intro'>
+    <div class='sm-texto'>
+      <h2>Tu coche de segunda mano, sin sorpresas</h2>
+      <p>
+        Comprar un coche de segunda mano da más tranquilidad cuando sabes quién
+        lo vende. En GuadiCar Multimarcas llevamos más de 35 años ayudando a
+        nuestros vecinos de Villanueva de la Serena y de toda la comarca a
+        encontrar el coche que necesitan: revisamos cada vehículo uno a uno y
+        te lo entregamos certificado y con garantía.
+      </p>
+      <p>
+        Puedes verlo en persona en nuestras instalaciones del Polígono Cagancha,
+        financiarlo a tu medida y, si tienes un coche que vender, te lo tasamos
+        gratis en 24 horas. Y si no encuentras el que buscas, te lo localizamos
+        con nuestro servicio <a href='/carta/'>a la carta</a>.
+      </p>
+    </div>
+    <ul class='sm-ventajas'>
+      <li><strong>Garantía mínima de 1 año</strong> en todos los coches</li>
+      <li><strong>Revisados y certificados</strong> antes de la entrega</li>
+      <li><strong>Financiación a medida</strong>, sujeta a aprobación</li>
+      <li><strong>Tasación gratis</strong> de tu coche en 24 horas</li>
+    </ul>
+  </section>
+
+  {
+    recientes.length > 0 && (
+      <section class='section section--gray'>
+        <div class='s-header--row'>
+          <div>
+            <span class='tag'>Stock actual</span>
+            <h2 class='s-title'>Últimos coches de segunda mano</h2>
+          </div>
+          <a href='/vehiculos/' class='sm-ver-todo'>
+            Ver los {coches.length} coches →
+          </a>
+        </div>
+        <div class='cars-grid'>
+          {recientes.map((c) => (
+            <TarjetaCoche c={c} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <div class='cta-strip'>
+    <div>
+      <h2>¿Te ayudamos a elegir?</h2>
+      <p>Llámanos al 722 49 61 24 o ven a vernos: te asesoramos sin compromiso.</p>
+    </div>
+    <a href='/contacto/' class='btn-white'>Contactar</a>
+  </div>
+
+  <style>
+    .sm-intro {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .sm-texto h2 {
+      margin: 0 0 1rem;
+      font-family: var(--font-h);
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+    .sm-texto p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .sm-texto a,
+    .sm-ver-todo {
+      font-weight: 700;
+      color: var(--red);
+    }
+    .sm-ventajas {
+      list-style: none;
+      margin: 0;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--gray);
+    }
+    .sm-ventajas li {
+      position: relative;
+      padding-left: 1.5rem;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+    .sm-ventajas li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--red);
+      font-weight: 900;
+    }
+    .sm-ventajas strong {
+      color: var(--text);
+    }
+    @media (max-width: 820px) {
+      .sm-intro {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</Base>

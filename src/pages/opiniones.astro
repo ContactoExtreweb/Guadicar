@@ -1,0 +1,93 @@
+---
+// Todas las reseñas de Google en una página (sale al buscar "GuadiCar
+// opiniones") y botón para dejar la tuya. Datos en src/lib/resenas.js.
+// Sin datos estructurados de valoración: Google no admite los que pone el
+// propio negocio sobre sí mismo.
+import Base from '../layouts/Base.astro'
+import TarjetaResena from '../components/TarjetaResena.astro'
+import { RESENAS, NOTA, TOTAL, URL_VALORAR, URL_GOOGLE } from '../lib/resenas.js'
+
+const nota = NOTA.toLocaleString('es-ES', { minimumFractionDigits: 1 })
+---
+
+<Base
+  title='Opiniones de GuadiCar Multimarcas | Reseñas de clientes'
+  description={`Opiniones reales de clientes de GuadiCar Multimarcas en Google: ${nota} de 5 con ${TOTAL} reseñas. Concesionario de coches de segunda mano en Villanueva de la Serena (Badajoz).`}
+>
+  <header class='cat-hero'>
+    <span class='tag' style='color:var(--red);'>Opiniones reales</span>
+    <h1>Lo que dicen nuestros clientes</h1>
+    <p>
+      <strong>{nota} de 5</strong> en Google con {TOTAL} reseñas de nuestros
+      clientes.
+    </p>
+  </header>
+
+  <section class='section section--gray'>
+    <div class='op-grid'>
+      {RESENAS.map((r, i) => <TarjetaResena r={r} i={i} />)}
+    </div>
+    <p class='op-fuente'>
+      Reseñas publicadas en nuestra ficha de Google.
+      <a href={URL_GOOGLE} target='_blank' rel='noopener'>Verlas en Google →</a>
+    </p>
+  </section>
+
+  <section class='section section--white'>
+    <div class='op-valora'>
+      <div class='op-estrellas' aria-hidden='true'>★★★★★</div>
+      <h2>¿Nos compraste un coche?</h2>
+      <p>
+        Cuéntanos qué tal la experiencia. Tu opinión ayuda a otros vecinos a
+        decidirse y a nosotros a seguir mejorando. Es solo un minuto.
+      </p>
+      <a href={URL_VALORAR} class='hero-btn-main' target='_blank' rel='noopener'
+        >Valóranos en Google</a
+      >
+    </div>
+  </section>
+
+  <style>
+    .op-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      columns: 3 300px;
+      column-gap: 1.2rem;
+    }
+    .op-grid :global(.rs-card) {
+      break-inside: avoid;
+      margin-bottom: 1.2rem;
+    }
+    .op-fuente {
+      margin: 0.5rem 0 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .op-fuente a {
+      font-weight: 700;
+      color: var(--red);
+    }
+    .op-valora {
+      max-width: 560px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .op-estrellas {
+      font-size: 1.6rem;
+      letter-spacing: 4px;
+      color: #fbbf24;
+    }
+    .op-valora h2 {
+      margin: 0.4rem 0 0.8rem;
+      font-family: var(--font-h);
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+    .op-valora p {
+      margin: 0 0 1.6rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+  </style>
+</Base>

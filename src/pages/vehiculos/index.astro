@@ -1,7 +1,8 @@
 ---
 export const prerender = false
 import Base from '../../layouts/Base.astro'
-import { getVehiculos, badgeDe, fmt } from '../../lib/coches.js'
+import TarjetaCoche from '../../components/TarjetaCoche.astro'
+import { getVehiculos } from '../../lib/coches.js'
 import { cachearEnCDN } from '../../lib/cache.js'
 
 const vehiculos = await getVehiculos()
@@ -17,12 +18,12 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
 ---
 
 <Base
-  title='Vehículos de Ocasión y Km0 en Villanueva de la Serena | GuadiCar'
-  description='Catálogo de coches de ocasión, Km0 y seminuevos en Villanueva de la Serena (Badajoz). Filtra por marca, carrocería, combustible, cambio, año, km y precio. Vehículos revisados con garantía.'
+  title='Coches de segunda mano en venta en Villanueva de la Serena | GuadiCar'
+  description='Catálogo de coches de segunda mano, ocasión y Km0 en Villanueva de la Serena (Badajoz). Filtra por marca, tipo, precio y kilómetros. Todos revisados, con garantía mínima de 1 año y financiación.'
 >
   <header class='cat-hero'>
     <span class='tag' style='color:var(--red);'>Nuestro stock</span>
-    <h1>Todos nuestros vehículos</h1>
+    <h1>Coches de segunda mano, ocasión y Km0</h1>
     <p>
       Coches revisados y certificados, listos para entregar. Usa los filtros
       para encontrar el tuyo.
@@ -191,9 +192,8 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
         <div class='cars-grid cars-grid--cat' id='grid'>
           {
             vehiculos.map((c: any) => (
-              <a
-                href={`/vehiculos/${c.slug}`}
-                class='car-card'
+              <TarjetaCoche
+                c={c}
                 data-marca={c.marca}
                 data-estado={c.estado}
                 data-comb={c.combustible}
@@ -204,52 +204,7 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
                 data-anio={c.anio}
                 data-km={c.km}
                 data-nombre={`${c.marca} ${c.modelo}`.toLowerCase()}
-              >
-                <div class='car-img'>
-                  <img
-                    src={c.fotos[0] || '/placeholder-coche.svg'}
-                    alt={`${c.marca} ${c.modelo}`}
-                    loading='lazy'
-                  />
-                  <div class='car-img-overlay' />
-                  {c.certificado && <div class='car-cinta'>CERTIFICADO</div>}
-                  {c.reservado && <div class='car-reservado'>Reservado</div>}
-                  <div class='car-badge'>{badgeDe(c)}</div>
-                </div>
-                <div class='car-body'>
-                  <div class='car-brand'>{c.marca}</div>
-                  <div class='car-name'>{c.modelo}</div>
-                  <div class='car-tags'>
-                    <span class='car-tag'>{c.anio}</span>
-                    <span class='car-tag'>{fmt(c.km)} km</span>
-                    <span class='car-tag'>{c.combustible}</span>
-                    <span class='car-tag'>{c.cambio}</span>
-                  </div>
-                  <div class='car-price-row'>
-                    {c.precioOculto ? (
-                      <div class='car-price-consultar'>Precio a consultar</div>
-                    ) : (
-                      <>
-                        <div class='car-price-main'>
-                          <span class='car-price'>
-                            {fmt(c.precio)}
-                            <span style='font-size:1rem;'>€</span>
-                          </span>
-                          {c.precioAnterior && (
-                            <span class='car-price-old'>
-                              {fmt(c.precioAnterior)}€
-                            </span>
-                          )}
-                        </div>
-                        <div class='car-price-fin'>
-                          Desde <strong>{c.cuota}€/mes*</strong>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <span class='btn-card'>Ver ficha</span>
-                </div>
-              </a>
+              />
             ))
           }
         </div>
@@ -621,6 +576,45 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
       const noRes = $('no-results')
       if (noRes) noRes.hidden = visibles > 0
       aplicarOrden()
+      guardarEnURL()
+    }
+
+    // Filtros en la dirección (?marca=Audi&pmax=15000…): se pueden compartir,
+    // el botón Atrás los conserva y la home enlaza al catálogo ya filtrado
+    const PARAMS = {
+      'f-buscar': 'q',
+      'f-marca': 'marca',
+      'f-carroceria': 'carroceria',
+      'f-comb': 'combustible',
+      'f-cambio': 'cambio',
+      'f-estado': 'estado',
+      'f-anio': 'desde',
+      'f-pmin': 'pmin',
+      'f-pmax': 'pmax',
+      'f-km': 'km',
+      'f-orden': 'orden',
+    }
+    function guardarEnURL() {
+      const q = new URLSearchParams()
+      for (const [id, nombre] of Object.entries(PARAMS)) {
+        const v = val(id).trim()
+        if (v) q.set(nombre, v)
+      }
+      const texto = q.toString()
+      history.replaceState(null, '', texto ? `?${texto}` : location.pathname)
+    }
+    function leerDeURL() {
+      const q = new URLSearchParams(location.search)
+      let alguno = false
+      for (const [id, nombre] of Object.entries(PARAMS)) {
+        const v = q.get(nombre)
+        const el = $(id)
+        if (v && el) {
+          el.value = v
+          alguno = true
+        }
+      }
+      return alguno
     }
 
     // Panel móvil
@@ -646,7 +640,10 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
       $(id)?.addEventListener(ev, previa)
     })
     // Orden = se aplica al momento sobre lo visible
-    $('f-orden')?.addEventListener('change', aplicarOrden)
+    $('f-orden')?.addEventListener('change', () => {
+      aplicarOrden()
+      guardarEnURL()
+    })
     // Botón "Ver N coches" = aplica filtros y cierra panel en móvil
     $('f-aplicar')?.addEventListener('click', () => {
       aplicar()
@@ -662,6 +659,7 @@ const anios = unicos(vehiculos.map((v: any) => v.anio)).sort(
       previa()
     })
 
+    if (leerDeURL()) aplicar()
     previa()
   </script>
 </Base>

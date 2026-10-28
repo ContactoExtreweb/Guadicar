@@ -54,7 +54,7 @@ Implicaciones prácticas:
 | Dominio | **guadicar.es** (DNS gestionado en **Plesk/Kinetica**) |
 | Email | **Resend** (dominio `guadicar.es` verificado) |
 | IA | **Gemini 2.5 Flash** (Google AI Studio) |
-| Fuentes | **Fontsource** (self-host, no Google Fonts — RGPD) |
+| Fuentes | **Fontsource variable** (`@fontsource-variable/inter` y `/montserrat`, self-host, no Google Fonts — RGPD) |
 
 `astro.config.mjs` lleva `site: 'https://guadicar.es'` y el sitemap con
 `filter: (page) => !page.includes('/admin')`. Verificar ese `site` si algo de SEO sale
@@ -94,10 +94,12 @@ src/
 ├── components/
 │   ├── FormVehiculo.astro  # alta Y edición de coches (compartido) — compresión de fotos aquí
 │   ├── FichaVehiculo.astro # la ficha completa (la usa vehiculos/[slug].astro)
+│   ├── TarjetaCoche.astro  # tarjeta de coche (home, catálogo, segunda mano, similares)
 │   ├── NoEncontrado.astro  # contenido del 404 (lo usan 404.astro y la ficha)
 │   ├── ChatBot.astro       # chat con Gemini (avisa de que es IA)
 │   ├── Newsletter.astro    # 3 variantes: section / footer / popup
-│   ├── Resenas.astro       # reseñas de Google (estáticas)
+│   ├── Resenas.astro       # carrusel de reseñas de la home + botón "Valóranos"
+│   ├── TarjetaResena.astro # tarjeta de una reseña (carrusel y /opiniones)
 │   ├── CookieBanner.astro
 │   ├── Calculadora.astro   # simulador de cuota en la ficha
 │   └── AdminNav.astro
@@ -105,14 +107,15 @@ src/
 │   ├── supabase.js         # cliente anon, servidor
 │   ├── supabaseBrowser.js  # cliente navegador
 │   ├── supabaseAdmin.js    # service_role — SOLO en /api
-│   ├── coches.js           # getVehiculos, getVehiculo, getUltimos, getDestacados, getOcasionSemana, mapRow, fmt, badgeDe
+│   ├── coches.js           # getVehiculos (todas las páginas públicas parten de aquí), mapRow, fmt, badgeDe
 │   ├── financiacion.js     # TAE, TIN, computeCuota, ejemploFinanciacion (Ley 16/2011)
 │   ├── entorno.js          # producción o pruebas (modo pruebas)
 │   ├── apiAdmin.js         # esAdmin(request): valida el token del panel en /api
 │   ├── leads.js            # antispam, validación y aviso por correo de leads
 │   ├── cache.js            # cabeceras de caché del CDN (etiqueta "coches")
 │   ├── refrescarWeb.js     # desde el panel: purga la caché tras un cambio
-│   └── marcas.js           # lista oficial de marcas + normalización
+│   ├── marcas.js           # lista oficial de marcas + normalización
+│   └── resenas.js          # reseñas de Google (texto literal), nota, total y enlaces
 ├── pages/
 │   ├── index.astro         # home
 │   ├── vehiculos/index.astro    # catálogo con filtros
@@ -120,6 +123,8 @@ src/
 │   ├── carta.astro contacto.astro servicios.astro nosotros.astro
 │   ├── aviso-legal.astro privacidad.astro cookies.astro
 │   ├── baja.astro          # confirmación de baja de la newsletter
+│   ├── coches-segunda-mano-villanueva-de-la-serena.astro  # página SEO con stock real
+│   ├── opiniones.astro     # todas las reseñas + "Valóranos en Google"
 │   ├── sitemap-coches.xml.js    # sitemap dinámico de fichas
 │   ├── api/
 │   │   ├── lead.js         # contacto + "a la carta"
@@ -141,7 +146,18 @@ src/
 ```
 
 Fuera de `src/`: `public/_headers` (cabeceras de seguridad de Netlify) y `sql/`
-(SQL ejecutados y pendientes, con su estado).
+(SQL ejecutados y pendientes, con su estado). Iconos en `public/` (`favicon.svg`,
+`favicon-48.png`, `apple-touch-icon.png`) e imagen para compartir `og-guadicar.jpg`
+(fachada desenfocada + logo, hecha con ffmpeg; las fichas usan su primera foto).
+
+**Las páginas públicas hacen una sola consulta** (`getVehiculos()`, todos los
+publicados) y reparten en JS: la home saca ocasión, destacados, últimos y los
+recuentos de "Explora el stock"; la ficha saca el coche y los similares. Con el stock
+de un concesionario es lo más barato, y todo va cacheado en el CDN.
+
+**El horario está repetido** en varios sitios: si cambia, tocar `Base.astro`
+(schema), `contacto.astro`, `api/chat.ts` (NEGOCIO), las preguntas frecuentes de
+`index.astro` y `HORARIO` + el texto de "Ven a verlo" en `FichaVehiculo.astro`.
 
 **`FormVehiculo.astro` lo usan `nuevo.astro` y `editar/[slug].astro`.** Todo lo de
 subida y compresión de fotos vive ahí: se arregla una vez y vale para los dos. En
@@ -238,6 +254,36 @@ filtro, orden por precio/año/km, contador en vivo en el botón); ficha con gale
 (swipe, miniaturas en carrusel, lightbox), calculadora de cuota, ficha técnica visual
 con siluetas SVG acotadas; "a la carta"; servicios; nosotros; contacto con mapa;
 newsletter; chatbot; banner de cookies; tres páginas legales.
+
+### Hero de la home (octubre 2026)
+Vídeo a pantalla completa (`100svh`) con el contenido centrado y los datos de
+confianza en una barra de cristal. Vídeos en `public/hero/`: bucle de 17 s
+recortado de `instalaciones_guadicar.mp4` con ffmpeg (fachada, exposición, faro,
+Mercedes y dos aéreas), `hero.mp4` (1024 px, 1,7 MB), `hero-movil.mp4` (640 px,
+560 KB, elegido con `<source media>`) y `hero-poster.jpg`. Arranca por JS solo si no
+hay "reducir movimiento" ni ahorro de datos; tiene botón de pausa. Para regenerarlo:
+`trim` de 33.2-36.4, 10.0-12.4, 40.6-43.4, 12.6-14.9, 29.2-32.4 y 59.0-62.5 s +
+`concat`, libx264 CRF 26 (móvil: 640×360, CRF 29), `-movflags +faststart`, sin audio.
+
+"Continúa donde lo dejaste": la ficha guarda en `localStorage` (`gc_vistos`) los
+últimos 8 coches vistos y la home pide sus datos actuales a Supabase (los
+despublicados desaparecen solos). Declarado en la política de cookies.
+
+Home además: "Explora el stock" (accesos al catálogo filtrado por marca, tipo y
+presupuesto, con recuentos) y preguntas frecuentes con schema FAQPage (solo con
+datos que ya figuran en la web).
+
+### Tarjetas, catálogo y ficha (octubre 2026)
+- Tarjeta (`TarjetaCoche.astro`): versión, datos con iconos, "Recién llegado" (7
+  días desde `created_at`), "Rebajado X €" (si `precio_anterior > precio`),
+  contador de fotos y segunda foto al pasar el ratón (se descarga al primer hover).
+- Catálogo: los filtros viven en la URL (`?marca=Audi&pmax=15000…`); la home enlaza
+  así. Los nombres de parámetro están en `PARAMS` del script del catálogo.
+- Ficha: WhatsApp con mensaje que incluye el coche y su enlace, llamar, compartir
+  (menú nativo o copiar enlace), barra fija Llamar/WhatsApp en móvil, puntos
+  fuertes (si salen 2 o más), sellos de confianza, "Ven a verlo" con "Abierto
+  ahora" calculado con la hora de Madrid (no contempla festivos) y 4 coches
+  similares (misma carrocería y marca suman, precio cercano).
 
 ### Panel de admin
 Login (Supabase Auth); dashboard con métricas y gráficos Chart.js + tareas/notas/
@@ -428,11 +474,11 @@ Datos reales de Search Console (28 días, septiembre 2026):
 
 Patrón claro: posiciona bien con **"concesionario"** y mal con **"segunda mano"** —
 porque la web dice "ocasión" y "Km0" en todas partes, y "segunda mano" casi no
-aparece. Acciones acordadas, **sin aplicar todavía**:
-
-- Meter "segunda mano" de forma natural en title, H1 y meta description de home y
-  catálogo.
-- Crear una página específica `/coches-segunda-mano-villanueva-de-la-serena`.
+aparece. **Aplicado en octubre 2026**: "segunda mano" en title, H1 y meta de home
+y catálogo (títulos distintos en cada página para no competir entre ellas), en el
+título de cada ficha ("Audi Q2 de segunda mano en Villanueva de la Serena") y página
+específica `/coches-segunda-mano-villanueva-de-la-serena/` (en el sitemap de coches
+y enlazada desde el pie). Revisar la evolución en Search Console.
 
 Matiz importante para no malinterpretar los datos: el 3,5 de "concesionarios
 villanueva de la serena" viene casi todo del **bloque de mapas**, donde la ficha de
@@ -444,6 +490,13 @@ es cuestión de meses (dominio nuevo compitiendo contra Flexicar y portales).
 - **Reseñas de Google**: tienen 5,0 con solo **11 reseñas**; la competencia del mismo
   polígono tiene 54, 62 y 107. Es lo que más impacto tendría en el mapa local, y no
   depende de código: que pidan la reseña en la entrega del coche, con QR o enlace.
+  Enlace corto listo: **guadicar.es/resena** → formulario de reseña de Google
+  (redirección 302 en `public/_redirects`, Place ID `ChIJWeKbg5dZFA0RM3MreK300tY`).
+  Tarjeta A6 imprimible con el QR en `material/qr-resenas-a6.png`. En la web: carrusel
+  en la home, página `/opiniones` y "Valóranos en Google" en el pie.
+- **Reseñas en la web** (14 a octubre 2026): se copian a mano en `src/lib/resenas.js`,
+  con el texto literal de Google. Al llegar reseñas nuevas, añadirlas ahí.
+  Sin schema de valoración (Google no admite el que pone el propio negocio).
 - Responder a todas las reseñas.
 - Vídeo de instalaciones y frase de empresa para la home.
 

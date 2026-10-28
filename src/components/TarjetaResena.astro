@@ -1,0 +1,79 @@
+---
+// Tarjeta de una reseña de Google. En el carrusel el texto se recorta a unas
+// líneas (`corta`); en /opiniones se ve entero.
+import { iniciales, colorDe } from '../lib/resenas.js'
+
+const { r, i = 0, corta = false } = Astro.props
+---
+
+<article class:list={['rs-card', { 'rs-card--corta': corta }]}>
+  <div class='rs-card-top'>
+    <div class='rs-avatar' style={`background:${colorDe(i)}`} aria-hidden='true'>
+      {iniciales(r.nombre)}
+    </div>
+    <div>
+      <div class='rs-nombre'>{r.nombre}</div>
+      <div class='rs-estrellas' aria-label='5 de 5 estrellas'>★★★★★</div>
+    </div>
+    <span class='rs-google'>Google</span>
+  </div>
+  <p class='rs-texto'>{r.texto}</p>
+</article>
+
+<style is:global>
+  .rs-card {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+  }
+  .rs-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+  }
+  .rs-avatar {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+  .rs-nombre {
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .rs-estrellas {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    color: #fbbf24;
+  }
+  .rs-google {
+    margin-left: auto;
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .rs-texto {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-line;
+  }
+  .rs-card--corta .rs-texto {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

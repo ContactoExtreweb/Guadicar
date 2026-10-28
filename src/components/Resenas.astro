@@ -1,74 +1,155 @@
 ---
-// ⚠️ SUSTITUYE estos datos por las reseñas REALES de vuestra ficha de Google.
-// Copia el nombre, el texto y las estrellas tal cual aparecen en Google.
-const RESUMEN = {
-  nota: 5.0,                    // ← vuestra nota media real en Google
-  total: 11,                    // ← número real de reseñas
-  urlGoogle: 'https://www.google.com/maps/place/GUADICAR+multimarcas/@38.9678152,-5.8003009,17z/data=!4m8!3m7!1s0xd145997839be259:0xd6d2f4ad782b7333!8m2!3d38.9678152!4d-5.8003009!9m1!1b1!16s%2Fg%2F11mf47z2m5?entry=ttu&g_ep=EgoyMDI2MDUzMS4wIKXMDSoASAFQAw%3D%3D',
-};
-
-const RESENAS = [
-  { nombre: 'José Ventura Mora ponce', estrellas: 5, texto: 'Trato inigualable, siempre por y para sus clientes darles el mejor servicio. Calidad y confianza .' },
-  { nombre: 'Elisabet Sanchez', estrellas: 5, texto: 'Grandes profesionales, se adaptan a los gustos o necesidades del cliente para ofrecer el mejor servicio. Muy recomendables.' },
-  { nombre: 'Pedro José Huertas Chamizo', estrellas: 5, texto: 'Gran empresa, buen trato y buen producto!! Repetiremos !!' },
-  { nombre: 'María Jesús Ramiro', estrellas: 5, texto: 'Muy buena experiencia en la compra del coche. Me asesoró con claridad, fue profesional y cercano en todo momento, resolvió mis dudas y el proceso fue rápido y transparente. Muy contenta con la atención y con el coche. ¡Totalmente recomendable!' },
-];
-
-const iniciales = (n: string) => n.replace('[EJEMPLO]', '').trim().split(' ').filter(Boolean).slice(0,2).map(p => p[0]?.toUpperCase() ?? '').join('');
-const colores = ['#cc1c1c', '#1d4ed8', '#0a7d33', '#9333ea', '#d97706', '#0891b2'];
+// Carrusel de reseñas de la home. Los datos están en src/lib/resenas.js.
+import TarjetaResena from './TarjetaResena.astro'
+import { RESENAS, NOTA, TOTAL, URL_VALORAR } from '../lib/resenas.js'
 ---
-<section class="rs">
-  <div class="rs-header">
-    <span class="tag" style="color:var(--red);">Opiniones reales</span>
-    <h2 class="s-title">Lo que dicen nuestros clientes</h2>
-    <div class="rs-resumen">
-      <div class="rs-nota">{RESUMEN.nota.toLocaleString('es-ES', { minimumFractionDigits: 1 })}</div>
+
+<section class='rs'>
+  <div class='rs-header'>
+    <span class='tag' style='color:var(--red);'>Opiniones reales</span>
+    <h2 class='s-title'>Lo que dicen nuestros clientes</h2>
+    <div class='rs-resumen'>
+      <div class='rs-nota'>
+        {NOTA.toLocaleString('es-ES', { minimumFractionDigits: 1 })}
+      </div>
       <div>
-        <div class="rs-estrellas-top">
-          {Array.from({ length: 5 }).map((_, i) => <span class={i < Math.round(RESUMEN.nota) ? 'on' : ''}>★</span>)}
-        </div>
-        <div class="rs-total">Basado en {RESUMEN.total} reseñas en Google</div>
+        <div class='rs-estrellas-top' aria-hidden='true'>★★★★★</div>
+        <div class='rs-total'>{TOTAL} reseñas en Google</div>
       </div>
     </div>
   </div>
 
-  <div class="rs-grid">
-    {RESENAS.map((r, idx) => (
-      <div class="rs-card">
-        <div class="rs-card-top">
-          <div class="rs-avatar" style={`background:${colores[idx % colores.length]}`}>{iniciales(r.nombre)}</div>
-          <div>
-            <div class="rs-nombre">{r.nombre}</div>
-            <div class="rs-estrellas">{Array.from({ length: 5 }).map((_, i) => <span class={i < r.estrellas ? 'on' : ''}>★</span>)}</div>
-          </div>
-          <span class="rs-google">Google</span>
-        </div>
-        <p class="rs-texto">{r.texto}</p>
-      </div>
-    ))}
+  <div class='rs-carrusel'>
+    <button type='button' class='rs-flecha rs-prev' aria-label='Reseñas anteriores'
+      >‹</button
+    >
+    <div class='rs-pista' tabindex='0' role='region' aria-label='Reseñas de clientes'>
+      {RESENAS.map((r, i) => <TarjetaResena r={r} i={i} corta />)}
+    </div>
+    <button type='button' class='rs-flecha rs-next' aria-label='Más reseñas'
+      >›</button
+    >
   </div>
 
-  <div class="rs-cta">
-    <a href={RESUMEN.urlGoogle} target="_blank" rel="noopener">Ver todas las reseñas en Google →</a>
+  <div class='rs-cta'>
+    <a href={URL_VALORAR} class='hero-btn-main' target='_blank' rel='noopener'
+      >★ Valóranos en Google</a
+    >
+    <a href='/opiniones/' class='rs-todas'>Ver todas las opiniones →</a>
   </div>
 </section>
 
 <style>
-  .rs { max-width: 1100px; margin: 0 auto; }
-  .rs-header { text-align: center; margin-bottom: 2.5rem; }
-  .rs-resumen { display: inline-flex; align-items: center; gap: 1rem; margin-top: 1rem; background: var(--gray); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.5rem; }
-  .rs-nota { font-family: var(--font-h); font-size: 2.6rem; font-weight: 800; color: var(--text); line-height: 1; }
-  .rs-estrellas-top span, .rs-estrellas span { color: #d1d1d6; font-size: 1rem; }
-  .rs-estrellas-top span.on, .rs-estrellas span.on { color: #fbbf24; }
-  .rs-total { font-size: .82rem; color: var(--muted); margin-top: .2rem; }
-  .rs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
-  .rs-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem; }
-  .rs-card-top { display: flex; align-items: center; gap: .7rem; margin-bottom: .9rem; }
-  .rs-avatar { width: 44px; height: 44px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .95rem; flex-shrink: 0; }
-  .rs-nombre { font-weight: 700; font-size: .92rem; }
-  .rs-estrellas { font-size: .85rem; }
-  .rs-google { margin-left: auto; font-size: .72rem; font-weight: 700; color: var(--muted); align-self: flex-start; }
-  .rs-texto { color: var(--text); line-height: 1.6; font-size: .9rem; margin: 0; }
-  .rs-cta { text-align: center; margin-top: 2rem; }
-  .rs-cta a { color: var(--red); font-weight: 700; text-decoration: none; font-size: .9rem; }
+  .rs {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .rs-header {
+    margin-bottom: 2.2rem;
+    text-align: center;
+  }
+  .rs-resumen {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--gray);
+  }
+  .rs-nota {
+    font-family: var(--font-h);
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+  }
+  .rs-estrellas-top {
+    font-size: 1.05rem;
+    letter-spacing: 2px;
+    color: #fbbf24;
+  }
+  .rs-total {
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Carrusel: se desliza con el dedo; en ordenador, también con las flechas */
+  .rs-carrusel {
+    position: relative;
+  }
+  .rs-pista {
+    display: flex;
+    gap: 1.2rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 0.2rem;
+    padding: 0.2rem 0.2rem 1rem;
+    scrollbar-width: thin;
+  }
+  .rs-pista :global(.rs-card) {
+    flex: 0 0 min(320px, 82vw);
+    scroll-snap-align: start;
+  }
+  .rs-flecha {
+    position: absolute;
+    top: 45%;
+    z-index: 2;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: var(--shadow);
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text);
+    cursor: pointer;
+    transform: translateY(-50%);
+  }
+  .rs-prev {
+    left: -16px;
+  }
+  .rs-next {
+    right: -16px;
+  }
+  .rs-flecha:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  @media (hover: none), (max-width: 760px) {
+    .rs-flecha {
+      display: none;
+    }
+  }
+
+  .rs-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem 1.6rem;
+    margin-top: 1.6rem;
+  }
+  .rs-todas {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--red);
+  }
 </style>
+
+<script>
+  // Flechas: avanzan una tarjeta
+  document.querySelectorAll('.rs-carrusel').forEach((c) => {
+    const pista = c.querySelector<HTMLElement>('.rs-pista')!
+    const mover = (dir: number) => {
+      const tarjeta = pista.querySelector<HTMLElement>('.rs-card')
+      const paso = (tarjeta?.offsetWidth ?? 320) + 19
+      pista.scrollBy({ left: dir * paso, behavior: 'smooth' })
+    }
+    c.querySelector('.rs-prev')?.addEventListener('click', () => mover(-1))
+    c.querySelector('.rs-next')?.addEventListener('click', () => mover(1))
+  })
+</script>

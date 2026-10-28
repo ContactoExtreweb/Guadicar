@@ -3,11 +3,34 @@ export const prerender = false
 import Base from '../../layouts/Base.astro'
 import FichaVehiculo from '../../components/FichaVehiculo.astro'
 import NoEncontrado from '../../components/NoEncontrado.astro'
-import { getVehiculo } from '../../lib/coches.js'
+import { getVehiculos } from '../../lib/coches.js'
 import { cachearEnCDN } from '../../lib/cache.js'
 
 const { slug } = Astro.params
-const v = await getVehiculo(slug)
+
+// Una sola consulta: el coche y los "similares" salen del mismo listado de
+// publicados (los no publicados no están, así que dan 404)
+// ponytail: con varios cientos de coches, pedir el coche y los similares aparte
+const todos = await getVehiculos()
+const v = todos.find((c) => c.slug === slug) ?? null
+
+// Similares: misma carrocería y marca suman; cuanto más lejos el precio, menos
+const similares = v
+  ? todos
+      .filter((c) => c.id !== v.id)
+      .map((c) => ({
+        c,
+        puntos:
+          (c.carroceria === v.carroceria ? 2 : 0) +
+          (c.marca === v.marca ? 1 : 0) -
+          (v.precio > 0 && c.precio > 0
+            ? Math.abs(c.precio - v.precio) / v.precio
+            : 1),
+      }))
+      .sort((a, b) => b.puntos - a.puntos)
+      .slice(0, 4)
+      .map((x) => x.c)
+  : []
 
 // Si el coche no existe (o se vendió y se despublicó), la misma URL responde
 // con el contenido del 404 y estado 404 de verdad. Antes redirigía a /404, que
@@ -21,7 +44,7 @@ cachearEnCDN(Astro.response.headers)
 
 {
   v ? (
-    <FichaVehiculo v={v} />
+    <FichaVehiculo v={v} similares={similares} />
   ) : (
     <Base
       title='Vehículo no disponible | GuadiCar'
