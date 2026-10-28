@@ -2726,15 +2726,6 @@ button {
   color: var(--red);
   font-weight: 600;
 }
-.legal-aviso {
-  background: var(--gray);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--red);
-  border-radius: 12px;
-  padding: 1rem 1.2rem;
-  margin: 1.5rem 0;
-  font-size: 0.9rem;
-}
 .legal-btn {
   display: inline-block;
   margin-top: 1rem;
