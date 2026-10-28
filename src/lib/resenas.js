@@ -31,16 +31,14 @@ export const RESENAS = [
       'Un trato excepcional de principio a fin. Profesionales, atentos y muy cercanos. Me asesoraron perfectamente y consiguieron que todo el proceso fuera sencillo y agradable. Muy recomendable.',
   },
   {
-    // ponytail: texto cortado en la captura; pendiente del texto completo
     nombre: 'Azucena Tapia Rodriguez',
     texto:
-      'Nuestra experiencia ha sido excelente de principio a fin. Recientemente hemos comprado una furgoneta en este concesionario y no podríamos estar más satisfechos…',
+      'Nuestra experiencia ha sido excelente de principio a fin. Recientemente hemos comprado una furgoneta en este concesionario y no podríamos estar más satisfechos. Desde el primer momento nos atendieron con mucha profesionalidad, cercanía y transparencia, resolviendo todas nuestras dudas y asesorándonos sin ningún tipo de presión.\n\nSin duda, recomendamos este concesionario al 100 % a cualquiera que esté buscando un vehículo y una atención de confianza. ¡Muchas gracias por hacer que la compra haya sido una experiencia tan positiva!',
   },
   {
-    // ponytail: texto cortado en la captura; pendiente del texto completo
     nombre: 'Juan Carlos De La Natividad Palacios',
     texto:
-      'Un centro multimarca donde comprar tú próximo coche con total garantía. Entramos en su concesionario por casualidad y salimos con un coche de bajo del brazo…',
+      'Un centro multimarca donde comprar tú próximo coche con total garantía. Entramos en su concesionario por casualidad y salimos con un coche de bajo del brazo; está claro que si te dejas asesorar por ellos, que aúnan seriedad y experiencia, el éxito está asegurado. Así que nada, a seguir así que vais por el buen camino!',
   },
   {
     nombre: 'Laura Domínguez',

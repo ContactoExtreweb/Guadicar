@@ -495,8 +495,7 @@ es cuestión de meses (dominio nuevo compitiendo contra Flexicar y portales).
   Tarjeta A6 imprimible con el QR en `material/qr-resenas-a6.png`. En la web: carrusel
   en la home, página `/opiniones` y "Valóranos en Google" en el pie.
 - **Reseñas en la web** (14 a octubre 2026): se copian a mano en `src/lib/resenas.js`,
-  con el texto literal de Google. Al llegar reseñas nuevas, añadirlas ahí. Faltan los
-  textos completos de Azucena Tapia y Juan Carlos De La Natividad (salen cortados).
+  con el texto literal de Google. Al llegar reseñas nuevas, añadirlas ahí.
   Sin schema de valoración (Google no admite el que pone el propio negocio).
 - Responder a todas las reseñas.
 - Vídeo de instalaciones y frase de empresa para la home.
