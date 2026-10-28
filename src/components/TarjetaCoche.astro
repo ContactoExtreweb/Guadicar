@@ -1,0 +1,147 @@
+---
+// Tarjeta de coche: la usan la home, el catálogo, la página de segunda mano y
+// "Coches similares" de la ficha. (La de "Continúa donde lo dejaste" la pinta
+// el navegador en index.astro con el mismo HTML.)
+// Lo que se pase además de `c` (p. ej. data-* del catálogo) va al <a>.
+import { badgeDe, fmt } from '../lib/coches.js'
+
+const { c, class: clase, ...resto } = Astro.props
+
+const SIETE_DIAS = 7 * 86400000
+const recienLlegado =
+  c.createdAt && Date.now() - new Date(c.createdAt).getTime() < SIETE_DIAS
+const rebaja =
+  !c.precioOculto && c.precioAnterior > c.precio ? c.precioAnterior - c.precio : 0
+const fotos = c.fotos ?? []
+---
+
+<a href={`/vehiculos/${c.slug}`} class:list={['car-card', clase]} {...resto}>
+  <div class='car-img'>
+    <img
+      src={fotos[0] || '/placeholder-coche.svg'}
+      alt={`${c.marca} ${c.modelo}`}
+      width='640'
+      height='440'
+      loading='lazy'
+      decoding='async'
+    />
+    {
+      fotos[1] && (
+        <img
+          class='car-img-alt'
+          data-src={fotos[1]}
+          alt=''
+          aria-hidden='true'
+          width='640'
+          height='440'
+        />
+      )
+    }
+    <div class='car-img-overlay'></div>
+    <div class='car-badge'>{badgeDe(c)}</div>
+    {recienLlegado && <div class='car-nuevo'>Recién llegado</div>}
+    {c.certificado && <div class='car-cinta'>Certificado</div>}
+    {c.reservado && <div class='car-reservado'>Reservado</div>}
+    {rebaja > 0 && <div class='car-rebaja'>Rebajado {fmt(rebaja)} €</div>}
+    {
+      fotos.length > 1 && (
+        <span class='car-nfotos' aria-label={`${fotos.length} fotos`}>
+          <svg viewBox='0 0 24 24' aria-hidden='true'
+            ><path d='M4 7h3l2-2h6l2 2h3v12H4z'></path><circle
+              cx='12'
+              cy='13'
+              r='3.5'></circle></svg
+          >
+          {fotos.length}
+        </span>
+      )
+    }
+  </div>
+  <div class='car-body'>
+    <div class='car-brand'>{c.marca}</div>
+    <div class='car-name'>{c.modelo}</div>
+    {c.version && <div class='car-version'>{c.version}</div>}
+    <ul class='car-datos'>
+      {
+        c.anio && (
+          <li>
+            <svg viewBox='0 0 24 24' aria-hidden='true'
+              ><rect x='3' y='5' width='18' height='16' rx='2'></rect><path
+                d='M3 9h18M8 3v4M16 3v4'></path></svg
+            >
+            {c.anio}
+          </li>
+        )
+      }
+      {
+        c.km != null && (
+          <li>
+            <svg viewBox='0 0 24 24' aria-hidden='true'
+              ><path d='M4 18a8 8 0 1 1 16 0'></path><path d='M12 18l4-5'
+              ></path></svg
+            >
+            {fmt(c.km)} km
+          </li>
+        )
+      }
+      {
+        c.combustible && (
+          <li>
+            <svg viewBox='0 0 24 24' aria-hidden='true'
+              ><path d='M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M4 21h12M9 9h4'
+              ></path><path d='M15 8l3 3v6a1.5 1.5 0 0 0 3 0V9l-2-2'></path></svg
+            >
+            {c.combustible}
+          </li>
+        )
+      }
+      {
+        c.cambio && (
+          <li>
+            <svg viewBox='0 0 24 24' aria-hidden='true'
+              ><circle cx='12' cy='12' r='3'></circle><path
+                d='M12 3v3M12 18v3M3 12h3M18 12h3'></path></svg
+            >
+            {c.cambio}
+          </li>
+        )
+      }
+    </ul>
+    <div class='car-price-row'>
+      {
+        c.precioOculto ? (
+          <div class='car-price-consultar'>Precio a consultar</div>
+        ) : (
+          <>
+            <div class='car-price-main'>
+              <span class='car-price'>
+                {fmt(c.precio)}
+                <span style='font-size:1rem;'>€</span>
+              </span>
+              {rebaja > 0 && (
+                <span class='car-price-old'>{fmt(c.precioAnterior)}€</span>
+              )}
+            </div>
+            <div class='car-price-fin'>
+              Desde <strong>{c.cuota}€/mes*</strong>
+            </div>
+          </>
+        )
+      }
+    </div>
+    <span class='btn-card'>Ver ficha</span>
+  </div>
+</a>
+
+<script>
+  // Segunda foto al pasar el ratón: se descarga solo la primera vez que se
+  // pasa por encima, no al cargar la página
+  document.addEventListener('mouseover', (e) => {
+    const img = (e.target as Element)
+      .closest?.('.car-card')
+      ?.querySelector<HTMLImageElement>('.car-img-alt[data-src]')
+    if (!img) return
+    img.src = img.dataset.src!
+    img.removeAttribute('data-src')
+  })
+</script>

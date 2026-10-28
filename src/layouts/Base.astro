@@ -4,21 +4,16 @@ import ChatBot from '../components/ChatBot.astro'
 import '../styles/styles.css'
 import Newsletter from '../components/Newsletter.astro'
 import CookieBanner from '../components/CookieBanner.astro'
-import '@fontsource/inter/400.css'
-import '@fontsource/inter/500.css'
-import '@fontsource/inter/600.css'
-import '@fontsource/inter/700.css'
-import '@fontsource/montserrat/600.css'
-import '@fontsource/montserrat/700.css'
-import '@fontsource/montserrat/800.css'
-import '@fontsource/montserrat/900.css'
+// Fuentes variables: un archivo por familia con todos los grosores (antes, 8 archivos)
+import '@fontsource-variable/inter'
+import '@fontsource-variable/montserrat'
 import { computeCuota, MESES, TIN, TAE } from '../lib/financiacion.js'
 // @ts-check
 const pct = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2 })
 const {
   title = 'GuadiCar Multimarcas — Vehículos de Ocasión y Km0 en Villanueva de la Serena',
   description = 'Concesionario multimarca en Villanueva de la Serena (Badajoz). Vehículos de ocasión, Km0 y nuevos con garantía y financiación. 35 años de experiencia.',
-  image = '/logo.png',
+  image = '/og-guadicar.jpg', // imagen al compartir la página (las fichas usan su foto)
   heroNav = false, // true en páginas con hero oscuro (inicio)
   solidNav = true, // true en páginas que siempre deben tener navbar sólido
   noindex = false, // true en páginas que no deben salir en Google (p. ej. la baja)
@@ -97,7 +92,10 @@ const negocio = {
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <link rel='icon' type='image/png' href='/logo.png' />
+    <link rel='icon' href='/favicon.svg' type='image/svg+xml' />
+    <link rel='icon' href='/favicon-48.png' type='image/png' sizes='48x48' />
+    <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
+    <meta name='theme-color' content='#0d0d0d' />
     <title>{title}</title>
     <meta name='description' content={description} />
     <link rel='canonical' href={canonical} />
@@ -108,6 +106,7 @@ const negocio = {
     <meta property='og:image' content={new URL(image, Astro.site).href} />
     <meta property='og:url' content={canonical} />
     <meta property='og:locale' content='es_ES' />
+    <meta name='twitter:card' content='summary_large_image' />
     <script type='application/ld+json' set:html={JSON.stringify(negocio)} />
   </head>
   <body>
@@ -188,6 +187,11 @@ const negocio = {
           </div>
           <div class='footer-col'>
             <h4>Empresa</h4><ul>
+              <li>
+                <a href='/coches-segunda-mano-villanueva-de-la-serena/'
+                  >Coches de segunda mano</a
+                >
+              </li>
               <li><a href='/servicios/'>Servicios</a></li><li>
                 <a href='/nosotros/'>Nosotros</a>
               </li><li><a href='/contacto/'>Contacto</a></li>

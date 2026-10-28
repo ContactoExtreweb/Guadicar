@@ -4,14 +4,38 @@
 import Base from '../layouts/Base.astro'
 import { badgeDe, fmt, ejemploFinanciacion } from '../lib/coches.js'
 import Calculadora from './Calculadora.astro'
+import TarjetaCoche from './TarjetaCoche.astro'
 
-const { v } = Astro.props
+const { v, similares = [] } = Astro.props
 
 // Ejemplo representativo que acompaña a la cuota (Ley 16/2011, art. 9)
 const ej = v.precioOculto ? null : ejemploFinanciacion(v.precio)
 const pct = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2 })
 
-const titulo = `${v.marca} ${v.modelo} ${v.version ?? ''} de ${v.estado === 'km0' ? 'Km0' : 'ocasión'} | GuadiCar`
+// "de segunda mano en Villanueva de la Serena": es lo que se busca en Google
+const tipo =
+  v.estado === 'km0' ? 'Km0' : v.estado === 'nuevo' ? 'nuevo' : 'de segunda mano'
+const titulo = `${v.marca} ${v.modelo} ${tipo} en Villanueva de la Serena | GuadiCar`
+
+// WhatsApp con el mensaje ya escrito: el coche y su enlace
+const nombreCoche = `${v.marca} ${v.modelo}${v.version ? ' ' + v.version : ''}`
+const urlWhatsApp = `https://wa.me/34722496124?text=${encodeURIComponent(
+  `Hola, me interesa el ${nombreCoche} que tenéis en la web: https://guadicar.es/vehiculos/${v.slug}`,
+)}`
+
+// Puntos fuertes sacados de sus datos (se muestran si salen al menos 2)
+const puntosFuertes = [
+  v.cambio === 'Automático' && 'Cambio automático',
+  v.combustible === 'Eléctrico' && '100 % eléctrico',
+  v.combustible === 'Híbrido' && 'Híbrido',
+  v.km != null && v.km < 50000 && `Solo ${fmt(v.km)} km`,
+  v.anio && v.anio >= new Date().getFullYear() - 3 && `Seminuevo (${v.anio})`,
+  v.potencia >= 150 && `${v.potencia} CV`,
+  v.equipamiento?.length >= 10 && `${v.equipamiento.length} extras`,
+  v.certificado && 'Revisado y certificado',
+]
+  .filter(Boolean)
+  .slice(0, 4)
 const desc = v.precioOculto
   ? `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. Precio a consultar. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
   : `${v.marca} ${v.modelo} ${v.anio}, ${fmt(v.km)} km, ${v.combustible}. ${fmt(v.precio)}€ o desde ${v.cuota}€/mes. Vehículo revisado y certificado en Villanueva de la Serena (Badajoz).`
@@ -120,7 +144,7 @@ const ic = {
 const fotos = Array.isArray(v.fotos) ? v.fotos : []
 ---
 
-<Base title={titulo} description={desc} image={v.fotos[0] ?? '/logo.png'}>
+<Base title={titulo} description={desc} image={v.fotos[0] ?? '/og-guadicar.jpg'}>
   <section class='ficha'>
     <div data-vehiculo-id={v.id} data-slug={v.slug}></div>
     <!-- Migas de pan (bueno para SEO y navegación) -->
@@ -251,6 +275,16 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
         <div class='car-brand'>{v.marca}</div>
         <h1 class='ficha-title'>{v.modelo} <span>{v.version}</span></h1>
 
+        {
+          puntosFuertes.length >= 2 && (
+            <ul class='ficha-puntos'>
+              {puntosFuertes.map((p) => (
+                <li>{p}</li>
+              ))}
+            </ul>
+          )
+        }
+
         <div class='ficha-specs'>
           <div class='spec'><span>Año</span><strong>{v.anio}</strong></div>
           <div class='spec'>
@@ -307,6 +341,59 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
         <div class='ficha-ctas'>
           <a href={`/contacto/?coche=${v.slug}`} class='hero-btn-main'
             >Me interesa este coche</a
+          >
+          <div class='ficha-ctas-fila'>
+            <a
+              href={urlWhatsApp}
+              class='ficha-btn ficha-btn--wa'
+              target='_blank'
+              rel='noopener'
+            >
+              <svg viewBox='0 0 24 24' aria-hidden='true'
+                ><path
+                  d='M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.2 1.4 2.5 1.5.3.2.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.7-.2 1.4z'
+                ></path></svg
+              >
+              WhatsApp
+            </a>
+            <a href='tel:+34722496124' class='ficha-btn'>
+              <svg viewBox='0 0 24 24' aria-hidden='true' class='ficha-btn-linea'
+                ><path
+                  d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z'
+                ></path></svg
+              >
+              Llamar
+            </a>
+            <button type='button' class='ficha-btn' data-compartir>
+              <svg viewBox='0 0 24 24' aria-hidden='true' class='ficha-btn-linea'
+                ><circle cx='18' cy='5' r='3'></circle><circle cx='6' cy='12' r='3'
+                ></circle><circle cx='18' cy='19' r='3'></circle><path
+                  d='M8.6 13.5l6.8 4M15.4 6.5l-6.8 4'></path></svg
+              >
+              <span data-compartir-texto>Compartir</span>
+            </button>
+          </div>
+        </div>
+
+        <ul class='ficha-sellos'>
+          <li>Garantía mínima de 1 año</li>
+          {v.certificado && <li>Revisado y certificado</li>}
+          <li>Financiación a medida</li>
+          <li>Aceptamos tu coche como parte del pago</li>
+        </ul>
+
+        <div class='ficha-visita'>
+          <div>
+            <strong>Ven a verlo</strong>
+            <span>Polígono Cagancha, 39 · Villanueva de la Serena</span>
+            <span class='ficha-horario' data-horario
+              >L-V 10:00–14:00 y 17:00–21:00 · Sáb 10:00–13:00</span
+            >
+          </div>
+          <a
+            href='https://www.google.com/maps/dir/?api=1&destination=38.9678152,-5.8003009'
+            target='_blank'
+            rel='noopener'>Cómo llegar</a
           >
         </div>
       </div>
@@ -870,6 +957,35 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
     </div>
   </section>
 
+  {
+    similares.length > 0 && (
+      <section class='section section--gray'>
+        <div class='s-header--row'>
+          <div>
+            <span class='tag'>Te puede interesar</span>
+            <h2 class='s-title'>Coches similares</h2>
+          </div>
+          <a href='/vehiculos/' class='ficha-ver-todo'>
+            Ver todo el catálogo →
+          </a>
+        </div>
+        <div class='cars-grid'>
+          {similares.map((c: any) => (
+            <TarjetaCoche c={c} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Barra fija en móvil: llamar o escribir sin tener que volver arriba -->
+  <div class='ficha-barra'>
+    <a href='tel:+34722496124' class='ficha-barra-tel'>Llamar</a>
+    <a href={urlWhatsApp} class='ficha-barra-wa' target='_blank' rel='noopener'
+      >WhatsApp</a
+    >
+  </div>
+
   <script type='application/ld+json' set:html={JSON.stringify(schemaCoche)} />
   <script
     type='application/ld+json'
@@ -968,6 +1084,176 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
       display: flex;
       flex-direction: column;
       gap: 0.7rem;
+    }
+
+    /* Puntos fuertes bajo el título */
+    .ficha-puntos {
+      list-style: none;
+      margin: 0 0 1rem;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .ficha-puntos li {
+      padding: 0.3rem 0.7rem;
+      border: 1px solid rgba(204, 28, 28, 0.2);
+      border-radius: 999px;
+      background: rgba(204, 28, 28, 0.07);
+      color: var(--red);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    /* WhatsApp, llamar y compartir */
+    .ficha-ctas-fila {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .ficha-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.7rem 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .ficha-btn:hover {
+      border-color: var(--text);
+    }
+    .ficha-btn svg {
+      flex: 0 0 auto;
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+    .ficha-btn .ficha-btn-linea {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ficha-btn--wa {
+      border-color: #25d366;
+      background: #25d366;
+      color: #fff;
+    }
+    .ficha-btn--wa:hover {
+      border-color: #1ebe5a;
+      background: #1ebe5a;
+    }
+
+    /* Sellos de confianza */
+    .ficha-sellos {
+      list-style: none;
+      margin: 1.2rem 0 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.9rem;
+    }
+    .ficha-sellos li {
+      position: relative;
+      padding-left: 1.35rem;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .ficha-sellos li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    /* Ven a verlo */
+    .ficha-visita {
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--gray);
+    }
+    .ficha-visita div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .ficha-visita strong {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .ficha-horario.abierto {
+      color: #0a7d33;
+      font-weight: 700;
+    }
+    .ficha-horario.cerrado {
+      color: #b91c1c;
+      font-weight: 700;
+    }
+    .ficha-visita a,
+    .ficha-ver-todo {
+      flex: 0 0 auto;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    /* Barra fija de móvil */
+    .ficha-barra {
+      display: none;
+    }
+    @media (max-width: 760px) {
+      .ficha-barra {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 900;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        padding: 0.6rem 0.8rem calc(0.6rem + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+      }
+      .ficha-barra a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.8rem;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+      .ficha-barra-tel {
+        background: #0d0d0d;
+      }
+      .ficha-barra-wa {
+        background: #25d366;
+      }
+      .ficha-sellos {
+        grid-template-columns: 1fr;
+      }
     }
     @property --aura-ang {
       syntax: '<angle>';
@@ -1721,6 +2007,76 @@ const fotos = Array.isArray(v.fotos) ? v.fotos : []
             if (!r.ok) console.warn('No se pudo registrar la vista:', r.status)
           })
           .catch(() => {})
+      }
+    }
+  </script>
+
+  <script>
+    // @ts-nocheck
+    // ── Compartir: menú nativo del móvil; en ordenador, copia el enlace ──
+    document.querySelectorAll('[data-compartir]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const url = location.origin + location.pathname
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: document.title, url })
+          } catch {} // el usuario cerró el menú
+          return
+        }
+        const texto = btn.querySelector('[data-compartir-texto]')
+        try {
+          await navigator.clipboard.writeText(url)
+          texto.textContent = '¡Copiado!'
+        } catch {
+          texto.textContent = 'No se pudo copiar'
+        }
+        setTimeout(() => (texto.textContent = 'Compartir'), 2000)
+      })
+    })
+
+    // ── Abierto ahora: con la hora de España, sea cual sea la del visitante ──
+    // ponytail: no tiene en cuenta festivos
+    const HORARIO = {
+      0: [], // domingo
+      1: [[10, 14], [17, 21]],
+      2: [[10, 14], [17, 21]],
+      3: [[10, 14], [17, 21]],
+      4: [[10, 14], [17, 21]],
+      5: [[10, 14], [17, 21]],
+      6: [[10, 13]],
+    }
+    const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+    const el = document.querySelector('[data-horario]')
+    if (el) {
+      const p = Object.fromEntries(
+        new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Europe/Madrid',
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23',
+        })
+          .formatToParts(new Date())
+          .map((x) => [x.type, x.value]),
+      )
+      const dia = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday)
+      const hora = Number(p.hour) + Number(p.minute) / 60
+      const abierto = HORARIO[dia].find(([a, c]) => hora >= a && hora < c)
+      if (abierto) {
+        el.textContent = `Abierto ahora · cierra a las ${abierto[1]}:00`
+        el.classList.add('abierto')
+      } else {
+        let texto = ''
+        const luego = HORARIO[dia].find(([a]) => a > hora)
+        if (luego) texto = `abre hoy a las ${luego[0]}:00`
+        else
+          for (let i = 1; i <= 7 && !texto; i++) {
+            const d = (dia + i) % 7
+            if (HORARIO[d].length)
+              texto = `abre ${i === 1 ? 'mañana' : 'el ' + DIAS[d]} a las ${HORARIO[d][0][0]}:00`
+          }
+        el.textContent = `Cerrado · ${texto}`
+        el.classList.add('cerrado')
       }
     }
   </script>

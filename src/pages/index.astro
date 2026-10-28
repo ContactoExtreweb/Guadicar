@@ -2,30 +2,91 @@
 import Base from '../layouts/Base.astro'
 import Newsletter from '../components/Newsletter.astro'
 import Resenas from '../components/Resenas.astro'
-import {
-  getDestacados,
-  getOcasionSemana,
-  getUltimos,
-  fmt,
-  badgeDe,
-} from '../lib/coches.js'
+import TarjetaCoche from '../components/TarjetaCoche.astro'
+import { getVehiculos, fmt } from '../lib/coches.js'
 import { cachearEnCDN } from '../lib/cache.js'
 
 export const prerender = false // para mostrar los coches reales y que se actualice al añadirlos
 
-// Las tres consultas a la vez, y solo los 4 últimos en vez del catálogo entero
-const [destacados, ocasion, publicados] = await Promise.all([
-  getDestacados(), // coches marcados como "destacado" en el panel
-  getOcasionSemana(), // coche marcado como "ocasión de la semana"
-  getUltimos(4), // 4 coches publicados sin marcar como destacados
-])
+// Una sola consulta para toda la home: con el stock de un concesionario sale
+// más barato traerlo entero y repartirlo aquí que hacer una por bloque.
+// ponytail: si el stock pasara de varios cientos, pedir cada bloque aparte
+const coches = await getVehiculos() // publicados, el más reciente primero
+const ocasion = coches.find((c) => c.ocasionSemana) ?? null
+const destacados = coches.filter((c) => c.destacado).slice(0, 4)
+const publicados = coches.filter((c) => !c.destacado).slice(0, 4)
+
+// "Explora el stock": accesos al catálogo ya filtrado, con cuántos hay
+const contar = (campo: 'marca' | 'carroceria') =>
+  [
+    ...coches
+      .reduce(
+        (m, c) => (c[campo] ? m.set(c[campo], (m.get(c[campo]) ?? 0) + 1) : m),
+        new Map(),
+      )
+      .entries(),
+  ].sort((a, b) => b[1] - a[1])
+const porMarca = contar('marca')
+const porCarroceria = contar('carroceria')
+// Mismos cortes que los desplegables de precio del catálogo
+const conPrecio = coches.filter((c) => !c.precioOculto && c.precio > 0)
+const porPresupuesto = [
+  { texto: 'Hasta 15.000 €', url: 'pmax=15000', max: 15000 },
+  { texto: '15.000 – 25.000 €', url: 'pmin=15000&pmax=25000', min: 15000, max: 25000 },
+  { texto: 'Más de 25.000 €', url: 'pmin=25000', min: 25000 },
+]
+  .map((p) => ({
+    ...p,
+    n: conPrecio.filter(
+      (c) => (!p.min || c.precio >= p.min) && (!p.max || c.precio <= p.max),
+    ).length,
+  }))
+  .filter((p) => p.n > 0)
+
+// Preguntas frecuentes: solo datos que ya figuran en la web
+const FAQ = [
+  {
+    p: '¿Los coches tienen garantía?',
+    r: 'Sí. Todos nuestros vehículos se entregan revisados y certificados, con una garantía mínima de 1 año.',
+  },
+  {
+    p: '¿Puedo financiar el coche?',
+    r: 'Sí. Te preparamos una financiación a medida, con plazos de hasta 120 meses y una TAE orientativa del 7,99 %, sujeta a aprobación de la entidad financiera. En la ficha de cada coche puedes calcular tu cuota.',
+  },
+  {
+    p: '¿Compráis coches? ¿Podéis tasar el mío?',
+    r: 'Sí. Tasamos tu coche gratis en 24 horas y sin compromiso, y si llegamos a un acuerdo el pago es inmediato.',
+  },
+  {
+    p: 'No encuentro el coche que busco, ¿qué hago?',
+    r: 'Usa nuestro servicio a la carta: dinos qué coche buscas y tu presupuesto, y en menos de 48 horas te contactamos con opciones.',
+  },
+  {
+    p: '¿Puedo ver el coche antes de comprarlo?',
+    r: 'Claro. Ven a vernos al Polígono Cagancha, 39, en Villanueva de la Serena, o llámanos al 722 49 61 24 y te lo tenemos preparado.',
+  },
+  {
+    p: '¿Qué horario tenéis?',
+    r: 'De lunes a viernes, de 10:00 a 14:00 y de 17:00 a 21:00. Los sábados, de 10:00 a 13:00. Los domingos cerramos.',
+  },
+]
+const schemaFaq = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.map((f) => ({
+    '@type': 'Question',
+    name: f.p,
+    acceptedAnswer: { '@type': 'Answer', text: f.r },
+  })),
+}
 
 cachearEnCDN(Astro.response.headers)
 ---
 
 <Base
   heroNav={false}
-  title='GuadiCar Multimarcas — Coches de Ocasión y Km0 en Villanueva de la Serena (Badajoz)'
+  title='GuadiCar Multimarcas | Concesionario de coches de segunda mano en Villanueva de la Serena'
+  description='Concesionario de coches de segunda mano, ocasión y Km0 en Villanueva de la Serena (Badajoz). Vehículos revisados y certificados, con garantía mínima de 1 año y financiación a medida.'
 >
   <!-- Hero: vídeo de las instalaciones a pantalla completa. El vídeo arranca por
        JS (no con autoplay) para respetar "reducir movimiento" y el ahorro de
@@ -218,52 +279,7 @@ cachearEnCDN(Astro.response.headers)
           </a>
         </div>
         <div class='cars-grid'>
-          {destacados.map((c) => (
-            <a href={`/vehiculos/${c.slug}`} class='car-card reveal'>
-              <div class='car-img'>
-                <img
-                  src={c.fotos?.[0] || '/placeholder-coche.svg'}
-                  alt={`${c.marca} ${c.modelo}`}
-                />
-                <div class='car-img-overlay' />
-                {badgeDe(c) && <div class='car-badge'>{badgeDe(c)}</div>}
-                {c.certificado && <div class='car-cinta'>Certificado</div>}
-                {c.reservado && <div class='car-reservado'>Reservado</div>}
-              </div>
-              <div class='car-body'>
-                <div class='car-brand'>{c.marca}</div>
-                <div class='car-name'>{c.modelo}</div>
-                <div class='car-tags'>
-                  <span class='car-tag'>{c.anio}</span>
-                  <span class='car-tag'>{fmt(c.km)} km</span>
-                  <span class='car-tag'>{c.combustible}</span>
-                </div>
-                <div class='car-price-row'>
-                  {c.precioOculto ? (
-                    <div class='car-price-consultar'>Precio a consultar</div>
-                  ) : (
-                    <>
-                      <div class='car-price-main'>
-                        <span class='car-price'>
-                          {fmt(c.precio)}
-                          <span style='font-size:1rem;'>€</span>
-                        </span>
-                        {c.precioAnterior && (
-                          <span class='car-price-old'>
-                            {fmt(c.precioAnterior)}€
-                          </span>
-                        )}
-                      </div>
-                      <div class='car-price-fin'>
-                        Desde <strong>{c.cuota}€/mes*</strong>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <span class='btn-card'>Ver ficha</span>
-              </div>
-            </a>
-          ))}
+          {destacados.map((c) => <TarjetaCoche c={c} class='reveal' />)}
         </div>
       </section>
     )
@@ -287,58 +303,77 @@ cachearEnCDN(Astro.response.headers)
           </a>
         </div>
         <div class='cars-grid'>
-          {publicados.map((c) => (
-            <a href={`/vehiculos/${c.slug}`} class='car-card reveal'>
-              <div class='car-img'>
-                <img
-                  src={c.fotos?.[0] || '/placeholder-coche.svg'}
-                  alt={`${c.marca} ${c.modelo}`}
-                />
-                <div class='car-img-overlay' />
-                {badgeDe(c) && <div class='car-badge'>{badgeDe(c)}</div>}
-                {c.certificado && <div class='car-cinta'>Certificado</div>}
-                {c.reservado && <div class='car-reservado'>Reservado</div>}
+          {publicados.map((c) => <TarjetaCoche c={c} class='reveal' />)}
+        </div>
+      </section>
+    )
+  }
+  {
+    coches.length > 0 && (
+      <section class='section section--gray'>
+        <div class='s-header explora-cab'>
+          <span class='tag'>Nuestro stock</span>
+          <h2 class='s-title'>Encuentra tu coche más rápido</h2>
+        </div>
+        <div class='explora'>
+          <div class='explora-col'>
+            <h3>Por marca</h3>
+            <div class='explora-chips'>
+              {porMarca.map(([m, n]) => (
+                <a href={`/vehiculos/?marca=${encodeURIComponent(m)}`} class='explora-chip'>
+                  {m}
+                  <span>{n}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div class='explora-col'>
+            <h3>Por tipo</h3>
+            <div class='explora-chips'>
+              {porCarroceria.map(([t, n]) => (
+                <a href={`/vehiculos/?carroceria=${encodeURIComponent(t)}`} class='explora-chip'>
+                  {t}
+                  <span>{n}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          {porPresupuesto.length > 0 && (
+            <div class='explora-col'>
+              <h3>Por presupuesto</h3>
+              <div class='explora-chips'>
+                {porPresupuesto.map((p) => (
+                  <a href={`/vehiculos/?${p.url}`} class='explora-chip'>
+                    {p.texto}
+                    <span>{p.n}</span>
+                  </a>
+                ))}
               </div>
-              <div class='car-body'>
-                <div class='car-brand'>{c.marca}</div>
-                <div class='car-name'>{c.modelo}</div>
-                <div class='car-tags'>
-                  <span class='car-tag'>{c.anio}</span>
-                  <span class='car-tag'>{fmt(c.km)} km</span>
-                  <span class='car-tag'>{c.combustible}</span>
-                </div>
-                <div class='car-price-row'>
-                  {c.precioOculto ? (
-                    <div class='car-price-consultar'>Precio a consultar</div>
-                  ) : (
-                    <>
-                      <div class='car-price-main'>
-                        <span class='car-price'>
-                          {fmt(c.precio)}
-                          <span style='font-size:1rem;'>€</span>
-                        </span>
-                        {c.precioAnterior && (
-                          <span class='car-price-old'>
-                            {fmt(c.precioAnterior)}€
-                          </span>
-                        )}
-                      </div>
-                      <div class='car-price-fin'>
-                        Desde <strong>{c.cuota}€/mes*</strong>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <span class='btn-card'>Ver ficha</span>
-              </div>
-            </a>
-          ))}
+            </div>
+          )}
         </div>
       </section>
     )
   }
   <section class='section section--white'>
     <Resenas />
+  </section>
+  <section class='section section--gray'>
+    <div class='s-header explora-cab'>
+      <span class='tag'>Resolvemos tus dudas</span>
+      <h2 class='s-title'>Preguntas frecuentes</h2>
+    </div>
+    <div class='faq'>
+      {
+        FAQ.map((f) => (
+          <details class='faq-item'>
+            <summary>{f.p}</summary>
+            <p>{f.r}</p>
+          </details>
+        ))
+      }
+    </div>
+    <script type='application/ld+json' set:html={JSON.stringify(schemaFaq)} />
   </section>
   <section class='section section--dark video-section'>
     <div class='video-inner'>
@@ -836,6 +871,105 @@ cachearEnCDN(Astro.response.headers)
         min-height: 240px;
       }
     }
+
+    /* ───── Explora el stock y preguntas frecuentes ───── */
+    .explora-cab {
+      max-width: 620px;
+      margin: 0 auto 2.2rem;
+      text-align: center;
+    }
+    .explora {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.2rem;
+    }
+    .explora-col {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+    }
+    .explora-col h3 {
+      margin: 0 0 1rem;
+      font-family: var(--font-h);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+    .explora-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .explora-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .explora-chip span {
+      min-width: 1.4rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      background: var(--gray);
+      font-size: 0.72rem;
+      text-align: center;
+      color: var(--muted);
+    }
+    .explora-chip:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .faq {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .faq-item {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq-item summary::after {
+      content: '+';
+      flex: 0 0 auto;
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--red);
+      transition: transform 0.2s ease;
+    }
+    .faq-item[open] summary::after {
+      transform: rotate(45deg);
+    }
+    .faq-item p {
+      margin: 0;
+      padding: 0 1.2rem 1.1rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
   </style>
 
   <script>
@@ -879,6 +1013,14 @@ cachearEnCDN(Astro.response.headers)
           ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
       )
     const fmt = (n) => Number(n).toLocaleString('es-ES')
+    // Los mismos iconos que TarjetaCoche.astro
+    const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`
+    const ICONOS = {
+      anio: svg('<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 3v4M16 3v4"></path>'),
+      km: svg('<path d="M4 18a8 8 0 1 1 16 0"></path><path d="M12 18l4-5"></path>'),
+      comb: svg('<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M4 21h12M9 9h4"></path><path d="M15 8l3 3v6a1.5 1.5 0 0 0 3 0V9l-2-2"></path>'),
+      cambio: svg('<circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path>'),
+    }
 
     ;(async () => {
       let slugs = []
@@ -891,7 +1033,7 @@ cachearEnCDN(Astro.response.headers)
       const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
       const lista = slugs.map(encodeURIComponent).join(',')
       const res = await fetch(
-        `${url}/rest/v1/vehiculos?select=slug,marca,modelo,anio,km,fotos,precio,precio_oculto,reservado&publicado=eq.true&slug=in.(${lista})`,
+        `${url}/rest/v1/vehiculos?select=slug,marca,modelo,version,anio,km,combustible,cambio,fotos,precio,precio_oculto,reservado&publicado=eq.true&slug=in.(${lista})`,
         { headers: { apikey: key, Authorization: `Bearer ${key}` } },
       ).catch(() => null)
       if (!res?.ok) return
@@ -920,10 +1062,18 @@ cachearEnCDN(Astro.response.headers)
             <div class="car-body">
               <div class="car-brand">${esc(c.marca)}</div>
               <div class="car-name">${esc(c.modelo)}</div>
-              <div class="car-tags">
-                ${c.anio ? `<span class="car-tag">${esc(c.anio)}</span>` : ''}
-                ${c.km != null ? `<span class="car-tag">${fmt(c.km)} km</span>` : ''}
-              </div>
+              ${c.version ? `<div class="car-version">${esc(c.version)}</div>` : ''}
+              <ul class="car-datos">
+                ${[
+                  [ICONOS.anio, c.anio],
+                  [ICONOS.km, c.km != null ? fmt(c.km) + ' km' : ''],
+                  [ICONOS.comb, c.combustible],
+                  [ICONOS.cambio, c.cambio],
+                ]
+                  .filter(([, d]) => d)
+                  .map(([icono, d]) => `<li>${icono}${esc(d)}</li>`)
+                  .join('')}
+              </ul>
               <div class="car-price-row">
                 ${
                   oculto

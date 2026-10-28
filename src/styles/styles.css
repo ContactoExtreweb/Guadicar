@@ -12,8 +12,8 @@
   --white: #ffffff;
   --text: #1a1a1a;
 
-  --font: 'Inter', sans-serif;
-  --font-h: 'Montserrat', sans-serif;
+  --font: 'Inter Variable', 'Inter', sans-serif;
+  --font-h: 'Montserrat Variable', 'Montserrat', sans-serif;
   --radius: 6px;
   --radius-lg: 12px;
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
@@ -2833,4 +2833,109 @@ button {
   font-size: 0.7rem;
   line-height: 1.5;
   opacity: 0.55;
+}
+
+/* ───── Tarjeta de coche: añadidos (TarjetaCoche.astro) ───── */
+/* Segunda foto al pasar el ratón (solo con ratón; en táctil no aparece) */
+.car-img .car-img-alt {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.5s ease;
+}
+@media (hover: hover) {
+  .car-card:hover .car-img-alt[src] {
+    opacity: 1;
+  }
+}
+.car-nuevo {
+  position: absolute;
+  top: 42px;
+  left: 12px;
+  background: #fff;
+  color: var(--text);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.car-rebaja {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+}
+.car-nfotos {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(13, 13, 13, 0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.28rem 0.55rem;
+  border-radius: 6px;
+}
+.car-nfotos svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.car-version {
+  margin: -0.55rem 0 0.8rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.car-datos {
+  list-style: none;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.8rem;
+}
+.car-datos li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.car-datos svg {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Ficha en móvil: hueco para la barra fija (Llamar / WhatsApp) y el botón
+   del chat por encima de ella */
+@media (max-width: 760px) {
+  body:has(.ficha-barra) {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+  body:has(.ficha-barra) .gc-toggle {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
 }
